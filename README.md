@@ -313,7 +313,8 @@ Full API documentation: http://localhost:8000/docs
 
 ## 📄 Documentation
 
-- [Feature Status](FEATURE_STATUS.md) - 🆕 Complete feature matrix and implementation status
+- [Feature Status](FEATURE_STATUS.md) - Complete feature matrix and implementation status
+- [Implemented Features](docs/IMPLEMENTED_FEATURES.md) - 🆕 Detailed guide of all working features with examples
 - [Data Card](docs/DATA_CARD.md) - Data processing and requirements
 - [Model Card](docs/MODEL_CARD.md) - ML model details and limitations
 - [Architecture](docs/ARCHITECTURE.md) - System design and data flow
