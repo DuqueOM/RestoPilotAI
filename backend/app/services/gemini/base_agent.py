@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 
 from google import genai
@@ -412,7 +411,7 @@ class GeminiBaseAgent(ABC):
                 await self.cache.set(prompt, result, temperature=temperature, **kwargs)
             
             logger.info(
-                f"Gemini request completed",
+                "Gemini request completed",
                 extra={
                     "feature": feature,
                     "tokens": usage.total_tokens,
@@ -505,7 +504,7 @@ class GeminiBaseAgent(ABC):
             )
             
             logger.info(
-                f"Multimodal request completed",
+                "Multimodal request completed",
                 extra={
                     "feature": feature,
                     "images": len(images),
@@ -577,7 +576,7 @@ class GeminiBaseAgent(ABC):
             
             return response
             
-        except Exception as e:
+        except Exception:
             latency_ms = int((time.time() - start_time) * 1000)
             self._update_stats(
                 success=False,

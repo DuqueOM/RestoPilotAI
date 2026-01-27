@@ -8,8 +8,6 @@ Coordinates multi-step analysis pipelines with:
 - Agent coordination
 """
 
-import asyncio
-import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -21,12 +19,11 @@ from loguru import logger
 from app.services.gemini.base_agent import (
     GeminiBaseAgent,
     GeminiModel,
-    GeminiUsageStats,
     ThinkingLevel,
 )
 from app.services.gemini.multimodal_agent import MultimodalAgent
 from app.services.gemini.reasoning_agent import ReasoningAgent, ThoughtTrace
-from app.services.gemini.verification_agent import GeminiVerificationAgent, VerificationStatus
+from app.services.gemini.verification_agent import GeminiVerificationAgent
 
 
 class PipelineStage(str, Enum):

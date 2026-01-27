@@ -18,7 +18,7 @@ from uuid import uuid4
 from loguru import logger
 
 from app.services.gemini.multimodal_agent import MultimodalAgent
-from app.services.gemini.reasoning_agent import ReasoningAgent, ThinkingLevel
+from app.services.gemini.reasoning_agent import ReasoningAgent
 
 
 class SentimentSource(str, Enum):
@@ -218,7 +218,7 @@ class SentimentAnalyzer:
         analysis_id = str(uuid4())
         
         logger.info(
-            f"Starting sentiment analysis",
+            "Starting sentiment analysis",
             analysis_id=analysis_id,
             reviews=len(reviews) if reviews else 0,
             photos=len(customer_photos) if customer_photos else 0,
@@ -267,7 +267,7 @@ class SentimentAnalyzer:
         )
         
         logger.info(
-            f"Sentiment analysis completed",
+            "Sentiment analysis completed",
             analysis_id=analysis_id,
             overall_score=result.overall_sentiment_score,
         )
@@ -504,26 +504,26 @@ RESPOND WITH JSON:
         # High priority issues
         if bcg_category == "star" and text_score < 0.3:
             return {
-                "insight": f"⚠️ Star product with declining sentiment - investigate quality issues immediately",
+                "insight": "⚠️ Star product with declining sentiment - investigate quality issues immediately",
                 "priority": "high"
             }
         
         if bcg_category == "cash_cow" and text_score < 0:
             return {
-                "insight": f"⚠️ Cash Cow with negative sentiment - risk of revenue loss, investigate",
+                "insight": "⚠️ Cash Cow with negative sentiment - risk of revenue loss, investigate",
                 "priority": "high"
             }
         
         if portion in ["small", "very_small"] and text_score > 0.5:
             return {
-                "insight": f"💡 Customers love taste but expect larger portions - consider 15-20% increase",
+                "insight": "💡 Customers love taste but expect larger portions - consider 15-20% increase",
                 "priority": "high"
             }
         
         # Medium priority
         if presentation < 6 and bcg_category == "star":
             return {
-                "insight": f"🎨 Star product with presentation issues - improve plating to match demand",
+                "insight": "🎨 Star product with presentation issues - improve plating to match demand",
                 "priority": "medium"
             }
         
@@ -538,13 +538,13 @@ RESPOND WITH JSON:
         # Low priority / positive
         if text_score > 0.7:
             return {
-                "insight": f"✅ Strong positive sentiment - consider featuring in marketing",
+                "insight": "✅ Strong positive sentiment - consider featuring in marketing",
                 "priority": "low"
             }
         
         if portion == "generous" and text_score > 0.5:
             return {
-                "insight": f"✅ Customers appreciate generous portions - maintain current sizing",
+                "insight": "✅ Customers appreciate generous portions - maintain current sizing",
                 "priority": "low"
             }
         

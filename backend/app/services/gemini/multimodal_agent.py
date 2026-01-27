@@ -9,41 +9,36 @@ Handles:
 """
 
 import base64
-import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from loguru import logger
 
-from app.services.gemini.base_agent import (
-    GeminiBaseAgent,
-    GeminiModel,
-    ThinkingLevel,
-)
+from app.services.gemini.base_agent import GeminiBaseAgent, GeminiModel
 
 
 class MultimodalAgent(GeminiBaseAgent):
     """
     Agent specialized in multimodal processing.
-    
+
     Capabilities:
     - Extract structured data from menu images
     - Analyze dish photographs for visual appeal
     - Process PDF documents
     - Evaluate presentation quality
     """
-    
+
     def __init__(
         self,
         model: GeminiModel = GeminiModel.FLASH,
         **kwargs,
     ):
         super().__init__(model=model, **kwargs)
-    
+
     async def process(self, *args, **kwargs) -> Any:
         """Main entry point - routes to specific extraction method."""
         task = kwargs.get("task", "extract_menu")
-        
+
         if task == "extract_menu":
             return await self.extract_menu_from_image(**kwargs)
         elif task == "analyze_dish":
@@ -52,7 +47,7 @@ class MultimodalAgent(GeminiBaseAgent):
             return await self.extract_competitor_menu(**kwargs)
         else:
             raise ValueError(f"Unknown task: {task}")
-    
+
     async def extract_menu_from_image(
         self,
         image_source: Union[str, bytes],
@@ -62,12 +57,12 @@ class MultimodalAgent(GeminiBaseAgent):
     ) -> Dict[str, Any]:
         """
         Extract menu items from a menu image.
-        
+
         Args:
             image_source: Image path, base64 string, or bytes
             additional_context: Additional context about the restaurant
             language_hint: Expected language (auto, es, en, etc.)
-            
+
         Returns:
             Structured menu data with items, categories, and confidence
         """
@@ -81,10 +76,10 @@ class MultimodalAgent(GeminiBaseAgent):
                 image_base64 = image_source
         else:
             image_base64 = base64.b64encode(image_source).decode()
-        
+
         # Detect mime type
         mime_type = self._detect_mime_type(image_base64)
-        
+
         prompt = f"""You are a professional menu data extraction specialist. Analyze this restaurant menu image and extract ALL visible menu items with high accuracy.
 
 INSTRUCTIONS:
@@ -147,22 +142,24 @@ Extract EVERY item visible. Be thorough and accurate."""
                 max_output_tokens=8192,
                 feature="menu_extraction",
             )
-            
+
             result = self._parse_json_response(response)
-            
+
             # Validate and enrich result
             result = self._validate_menu_extraction(result)
-            
+
             logger.info(
-                f"Menu extraction completed",
+                "Menu extraction completed",
                 extra={
                     "items_extracted": len(result.get("items", [])),
-                    "confidence": result.get("extraction_quality", {}).get("confidence", 0),
-                }
+                    "confidence": result.get("extraction_quality", {}).get(
+                        "confidence", 0
+                    ),
+                },
             )
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Menu extraction failed: {e}")
             return {
@@ -171,7 +168,7 @@ Extract EVERY item visible. Be thorough and accurate."""
                 "metadata": {"error": str(e)},
                 "extraction_quality": {"confidence": 0, "error": str(e)},
             }
-    
+
     async def analyze_dish_image(
         self,
         image_source: Union[str, bytes],
@@ -181,12 +178,12 @@ Extract EVERY item visible. Be thorough and accurate."""
     ) -> Dict[str, Any]:
         """
         Analyze a dish photograph for visual appeal and marketability.
-        
+
         Args:
             image_source: Dish photo
             dish_name: Known dish name (if any)
             menu_context: List of menu item names for matching
-            
+
         Returns:
             Visual analysis with scores and recommendations
         """
@@ -199,13 +196,15 @@ Extract EVERY item visible. Be thorough and accurate."""
                 image_base64 = image_source
         else:
             image_base64 = base64.b64encode(image_source).decode()
-        
+
         mime_type = self._detect_mime_type(image_base64)
-        
+
         menu_context_str = ""
         if menu_context:
-            menu_context_str = f"\nMenu items to match against: {', '.join(menu_context[:50])}"
-        
+            menu_context_str = (
+                f"\nMenu items to match against: {', '.join(menu_context[:50])}"
+            )
+
         prompt = f"""You are a professional food photographer and restaurant marketing consultant. Analyze this dish photograph for visual appeal and commercial potential.
 
 {"Known dish name: " + dish_name if dish_name else "Identify the dish from the image."}
@@ -276,16 +275,16 @@ Be objective and constructive in your analysis."""
                 max_output_tokens=4096,
                 feature="dish_analysis",
             )
-            
+
             result = self._parse_json_response(response)
-            
+
             # Add computed attractiveness score
             if "visual_scores" in result:
                 scores = result["visual_scores"]
                 result["attractiveness_score"] = sum(scores.values()) / len(scores) / 10
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Dish analysis failed: {e}")
             return {
@@ -293,7 +292,7 @@ Be objective and constructive in your analysis."""
                 "attractiveness_score": 0.5,
                 "visual_scores": {},
             }
-    
+
     async def analyze_batch_dish_images(
         self,
         images: List[Union[str, bytes]],
@@ -302,16 +301,16 @@ Be objective and constructive in your analysis."""
     ) -> List[Dict[str, Any]]:
         """
         Analyze multiple dish images.
-        
+
         Args:
             images: List of dish photos
             menu_context: Menu items for matching
-            
+
         Returns:
             List of analysis results
         """
         results = []
-        
+
         for i, image in enumerate(images):
             logger.info(f"Analyzing dish image {i + 1}/{len(images)}")
             result = await self.analyze_dish_image(
@@ -321,16 +320,16 @@ Be objective and constructive in your analysis."""
             )
             result["image_index"] = i
             results.append(result)
-        
+
         # Generate summary
         summary = self._generate_batch_summary(results)
-        
+
         return {
             "analyses": results,
             "summary": summary,
             "image_count": len(images),
         }
-    
+
     async def extract_competitor_menu(
         self,
         image_source: Union[str, bytes],
@@ -339,11 +338,11 @@ Be objective and constructive in your analysis."""
     ) -> Dict[str, Any]:
         """
         Extract menu from competitor restaurant image.
-        
+
         Args:
             image_source: Competitor menu image
             competitor_name: Name of competitor (if known)
-            
+
         Returns:
             Structured competitor menu data
         """
@@ -355,9 +354,9 @@ Be objective and constructive in your analysis."""
                 image_base64 = image_source
         else:
             image_base64 = base64.b64encode(image_source).decode()
-        
+
         mime_type = self._detect_mime_type(image_base64)
-        
+
         prompt = f"""Analyze this competitor restaurant menu image for competitive intelligence.
 
 {"Competitor: " + competitor_name if competitor_name else ""}
@@ -414,12 +413,12 @@ RESPOND WITH VALID JSON:
                 max_output_tokens=8192,
                 feature="competitor_extraction",
             )
-            
+
             result = self._parse_json_response(response)
             result["source_type"] = "image"
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Competitor extraction failed: {e}")
             return {
@@ -427,7 +426,7 @@ RESPOND WITH VALID JSON:
                 "items": [],
                 "extraction_confidence": 0,
             }
-    
+
     async def analyze_customer_photos(
         self,
         photos: List[Union[str, bytes]],
@@ -436,17 +435,17 @@ RESPOND WITH VALID JSON:
     ) -> Dict[str, Any]:
         """
         Analyze customer-posted photos for sentiment and quality insights.
-        
+
         Args:
             photos: List of customer photos
             menu_items: Known menu items to match
-            
+
         Returns:
             Visual sentiment analysis with per-dish insights
         """
         if not photos:
             return {"analyses": [], "summary": {}}
-        
+
         # Prepare images
         image_data = []
         for photo in photos[:20]:  # Limit to 20 photos
@@ -458,11 +457,11 @@ RESPOND WITH VALID JSON:
                     image_data.append(photo)
             else:
                 image_data.append(base64.b64encode(photo).decode())
-        
+
         menu_context = ""
         if menu_items:
             menu_context = f"\nKnown menu items: {', '.join(menu_items[:30])}"
-        
+
         prompt = f"""Analyze these customer-posted restaurant photos for sentiment and quality insights.
 
 {menu_context}
@@ -531,9 +530,9 @@ RESPOND WITH VALID JSON:
                 max_output_tokens=8192,
                 feature="customer_photo_analysis",
             )
-            
+
             return self._parse_json_response(response)
-            
+
         except Exception as e:
             logger.error(f"Customer photo analysis failed: {e}")
             return {
@@ -541,53 +540,53 @@ RESPOND WITH VALID JSON:
                 "aggregate_insights": {"error": str(e)},
                 "per_dish_summary": {},
             }
-    
+
     def _detect_mime_type(self, image_data: str) -> str:
         """Detect MIME type from base64 image data."""
         try:
             # Check magic bytes
             decoded = base64.b64decode(image_data[:100])
-            
-            if decoded[:8] == b'\x89PNG\r\n\x1a\n':
+
+            if decoded[:8] == b"\x89PNG\r\n\x1a\n":
                 return "image/png"
-            elif decoded[:2] == b'\xff\xd8':
+            elif decoded[:2] == b"\xff\xd8":
                 return "image/jpeg"
-            elif decoded[:4] == b'GIF8':
+            elif decoded[:4] == b"GIF8":
                 return "image/gif"
-            elif decoded[:4] == b'RIFF' and decoded[8:12] == b'WEBP':
+            elif decoded[:4] == b"RIFF" and decoded[8:12] == b"WEBP":
                 return "image/webp"
-            elif decoded[:4] == b'%PDF':
+            elif decoded[:4] == b"%PDF":
                 return "application/pdf"
-        except:
+        except Exception:
             pass
-        
+
         return "image/jpeg"  # Default
-    
+
     def _validate_menu_extraction(self, result: Dict[str, Any]) -> Dict[str, Any]:
         """Validate and enrich menu extraction results."""
         # Ensure required fields
         if "items" not in result:
             result["items"] = []
-        
+
         if "categories" not in result:
             result["categories"] = []
-        
+
         if "extraction_quality" not in result:
             result["extraction_quality"] = {
                 "confidence": 0.5,
                 "items_clear": len(result["items"]),
             }
-        
+
         # Validate each item
         valid_items = []
         for item in result.get("items", []):
             if not isinstance(item, dict):
                 continue
-            
+
             # Ensure required fields
             if "name" not in item or not item["name"]:
                 continue
-            
+
             # Normalize price
             if "price" in item:
                 try:
@@ -596,26 +595,26 @@ RESPOND WITH VALID JSON:
                     item["price"] = 0.0
             else:
                 item["price"] = 0.0
-            
+
             # Ensure category
             if "category" not in item or not item["category"]:
                 item["category"] = "Uncategorized"
-            
+
             # Ensure description
             if "description" not in item:
                 item["description"] = ""
-            
+
             valid_items.append(item)
-        
+
         result["items"] = valid_items
-        
+
         return result
-    
+
     def _generate_batch_summary(self, analyses: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Generate summary from batch of dish analyses."""
         if not analyses:
             return {}
-        
+
         # Calculate averages
         scores = []
         for a in analyses:
@@ -625,9 +624,9 @@ RESPOND WITH VALID JSON:
                 vs = a["visual_scores"]
                 if vs:
                     scores.append(sum(vs.values()) / len(vs) / 10)
-        
+
         avg_score = sum(scores) / len(scores) if scores else 0
-        
+
         return {
             "total_images": len(analyses),
             "average_attractiveness": round(avg_score, 2),
