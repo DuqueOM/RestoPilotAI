@@ -242,7 +242,6 @@ Return a JSON object with:
         try:
             response = await self.gemini.generate_content(prompt, expect_json=True)
             accuracy = response.get("accuracy_score", 0.5)
-            issues = response.get("issues", [])
             suggestions = response.get("suggestions", [])
 
             return VerificationCheck(
