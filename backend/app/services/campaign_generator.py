@@ -50,17 +50,6 @@ class CampaignGenerator:
         channels = channels or ["social_media", "in_store", "email"]
         start_date = date.today() + timedelta(days=3)
 
-        # Prepare context for AI
-        context = {
-            "bcg_summary": bcg_analysis.get("summary", {}),
-            "classifications": bcg_analysis.get("classifications", []),
-            "menu_items": menu_items[:20],  # Limit for context window
-            "available_channels": channels,
-            "campaign_duration": duration_days,
-            "start_date": start_date.isoformat(),
-            "constraints": constraints or {},
-        }
-
         # Generate campaigns using Gemini
         ai_campaigns = await self.agent.generate_campaigns(
             bcg_analysis, num_campaigns, constraints

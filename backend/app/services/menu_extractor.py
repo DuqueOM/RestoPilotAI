@@ -50,8 +50,14 @@ class MenuExtractor:
         # Check if it's a PDF and convert to images
         file_path = Path(image_path)
         if file_path.suffix.lower() == ".pdf":
+            logger.info("PDF detected, converting to images...")
+            image_path = await self._convert_pdf_to_image(image_path)
+
+        # Step 1: Local OCR preprocessing (optional)
+        ocr_text = None
+        if use_ocr:
             ocr_text = self._run_local_ocr(image_path)
-            logger.debug(f"OCR extracted {len(ocr_text)} characters")
+            logger.debug(f"OCR extracted {len(ocr_text) if ocr_text else 0} characters")
 
         # Step 2: Gemini multimodal extraction
         context = business_context or ""

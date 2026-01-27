@@ -174,7 +174,7 @@ class BCGClassifier:
             try:
                 sorted_data = sorted(zip(dates, units), key=lambda x: x[0])
                 units = [u for _, u in sorted_data]
-            except:
+            except (TypeError, ValueError):
                 pass
 
         # Split into first and second half

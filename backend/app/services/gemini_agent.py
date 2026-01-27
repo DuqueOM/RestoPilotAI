@@ -471,7 +471,7 @@ Be critical and thorough."""
                 text = text.split("```")[1].split("```")[0]
 
             return json.loads(text.strip())
-        except:
+        except (json.JSONDecodeError, KeyError, IndexError):
             return {
                 "items": [],
                 "confidence": 0.5,
@@ -490,7 +490,7 @@ Be critical and thorough."""
             result = json.loads(text.strip())
             result["image_path"] = path
             return result
-        except:
+        except (json.JSONDecodeError, KeyError, IndexError):
             return {
                 "image_path": path,
                 "attractiveness_score": 0.5,
@@ -508,7 +508,7 @@ Be critical and thorough."""
                 text = text.split("```")[1].split("```")[0]
 
             return json.loads(text.strip())
-        except:
+        except (json.JSONDecodeError, KeyError, IndexError):
             return {
                 "classifications": [],
                 "portfolio_health": "unknown",
@@ -530,7 +530,7 @@ Be critical and thorough."""
             elif "campaigns" in result:
                 return result["campaigns"]
             return [result]
-        except:
+        except (json.JSONDecodeError, KeyError, IndexError):
             return [{"title": "Default Campaign", "raw_response": response.text[:1000]}]
 
     def _parse_verification_response(self, response: Any) -> Dict[str, Any]:
@@ -543,7 +543,7 @@ Be critical and thorough."""
                 text = text.split("```")[1].split("```")[0]
 
             return json.loads(text.strip())
-        except:
+        except (json.JSONDecodeError, KeyError, IndexError):
             return {
                 "verification_passed": True,
                 "checks_performed": ["basic_review"],

@@ -79,7 +79,14 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
       if (files[0]) uploadMenu(files[0])
     }, [])
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
-      onDrop, accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] }, maxFiles: 1
+      onDrop, 
+      accept: { 
+        'image/jpeg': ['.jpg', '.jpeg'],
+        'image/png': ['.png'],
+        'image/webp': ['.webp'],
+        'application/pdf': ['.pdf']
+      }, 
+      maxFiles: 1
     })
 
     return (

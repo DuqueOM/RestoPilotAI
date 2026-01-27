@@ -95,13 +95,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Docker images
-        run: docker-compose build
+        run: docker compose build
 
       - name: Test Docker health check
         run: |
-          docker-compose up -d backend
+          docker compose up -d backend
           sleep 10
           curl --fail http://localhost:8000/health || exit 1
-          docker-compose down
+          docker compose down
         env:
           GEMINI_API_KEY: test_key_for_ci

@@ -24,15 +24,17 @@ class VerificationStatus(str, Enum):
 
 class ThinkingLevel(str, Enum):
     """Levels of thinking depth for complex analysis."""
-    QUICK = "quick"           # Fast, surface-level analysis
-    STANDARD = "standard"     # Normal analysis depth
-    DEEP = "deep"             # In-depth analysis with multiple perspectives
-    EXHAUSTIVE = "exhaustive" # Maximum depth, multiple verification passes
+
+    QUICK = "quick"  # Fast, surface-level analysis
+    STANDARD = "standard"  # Normal analysis depth
+    DEEP = "deep"  # In-depth analysis with multiple perspectives
+    EXHAUSTIVE = "exhaustive"  # Maximum depth, multiple verification passes
 
 
 @dataclass
 class VerificationCheck:
     """Individual verification check result."""
+
     check_name: str
     passed: bool
     score: float  # 0.0 to 1.0
@@ -43,6 +45,7 @@ class VerificationCheck:
 @dataclass
 class VerificationResult:
     """Complete verification result with improvement suggestions."""
+
     status: VerificationStatus
     overall_score: float
     checks: List[VerificationCheck]
@@ -55,7 +58,7 @@ class VerificationResult:
 class VerificationAgent:
     """
     Autonomous verification agent that validates and improves MenuPilot analyses.
-    
+
     Implements a multi-pass verification loop:
     1. Initial analysis review
     2. Data consistency checks
@@ -88,63 +91,77 @@ class VerificationAgent:
     ) -> VerificationResult:
         """
         Verify a complete MenuPilot analysis and optionally improve it.
-        
+
         Args:
             analysis_data: The analysis to verify (BCG, predictions, campaigns)
             thinking_level: Depth of verification analysis
             auto_improve: Whether to automatically improve failing analyses
-            
+
         Returns:
             VerificationResult with status, scores, and improvements
         """
         logger.info(f"Starting verification at {thinking_level.value} level")
-        
+
         iterations = 0
         improvements_made = []
         current_data = analysis_data.copy()
-        
+
         while iterations < self.MAX_IMPROVEMENT_ITERATIONS:
             iterations += 1
-            
+
             checks = await self._run_verification_checks(current_data, thinking_level)
             overall_score = sum(c.score for c in checks) / len(checks)
-            
+
             logger.info(f"Iteration {iterations}: Score {overall_score:.2f}")
-            
+
             if overall_score >= self.PASSING_THRESHOLD:
                 result = VerificationResult(
-                    status=VerificationStatus.PASSED if iterations == 1 else VerificationStatus.IMPROVED,
+                    status=(
+                        VerificationStatus.PASSED
+                        if iterations == 1
+                        else VerificationStatus.IMPROVED
+                    ),
                     overall_score=overall_score,
                     checks=checks,
                     improvements_made=improvements_made,
                     iterations_used=iterations,
                     thinking_level=thinking_level,
-                    final_recommendation=await self._generate_final_recommendation(current_data, checks),
+                    final_recommendation=await self._generate_final_recommendation(
+                        current_data, checks
+                    ),
                 )
                 self.verification_history.append(result)
                 return result
-            
+
             if not auto_improve or iterations >= self.MAX_IMPROVEMENT_ITERATIONS:
                 break
-            
-            improvement = await self._improve_analysis(current_data, checks, thinking_level)
+
+            improvement = await self._improve_analysis(
+                current_data, checks, thinking_level
+            )
             if improvement:
                 current_data = improvement["improved_data"]
                 improvements_made.append(improvement["description"])
             else:
                 break
-        
+
         checks = await self._run_verification_checks(current_data, thinking_level)
         overall_score = sum(c.score for c in checks) / len(checks)
-        
+
         result = VerificationResult(
-            status=VerificationStatus.FAILED if overall_score < self.PASSING_THRESHOLD else VerificationStatus.IMPROVED,
+            status=(
+                VerificationStatus.FAILED
+                if overall_score < self.PASSING_THRESHOLD
+                else VerificationStatus.IMPROVED
+            ),
             overall_score=overall_score,
             checks=checks,
             improvements_made=improvements_made,
             iterations_used=iterations,
             thinking_level=thinking_level,
-            final_recommendation=await self._generate_final_recommendation(current_data, checks),
+            final_recommendation=await self._generate_final_recommendation(
+                current_data, checks
+            ),
         )
         self.verification_history.append(result)
         return result
@@ -156,14 +173,14 @@ class VerificationAgent:
     ) -> List[VerificationCheck]:
         """Run all verification checks on the analysis data."""
         checks = []
-        
+
         checks.append(await self._check_data_completeness(data))
         checks.append(await self._check_bcg_accuracy(data, thinking_level))
         checks.append(await self._check_prediction_reasonableness(data))
         checks.append(await self._check_campaign_alignment(data, thinking_level))
         checks.append(await self._check_business_viability(data, thinking_level))
         checks.append(await self._check_presentation_quality(data))
-        
+
         return checks
 
     async def _check_data_completeness(self, data: Dict[str, Any]) -> VerificationCheck:
@@ -171,9 +188,9 @@ class VerificationAgent:
         required_sections = ["products", "bcg_analysis", "predictions", "campaigns"]
         present = sum(1 for s in required_sections if s in data and data[s])
         score = present / len(required_sections)
-        
+
         missing = [s for s in required_sections if s not in data or not data[s]]
-        
+
         return VerificationCheck(
             check_name="data_completeness",
             passed=score >= 0.75,
@@ -190,7 +207,7 @@ class VerificationAgent:
         """Verify BCG classifications are accurate using Gemini analysis."""
         bcg_data = data.get("bcg_analysis", {})
         products = bcg_data.get("products", [])
-        
+
         if not products:
             return VerificationCheck(
                 check_name="bcg_classification_accuracy",
@@ -221,13 +238,13 @@ Return a JSON object with:
     "total_count": number
 }}
 """
-        
+
         try:
             response = await self.gemini.generate_content(prompt, expect_json=True)
             accuracy = response.get("accuracy_score", 0.5)
             issues = response.get("issues", [])
             suggestions = response.get("suggestions", [])
-            
+
             return VerificationCheck(
                 check_name="bcg_classification_accuracy",
                 passed=accuracy >= 0.7,
@@ -245,10 +262,12 @@ Return a JSON object with:
                 suggestions=[],
             )
 
-    async def _check_prediction_reasonableness(self, data: Dict[str, Any]) -> VerificationCheck:
+    async def _check_prediction_reasonableness(
+        self, data: Dict[str, Any]
+    ) -> VerificationCheck:
         """Verify sales predictions are within reasonable bounds."""
         predictions = data.get("predictions", {})
-        
+
         if not predictions:
             return VerificationCheck(
                 check_name="prediction_reasonableness",
@@ -257,29 +276,29 @@ Return a JSON object with:
                 feedback="No predictions to verify",
                 suggestions=["Run sales prediction first"],
             )
-        
+
         issues = []
         total_checks = 0
         passed_checks = 0
-        
+
         for item_name, pred_data in predictions.items():
             total_checks += 1
             daily_preds = pred_data.get("daily_predictions", [])
-            
+
             if daily_preds:
                 avg = sum(daily_preds) / len(daily_preds)
                 max_val = max(daily_preds)
                 min_val = min(daily_preds)
-                
+
                 if max_val > avg * 3:
                     issues.append(f"{item_name}: max prediction unrealistically high")
                 elif min_val < 0:
                     issues.append(f"{item_name}: negative predictions")
                 else:
                     passed_checks += 1
-        
+
         score = passed_checks / total_checks if total_checks > 0 else 0
-        
+
         return VerificationCheck(
             check_name="prediction_reasonableness",
             passed=score >= 0.7,
@@ -296,7 +315,7 @@ Return a JSON object with:
         """Verify campaigns align with BCG analysis and business goals."""
         campaigns = data.get("campaigns", [])
         bcg_data = data.get("bcg_analysis", {})
-        
+
         if not campaigns:
             return VerificationCheck(
                 check_name="campaign_alignment",
@@ -330,16 +349,16 @@ Return JSON:
     "suggestions": ["improvements"]
 }}
 """
-        
+
         try:
             response = await self.gemini.generate_content(prompt, expect_json=True)
             score = response.get("alignment_score", 0.5)
-            
+
             return VerificationCheck(
                 check_name="campaign_alignment",
                 passed=score >= 0.7,
                 score=score,
-                feedback=f"Campaign-BCG alignment verified",
+                feedback="Campaign-BCG alignment verified",
                 suggestions=response.get("suggestions", [])[:3],
             )
         except Exception as e:
@@ -359,7 +378,7 @@ Return JSON:
     ) -> VerificationCheck:
         """Verify recommendations are business-viable for a small restaurant."""
         campaigns = data.get("campaigns", [])
-        
+
         prompt = f"""Evaluate business viability for a small/medium restaurant.
 
 Recommendations to evaluate:
@@ -382,11 +401,11 @@ Return JSON:
     "implementation_notes": ["practical notes"]
 }}
 """
-        
+
         try:
             response = await self.gemini.generate_content(prompt, expect_json=True)
             score = response.get("viability_score", 0.6)
-            
+
             return VerificationCheck(
                 check_name="business_viability",
                 passed=score >= 0.6,
@@ -404,22 +423,24 @@ Return JSON:
                 suggestions=[],
             )
 
-    async def _check_presentation_quality(self, data: Dict[str, Any]) -> VerificationCheck:
+    async def _check_presentation_quality(
+        self, data: Dict[str, Any]
+    ) -> VerificationCheck:
         """Check that the analysis is well-presented and clear."""
         score = 0.0
         suggestions = []
-        
+
         if data.get("thought_signature"):
             score += 0.3
         else:
             suggestions.append("Add thought signature for transparency")
-        
+
         bcg = data.get("bcg_analysis", {})
         if bcg.get("summary") or bcg.get("insights"):
             score += 0.3
         else:
             suggestions.append("Add executive summary to BCG analysis")
-        
+
         campaigns = data.get("campaigns", [])
         if campaigns and all(c.get("rationale") for c in campaigns):
             score += 0.4
@@ -428,7 +449,7 @@ Return JSON:
             suggestions.append("Add rationale to all campaigns")
         else:
             suggestions.append("Generate campaign recommendations")
-        
+
         return VerificationCheck(
             check_name="presentation_quality",
             passed=score >= 0.6,
@@ -445,14 +466,14 @@ Return JSON:
     ) -> Optional[Dict[str, Any]]:
         """Attempt to improve the analysis based on verification feedback."""
         failing_checks = [c for c in checks if not c.passed]
-        
+
         if not failing_checks:
             return None
-        
+
         all_suggestions = []
         for check in failing_checks:
             all_suggestions.extend(check.suggestions)
-        
+
         prompt = f"""Improve this restaurant analysis based on feedback.
 
 Current Issues:
@@ -476,20 +497,24 @@ Provide specific improvements as JSON:
     "improved_campaigns": []
 }}
 """
-        
+
         try:
             response = await self.gemini.generate_content(prompt, expect_json=True)
-            
+
             improved_data = data.copy()
-            
+
             if response.get("enhanced_insights"):
                 if "bcg_analysis" not in improved_data:
                     improved_data["bcg_analysis"] = {}
-                improved_data["bcg_analysis"]["ai_insights"] = response["enhanced_insights"]
-            
+                improved_data["bcg_analysis"]["ai_insights"] = response[
+                    "enhanced_insights"
+                ]
+
             return {
                 "improved_data": improved_data,
-                "description": response.get("improvement_description", "Analysis improved"),
+                "description": response.get(
+                    "improvement_description", "Analysis improved"
+                ),
             }
         except Exception as e:
             logger.warning(f"Improvement attempt failed: {e}")
@@ -502,7 +527,7 @@ Provide specific improvements as JSON:
     ) -> str:
         """Generate a final summary recommendation based on verified analysis."""
         overall_score = sum(c.score for c in checks) / len(checks)
-        
+
         prompt = f"""Generate a concise final recommendation for the restaurant owner.
 
 Verification Results:
@@ -517,7 +542,7 @@ Campaigns Generated: {len(data.get('campaigns', []))}
 
 Provide a 2-3 sentence executive summary recommendation.
 """
-        
+
         try:
             response = await self.gemini.generate_content(prompt)
             return response if isinstance(response, str) else str(response)
@@ -548,12 +573,27 @@ Provide a 2-3 sentence executive summary recommendation.
         """Get summary of all verification runs."""
         if not self.verification_history:
             return {"total_runs": 0}
-        
+
         return {
             "total_runs": len(self.verification_history),
-            "passed": sum(1 for v in self.verification_history if v.status == VerificationStatus.PASSED),
-            "improved": sum(1 for v in self.verification_history if v.status == VerificationStatus.IMPROVED),
-            "failed": sum(1 for v in self.verification_history if v.status == VerificationStatus.FAILED),
-            "avg_score": sum(v.overall_score for v in self.verification_history) / len(self.verification_history),
-            "total_improvements": sum(len(v.improvements_made) for v in self.verification_history),
+            "passed": sum(
+                1
+                for v in self.verification_history
+                if v.status == VerificationStatus.PASSED
+            ),
+            "improved": sum(
+                1
+                for v in self.verification_history
+                if v.status == VerificationStatus.IMPROVED
+            ),
+            "failed": sum(
+                1
+                for v in self.verification_history
+                if v.status == VerificationStatus.FAILED
+            ),
+            "avg_score": sum(v.overall_score for v in self.verification_history)
+            / len(self.verification_history),
+            "total_improvements": sum(
+                len(v.improvements_made) for v in self.verification_history
+            ),
         }
