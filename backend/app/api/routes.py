@@ -27,7 +27,7 @@ from app.services.menu_extractor import DishImageAnalyzer, MenuExtractor
 from app.services.neural_predictor import NeuralPredictor
 from app.services.orchestrator import AnalysisOrchestrator
 from app.services.sales_predictor import SalesPredictor
-from app.services.verification_agent import VerificationAgent, ThinkingLevel
+from app.services.verification_agent import ThinkingLevel, VerificationAgent
 
 router = APIRouter()
 settings = get_settings()
@@ -175,15 +175,24 @@ async def ingest_dish_images(
 
 
 @router.post("/ingest/sales", tags=["Ingest"])
-async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form(...)):
+async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form(None)):
     """
     Upload sales data CSV.
 
     Expected columns: date, item_name, units_sold, [revenue], [had_promotion], [promotion_discount]
+
+    Note: session_id is optional. If not provided, a new session will be created.
     """
 
-    if session_id not in sessions:
-        raise HTTPException(404, "Session not found. Upload menu first.")
+    # Create session if not exists (CSV can be uploaded first)
+    if not session_id or session_id not in sessions:
+        session_id = str(uuid.uuid4())
+        sessions[session_id] = {
+            "created_at": datetime.now().isoformat(),
+            "menu_items": [],
+            "sales_data": [],
+        }
+        logger.info(f"Created new session from sales upload: {session_id}")
 
     ext = file.filename.split(".")[-1].lower() if file.filename else ""
     if ext not in ["csv", "xlsx"]:
@@ -191,6 +200,7 @@ async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form
 
     # Save and parse file
     upload_dir = Path("data/uploads") / session_id
+    upload_dir.mkdir(parents=True, exist_ok=True)  # Create directory if not exists
     file_path = upload_dir / f"sales.{ext}"
 
     with open(file_path, "wb") as f:
@@ -279,8 +289,26 @@ async def run_bcg_analysis(session_id: str):
     sales_data = session.get("sales_data", [])
     image_scores = session.get("image_scores", {})
 
+    # If no menu items from image extraction, infer from sales data
+    if not menu_items and sales_data:
+        logger.info("No menu items from extraction, inferring from sales data")
+        unique_items = list(set(record["item_name"] for record in sales_data))
+        menu_items = [
+            {
+                "name": item_name,
+                "price": 0.0,  # Will be calculated from sales data
+                "description": "",
+                "category": "Unknown",
+                "source": "sales_data",
+            }
+            for item_name in unique_items
+        ]
+        sessions[session_id]["menu_items"] = menu_items
+
     if not menu_items:
-        raise HTTPException(400, "No menu items found. Upload menu first.")
+        raise HTTPException(
+            400, "No menu items found. Upload sales data or menu first."
+        )
 
     try:
         result = await bcg_classifier.classify_products(

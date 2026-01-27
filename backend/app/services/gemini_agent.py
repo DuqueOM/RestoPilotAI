@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from google import genai
 from google.genai import types
+from loguru import logger
 
 from app.config import get_settings
 
@@ -245,17 +246,31 @@ Respond in this exact JSON format:
         image_data = Path(image_path).read_bytes()
         image_base64 = base64.b64encode(image_data).decode()
 
-        prompt = """Analyze this restaurant menu image and extract all menu items.
+        prompt = """Analyze this restaurant menu image and extract ALL menu items you can see.
+
+IMPORTANT: You MUST respond with valid JSON in this exact format:
+{
+  "items": [
+    {
+      "name": "Item name exactly as written",
+      "price": 12000,
+      "description": "Item description if available",
+      "category": "category name"
+    }
+  ],
+  "confidence": 0.85
+}
 
 For each item, identify:
-- Name (exactly as written)
-- Price (as a number)
-- Description (if available)
+- Name (exactly as written on the menu)
+- Price (as a number, remove currency symbols)
+- Description (if available, otherwise use empty string)
 - Category (appetizers, mains, desserts, drinks, etc.)
 
-Also identify any dietary indicators (vegetarian, vegan, gluten-free, spicy levels).
+Extract EVERY visible item on the menu. If you see text but it's unclear, make your best interpretation.
+If the menu is in Spanish, keep the original Spanish names.
 
-Be thorough and extract ALL visible items. If text is unclear, make your best interpretation and note lower confidence."""
+Return ONLY the JSON, no other text."""
 
         if additional_context:
             prompt += f"\n\nAdditional context: {additional_context}"
@@ -465,13 +480,21 @@ Be critical and thorough."""
         """Parse menu extraction response."""
         try:
             text = response.text
+            logger.debug(f"Gemini raw response (first 500 chars): {text[:500]}")
+
             if "```json" in text:
                 text = text.split("```json")[1].split("```")[0]
             elif "```" in text:
                 text = text.split("```")[1].split("```")[0]
 
-            return json.loads(text.strip())
-        except (json.JSONDecodeError, KeyError, IndexError):
+            parsed = json.loads(text.strip())
+            logger.info(
+                f"Successfully parsed {len(parsed.get('items', []))} items from Gemini response"
+            )
+            return parsed
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            logger.error(f"Failed to parse Gemini response: {e}")
+            logger.error(f"Raw response: {response.text[:1000]}")
             return {
                 "items": [],
                 "confidence": 0.5,

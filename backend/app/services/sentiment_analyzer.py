@@ -1,0 +1,706 @@
+"""
+Multi-Modal Sentiment Analysis Service.
+
+Provides comprehensive customer sentiment analysis:
+- Text review analysis from multiple sources
+- Customer photo analysis for visual sentiment
+- Item-level sentiment mapping
+- Cross-reference with BCG classification
+"""
+
+import json
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
+
+from loguru import logger
+
+from app.services.gemini.multimodal_agent import MultimodalAgent
+from app.services.gemini.reasoning_agent import ReasoningAgent, ThinkingLevel
+
+
+class SentimentSource(str, Enum):
+    """Source of sentiment data."""
+    
+    GOOGLE = "google"
+    YELP = "yelp"
+    TRIPADVISOR = "tripadvisor"
+    INSTAGRAM = "instagram"
+    FACEBOOK = "facebook"
+    CUSTOMER_PHOTOS = "customer_photos"
+
+
+class SentimentCategory(str, Enum):
+    """Sentiment classification."""
+    
+    VERY_POSITIVE = "very_positive"
+    POSITIVE = "positive"
+    NEUTRAL = "neutral"
+    NEGATIVE = "negative"
+    VERY_NEGATIVE = "very_negative"
+
+
+@dataclass
+class ReviewData:
+    """Individual review data."""
+    
+    source: SentimentSource
+    text: str
+    rating: Optional[float] = None
+    date: Optional[str] = None
+    reviewer: Optional[str] = None
+    review_id: Optional[str] = None
+
+
+@dataclass
+class ItemSentimentResult:
+    """Sentiment analysis result for a single menu item."""
+    
+    item_name: str
+    menu_item_id: Optional[int] = None
+    
+    # Text sentiment
+    text_sentiment_score: float = 0.0  # -1 to 1
+    text_mention_count: int = 0
+    common_descriptors: List[str] = field(default_factory=list)
+    
+    # Visual sentiment
+    visual_appeal_score: Optional[float] = None  # 0-10
+    presentation_score: Optional[float] = None
+    portion_perception: Optional[str] = None
+    portion_score: Optional[float] = None
+    photo_count: int = 0
+    
+    # Combined
+    overall_sentiment: SentimentCategory = SentimentCategory.NEUTRAL
+    bcg_category: Optional[str] = None
+    
+    # Insight
+    actionable_insight: str = ""
+    priority: str = "medium"
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "item_name": self.item_name,
+            "menu_item_id": self.menu_item_id,
+            "text_sentiment": {
+                "score": self.text_sentiment_score,
+                "mention_count": self.text_mention_count,
+                "common_descriptors": self.common_descriptors,
+            },
+            "visual_sentiment": {
+                "appeal_score": self.visual_appeal_score,
+                "presentation_score": self.presentation_score,
+                "portion_perception": self.portion_perception,
+                "portion_score": self.portion_score,
+                "photo_count": self.photo_count,
+            },
+            "overall_sentiment": self.overall_sentiment.value,
+            "bcg_category": self.bcg_category,
+            "actionable_insight": self.actionable_insight,
+            "priority": self.priority,
+        }
+
+
+@dataclass
+class SentimentAnalysisResult:
+    """Complete sentiment analysis result."""
+    
+    analysis_id: str
+    restaurant_id: str
+    
+    # Overall metrics
+    overall_sentiment_score: float  # -1 to 1
+    overall_nps: Optional[float]  # Net Promoter Score
+    sentiment_distribution: Dict[str, int]
+    
+    # Counts
+    total_reviews_analyzed: int
+    total_photos_analyzed: int
+    sources_used: List[str]
+    
+    # Theme analysis
+    common_praises: List[str]
+    common_complaints: List[str]
+    
+    # Category sentiments
+    service_sentiment: Optional[float]
+    food_quality_sentiment: Optional[float]
+    ambiance_sentiment: Optional[float]
+    value_sentiment: Optional[float]
+    
+    # Item-level
+    item_sentiments: List[ItemSentimentResult]
+    
+    # Recommendations
+    recommendations: List[Dict[str, Any]]
+    
+    # Metadata
+    confidence: float
+    gemini_tokens_used: int
+    analyzed_at: datetime = field(default_factory=datetime.utcnow)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "analysis_id": self.analysis_id,
+            "restaurant_id": self.restaurant_id,
+            "overall": {
+                "sentiment_score": self.overall_sentiment_score,
+                "nps": self.overall_nps,
+                "sentiment_distribution": self.sentiment_distribution,
+            },
+            "counts": {
+                "reviews_analyzed": self.total_reviews_analyzed,
+                "photos_analyzed": self.total_photos_analyzed,
+                "sources_used": self.sources_used,
+            },
+            "themes": {
+                "praises": self.common_praises,
+                "complaints": self.common_complaints,
+            },
+            "category_sentiments": {
+                "service": self.service_sentiment,
+                "food_quality": self.food_quality_sentiment,
+                "ambiance": self.ambiance_sentiment,
+                "value": self.value_sentiment,
+            },
+            "item_sentiments": [item.to_dict() for item in self.item_sentiments],
+            "recommendations": self.recommendations,
+            "metadata": {
+                "confidence": self.confidence,
+                "gemini_tokens_used": self.gemini_tokens_used,
+                "analyzed_at": self.analyzed_at.isoformat(),
+            },
+        }
+
+
+class SentimentAnalyzer:
+    """
+    Multi-modal sentiment analysis service.
+    
+    Combines text review analysis with visual analysis of customer photos
+    to provide comprehensive sentiment insights per menu item.
+    """
+    
+    def __init__(
+        self,
+        multimodal_agent: Optional[MultimodalAgent] = None,
+        reasoning_agent: Optional[ReasoningAgent] = None,
+    ):
+        self.multimodal = multimodal_agent or MultimodalAgent()
+        self.reasoning = reasoning_agent or ReasoningAgent()
+    
+    async def analyze_customer_sentiment(
+        self,
+        restaurant_id: str,
+        reviews: Optional[List[ReviewData]] = None,
+        customer_photos: Optional[List[bytes]] = None,
+        menu_items: Optional[List[str]] = None,
+        bcg_data: Optional[Dict[str, Any]] = None,
+        sources: List[SentimentSource] = None,
+    ) -> SentimentAnalysisResult:
+        """
+        Comprehensive sentiment analysis from reviews and photos.
+        
+        Args:
+            restaurant_id: Restaurant identifier
+            reviews: List of review data
+            customer_photos: List of customer photo bytes
+            menu_items: List of menu item names for matching
+            bcg_data: BCG classification data for cross-reference
+            sources: Sources to analyze
+            
+        Returns:
+            SentimentAnalysisResult with comprehensive insights
+        """
+        analysis_id = str(uuid4())
+        
+        logger.info(
+            f"Starting sentiment analysis",
+            analysis_id=analysis_id,
+            reviews=len(reviews) if reviews else 0,
+            photos=len(customer_photos) if customer_photos else 0,
+        )
+        
+        # Initialize results
+        text_sentiment = {}
+        visual_sentiment = {}
+        
+        # Step 1: Analyze text reviews
+        if reviews:
+            text_sentiment = await self._analyze_text_reviews(reviews, menu_items)
+        
+        # Step 2: Analyze customer photos
+        if customer_photos:
+            visual_sentiment = await self._analyze_customer_photos(
+                customer_photos, menu_items
+            )
+        
+        # Step 3: Map sentiment to items
+        item_sentiments = await self._map_sentiment_to_items(
+            text_sentiment,
+            visual_sentiment,
+            menu_items or [],
+            bcg_data,
+        )
+        
+        # Step 4: Generate recommendations
+        recommendations = await self._generate_recommendations(
+            item_sentiments,
+            text_sentiment,
+            visual_sentiment,
+        )
+        
+        # Build result
+        result = self._build_result(
+            analysis_id=analysis_id,
+            restaurant_id=restaurant_id,
+            text_sentiment=text_sentiment,
+            visual_sentiment=visual_sentiment,
+            item_sentiments=item_sentiments,
+            recommendations=recommendations,
+            reviews_count=len(reviews) if reviews else 0,
+            photos_count=len(customer_photos) if customer_photos else 0,
+            sources=sources or [],
+        )
+        
+        logger.info(
+            f"Sentiment analysis completed",
+            analysis_id=analysis_id,
+            overall_score=result.overall_sentiment_score,
+        )
+        
+        return result
+    
+    async def _analyze_text_reviews(
+        self,
+        reviews: List[ReviewData],
+        menu_items: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Analyze text reviews using Gemini NLP."""
+        
+        # Prepare reviews for analysis
+        reviews_text = []
+        for review in reviews[:500]:  # Limit to 500 reviews
+            reviews_text.append({
+                "text": review.text[:1000],  # Truncate long reviews
+                "rating": review.rating,
+                "source": review.source.value if isinstance(review.source, SentimentSource) else review.source,
+            })
+        
+        menu_context = ""
+        if menu_items:
+            menu_context = f"\nKnown menu items: {', '.join(menu_items[:50])}"
+        
+        prompt = f"""Analyze these restaurant reviews for sentiment and insights.
+
+REVIEWS ({len(reviews_text)} total):
+{json.dumps(reviews_text[:100], indent=2)}
+
+{menu_context}
+
+Analyze comprehensively:
+
+1. OVERALL SENTIMENT
+   - Distribution (positive/neutral/negative percentages)
+   - Net sentiment score (-1 to 1)
+   - NPS estimation
+
+2. KEY THEMES
+   - Top 5 praises (what customers love)
+   - Top 5 complaints (what customers dislike)
+
+3. CATEGORY SENTIMENT
+   - Service (staff, speed, friendliness)
+   - Food quality (taste, freshness, presentation)
+   - Ambiance (atmosphere, cleanliness, decor)
+   - Value (price vs quality perception)
+
+4. ITEM-LEVEL SENTIMENT
+   For each menu item mentioned:
+   - Sentiment score (-1 to 1)
+   - Mention frequency
+   - Common descriptors (positive and negative)
+
+5. COMPETITOR MENTIONS
+   - Any competitor names mentioned
+   - Context of mentions
+
+RESPOND WITH JSON:
+{{
+    "overall": {{
+        "sentiment_score": 0.65,
+        "nps": 45,
+        "distribution": {{
+            "very_positive": 25,
+            "positive": 40,
+            "neutral": 20,
+            "negative": 10,
+            "very_negative": 5
+        }}
+    }},
+    "themes": {{
+        "praises": ["Fresh ingredients", "Friendly staff"],
+        "complaints": ["Slow service on weekends", "Small portions"]
+    }},
+    "category_sentiment": {{
+        "service": 0.6,
+        "food_quality": 0.8,
+        "ambiance": 0.5,
+        "value": 0.4
+    }},
+    "item_sentiments": {{
+        "Tacos al Pastor": {{
+            "sentiment_score": 0.85,
+            "mention_count": 45,
+            "positive_descriptors": ["delicious", "authentic"],
+            "negative_descriptors": ["small portion"]
+        }}
+    }},
+    "competitor_mentions": [
+        {{"name": "Competitor X", "context": "better prices"}}
+    ],
+    "price_sensitivity": {{
+        "level": "moderate",
+        "common_complaints": ["overpriced desserts"]
+    }},
+    "confidence": 0.85
+}}"""
+
+        try:
+            response = await self.reasoning._generate_content(
+                prompt=prompt,
+                temperature=0.4,
+                max_output_tokens=8192,
+                feature="text_sentiment_analysis",
+            )
+            
+            return self.reasoning._parse_json_response(response)
+            
+        except Exception as e:
+            logger.error(f"Text sentiment analysis failed: {e}")
+            return {"error": str(e), "confidence": 0}
+    
+    async def _analyze_customer_photos(
+        self,
+        photos: List[bytes],
+        menu_items: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Analyze customer photos for visual sentiment."""
+        
+        if not photos:
+            return {}
+        
+        # Use multimodal agent to analyze photos
+        result = await self.multimodal.analyze_customer_photos(
+            photos=photos[:20],  # Limit to 20 photos
+            menu_items=menu_items,
+        )
+        
+        return result
+    
+    async def _map_sentiment_to_items(
+        self,
+        text_sentiment: Dict[str, Any],
+        visual_sentiment: Dict[str, Any],
+        menu_items: List[str],
+        bcg_data: Optional[Dict[str, Any]],
+    ) -> List[ItemSentimentResult]:
+        """Map sentiment data to individual menu items."""
+        
+        item_results = []
+        
+        # Get text-based item sentiments
+        text_items = text_sentiment.get("item_sentiments", {})
+        
+        # Get visual-based item sentiments
+        visual_items = visual_sentiment.get("per_dish_summary", {})
+        
+        # Get BCG classifications
+        bcg_classifications = {}
+        if bcg_data:
+            for product in bcg_data.get("products", bcg_data.get("classifications", [])):
+                name = product.get("name", product.get("item_name", ""))
+                bcg_classifications[name.lower()] = product.get("classification", product.get("bcg_class", ""))
+        
+        # Process all known menu items
+        all_items = set(menu_items)
+        all_items.update(text_items.keys())
+        all_items.update(visual_items.keys())
+        
+        for item_name in all_items:
+            text_data = text_items.get(item_name, {})
+            visual_data = visual_items.get(item_name, {})
+            
+            # Calculate combined sentiment
+            text_score = text_data.get("sentiment_score", 0)
+            visual_appeal = visual_data.get("avg_presentation", 5) / 10 if visual_data.get("avg_presentation") else None
+            
+            # Determine overall sentiment category
+            combined_score = text_score
+            if visual_appeal is not None:
+                # Weight visual slightly less than text
+                combined_score = (text_score * 0.6 + (visual_appeal * 2 - 1) * 0.4)
+            
+            if combined_score >= 0.5:
+                overall = SentimentCategory.VERY_POSITIVE
+            elif combined_score >= 0.2:
+                overall = SentimentCategory.POSITIVE
+            elif combined_score >= -0.2:
+                overall = SentimentCategory.NEUTRAL
+            elif combined_score >= -0.5:
+                overall = SentimentCategory.NEGATIVE
+            else:
+                overall = SentimentCategory.VERY_NEGATIVE
+            
+            # Generate actionable insight
+            insight = self._generate_item_insight(
+                item_name,
+                text_data,
+                visual_data,
+                bcg_classifications.get(item_name.lower()),
+            )
+            
+            item_results.append(ItemSentimentResult(
+                item_name=item_name,
+                text_sentiment_score=text_score,
+                text_mention_count=text_data.get("mention_count", 0),
+                common_descriptors=text_data.get("positive_descriptors", []) + text_data.get("negative_descriptors", []),
+                visual_appeal_score=visual_data.get("avg_presentation"),
+                portion_perception=visual_data.get("portion_perception"),
+                portion_score=visual_data.get("avg_portion_score"),
+                photo_count=visual_data.get("photo_count", 0),
+                overall_sentiment=overall,
+                bcg_category=bcg_classifications.get(item_name.lower()),
+                actionable_insight=insight["insight"],
+                priority=insight["priority"],
+            ))
+        
+        # Sort by priority and mention count
+        item_results.sort(
+            key=lambda x: (
+                0 if x.priority == "high" else (1 if x.priority == "medium" else 2),
+                -x.text_mention_count
+            )
+        )
+        
+        return item_results
+    
+    def _generate_item_insight(
+        self,
+        item_name: str,
+        text_data: Dict[str, Any],
+        visual_data: Dict[str, Any],
+        bcg_category: Optional[str],
+    ) -> Dict[str, str]:
+        """Generate actionable insight for an item based on sentiment data."""
+        
+        text_score = text_data.get("sentiment_score", 0)
+        portion = visual_data.get("portion_perception", "").lower() if visual_data else ""
+        presentation = visual_data.get("avg_presentation", 5) if visual_data else 5
+        
+        # High priority issues
+        if bcg_category == "star" and text_score < 0.3:
+            return {
+                "insight": f"⚠️ Star product with declining sentiment - investigate quality issues immediately",
+                "priority": "high"
+            }
+        
+        if bcg_category == "cash_cow" and text_score < 0:
+            return {
+                "insight": f"⚠️ Cash Cow with negative sentiment - risk of revenue loss, investigate",
+                "priority": "high"
+            }
+        
+        if portion in ["small", "very_small"] and text_score > 0.5:
+            return {
+                "insight": f"💡 Customers love taste but expect larger portions - consider 15-20% increase",
+                "priority": "high"
+            }
+        
+        # Medium priority
+        if presentation < 6 and bcg_category == "star":
+            return {
+                "insight": f"🎨 Star product with presentation issues - improve plating to match demand",
+                "priority": "medium"
+            }
+        
+        if text_score < 0 and text_data.get("mention_count", 0) > 10:
+            negative_desc = text_data.get("negative_descriptors", [])
+            desc_text = f" ({', '.join(negative_desc[:2])})" if negative_desc else ""
+            return {
+                "insight": f"📉 Frequently mentioned with negative sentiment{desc_text}",
+                "priority": "medium"
+            }
+        
+        # Low priority / positive
+        if text_score > 0.7:
+            return {
+                "insight": f"✅ Strong positive sentiment - consider featuring in marketing",
+                "priority": "low"
+            }
+        
+        if portion == "generous" and text_score > 0.5:
+            return {
+                "insight": f"✅ Customers appreciate generous portions - maintain current sizing",
+                "priority": "low"
+            }
+        
+        return {
+            "insight": "Continue monitoring",
+            "priority": "low"
+        }
+    
+    async def _generate_recommendations(
+        self,
+        item_sentiments: List[ItemSentimentResult],
+        text_sentiment: Dict[str, Any],
+        visual_sentiment: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        """Generate strategic recommendations based on sentiment analysis."""
+        
+        recommendations = []
+        
+        # High priority items
+        high_priority = [i for i in item_sentiments if i.priority == "high"]
+        for item in high_priority[:5]:
+            recommendations.append({
+                "priority": "high",
+                "type": "quality_issue",
+                "item": item.item_name,
+                "issue": item.actionable_insight,
+                "action": f"Investigate and address quality/portion issues for {item.item_name}",
+                "expected_impact": "Prevent customer churn, protect revenue",
+            })
+        
+        # Portion issues
+        portion_issues = [
+            i for i in item_sentiments 
+            if i.portion_perception in ["small", "very_small"] and i.text_sentiment_score > 0
+        ]
+        if portion_issues:
+            recommendations.append({
+                "priority": "medium",
+                "type": "portion_adjustment",
+                "items": [i.item_name for i in portion_issues[:5]],
+                "issue": "Multiple items perceived as small portions despite positive taste feedback",
+                "action": "Review and increase portion sizes by 15-20%",
+                "expected_impact": "Improved customer satisfaction and perceived value",
+            })
+        
+        # Presentation improvements
+        presentation_issues = [
+            i for i in item_sentiments 
+            if i.visual_appeal_score and i.visual_appeal_score < 6
+        ]
+        if presentation_issues:
+            recommendations.append({
+                "priority": "medium",
+                "type": "presentation_improvement",
+                "items": [i.item_name for i in presentation_issues[:5]],
+                "issue": "Items with below-average visual presentation in customer photos",
+                "action": "Improve plating and presentation standards",
+                "expected_impact": "Better social media presence, increased appeal",
+            })
+        
+        # Highlight strengths
+        top_performers = [
+            i for i in item_sentiments 
+            if i.text_sentiment_score > 0.7 and i.text_mention_count > 5
+        ]
+        if top_performers:
+            recommendations.append({
+                "priority": "low",
+                "type": "marketing_opportunity",
+                "items": [i.item_name for i in top_performers[:5]],
+                "issue": "Highly praised items with strong sentiment",
+                "action": "Feature in marketing campaigns and social media",
+                "expected_impact": "Leverage positive word-of-mouth",
+            })
+        
+        # Common complaints
+        complaints = text_sentiment.get("themes", {}).get("complaints", [])
+        if complaints:
+            recommendations.append({
+                "priority": "medium",
+                "type": "address_complaints",
+                "issues": complaints[:5],
+                "action": "Address recurring customer complaints",
+                "expected_impact": "Improved overall satisfaction scores",
+            })
+        
+        return recommendations
+    
+    def _build_result(
+        self,
+        analysis_id: str,
+        restaurant_id: str,
+        text_sentiment: Dict[str, Any],
+        visual_sentiment: Dict[str, Any],
+        item_sentiments: List[ItemSentimentResult],
+        recommendations: List[Dict[str, Any]],
+        reviews_count: int,
+        photos_count: int,
+        sources: List[SentimentSource],
+    ) -> SentimentAnalysisResult:
+        """Build the final sentiment analysis result."""
+        
+        overall = text_sentiment.get("overall", {})
+        themes = text_sentiment.get("themes", {})
+        category_sentiment = text_sentiment.get("category_sentiment", {})
+        
+        return SentimentAnalysisResult(
+            analysis_id=analysis_id,
+            restaurant_id=restaurant_id,
+            overall_sentiment_score=overall.get("sentiment_score", 0),
+            overall_nps=overall.get("nps"),
+            sentiment_distribution=overall.get("distribution", {}),
+            total_reviews_analyzed=reviews_count,
+            total_photos_analyzed=photos_count,
+            sources_used=[s.value if isinstance(s, SentimentSource) else s for s in sources],
+            common_praises=themes.get("praises", []),
+            common_complaints=themes.get("complaints", []),
+            service_sentiment=category_sentiment.get("service"),
+            food_quality_sentiment=category_sentiment.get("food_quality"),
+            ambiance_sentiment=category_sentiment.get("ambiance"),
+            value_sentiment=category_sentiment.get("value"),
+            item_sentiments=item_sentiments,
+            recommendations=recommendations,
+            confidence=text_sentiment.get("confidence", 0.7),
+            gemini_tokens_used=self.reasoning.stats.total_tokens.total_tokens,
+        )
+    
+    async def get_quick_sentiment(
+        self,
+        reviews: List[str],
+    ) -> Dict[str, Any]:
+        """
+        Quick sentiment analysis for a batch of review texts.
+        
+        Returns overall sentiment without item-level breakdown.
+        """
+        
+        prompt = f"""Analyze sentiment of these reviews quickly.
+
+REVIEWS:
+{json.dumps(reviews[:50], indent=2)}
+
+Return JSON:
+{{
+    "overall_sentiment": 0.65,
+    "distribution": {{"positive": 60, "neutral": 25, "negative": 15}},
+    "top_praise": "Great food",
+    "top_complaint": "Slow service",
+    "confidence": 0.8
+}}"""
+
+        response = await self.reasoning._generate_content(
+            prompt=prompt,
+            temperature=0.3,
+            max_output_tokens=1024,
+            feature="quick_sentiment",
+        )
+        
+        return self.reasoning._parse_json_response(response)

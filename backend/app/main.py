@@ -13,8 +13,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from app.config import get_settings
 from app.api.routes import router as api_router
+from app.api.websocket import router as ws_router
+from app.config import get_settings
 from app.database import init_db
 
 
@@ -22,21 +23,21 @@ from app.database import init_db
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup and shutdown events."""
     settings = get_settings()
-    
+
     # Create necessary directories
     data_dir = Path("data")
     data_dir.mkdir(exist_ok=True)
     (data_dir / "uploads").mkdir(exist_ok=True)
     (data_dir / "outputs").mkdir(exist_ok=True)
     (data_dir / "models").mkdir(exist_ok=True)
-    
+
     # Initialize database
     await init_db()
-    
+
     logger.info(f"MenuPilot started in {settings.app_env} mode")
-    
+
     yield
-    
+
     logger.info("MenuPilot shutting down")
 
 
@@ -87,6 +88,9 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
+
+# Include WebSocket routes
+app.include_router(ws_router, prefix="/api/v1", tags=["WebSocket"])
 
 # Serve static files for uploads if they exist
 if Path("data/uploads").exists():

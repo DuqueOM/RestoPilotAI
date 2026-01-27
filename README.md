@@ -11,14 +11,21 @@ MenuPilot is a multimodal AI assistant that helps small and medium restaurants o
 
 ## 🎯 What it Does
 
+### Core Features
 1. **Menu Extraction**: Upload a menu image → Get structured product catalog (OCR + Gemini multimodal)
 2. **Visual Analysis**: Upload dish photos → Get attractiveness scores and presentation feedback
 3. **BCG Classification**: Automatic product categorization (Star, Cash Cow, Question Mark, Dog)
 4. **Sales Prediction**: Dual ML approach - XGBoost + Neural Networks (LSTM/Transformer)
 5. **Campaign Generation**: AI-generated marketing campaigns with copy, scheduling, and rationale
-6. **Thought Signatures**: Multi-level transparent reasoning traces for verifiable AI decisions
-7. **Autonomous Verification**: Self-improving analysis with quality checks (Vibe Engineering pattern)
-8. **Pipeline Orchestration**: Marathon Agent pattern with checkpoints for reliable long-running tasks
+
+### 🆕 WOW Factor Features (Hackathon Special)
+6. **🎯 Competitor Intelligence**: Extract competitor menus from images/URLs, price comparison analysis, strategic positioning insights
+7. **💬 Multi-Modal Sentiment Analysis**: Combine text reviews + customer photos for item-level sentiment with portion perception
+8. **🧠 Thought Signatures**: Multi-level transparent reasoning traces (QUICK/STANDARD/DEEP/EXHAUSTIVE)
+9. **✅ Autonomous Verification**: Self-improving analysis with quality checks (Vibe Engineering pattern)
+10. **🏃 Pipeline Orchestration**: Marathon Agent pattern with checkpoints for reliable long-running tasks
+11. **📊 Executive Summary Generation**: AI-synthesized strategic recommendations from all data sources
+12. **🔌 Real-time WebSocket Progress**: Live progress updates during analysis pipeline execution
 
 ---
 
@@ -191,17 +198,30 @@ verification = await verification_agent.verify_analysis(
 menupilot/
 ├── backend/
 │   ├── app/
-│   │   ├── api/routes.py              # API endpoints (incl. orchestrator, verification)
+│   │   ├── api/
+│   │   │   ├── routes.py              # REST API endpoints
+│   │   │   └── websocket.py           # 🆕 WebSocket progress streaming
+│   │   ├── core/
+│   │   │   ├── logging_config.py      # 🆕 Structured logging
+│   │   │   └── cache.py               # 🆕 Multi-tier caching system
 │   │   ├── services/
-│   │   │   ├── gemini_agent.py        # Gemini 3 core agent
-│   │   │   ├── menu_extractor.py      # OCR + multimodal extraction
+│   │   │   ├── gemini/                # 🆕 Modular Gemini Agent Architecture
+│   │   │   │   ├── base_agent.py      # Core infrastructure (retry, rate limit, cache)
+│   │   │   │   ├── multimodal_agent.py # Vision + text extraction
+│   │   │   │   ├── reasoning_agent.py  # Deep analysis & strategy
+│   │   │   │   ├── verification_agent.py # Self-verification loop
+│   │   │   │   └── orchestrator_agent.py # Marathon pattern coordinator
+│   │   │   ├── competitor_intelligence.py # 🆕 Competitive analysis
+│   │   │   ├── sentiment_analyzer.py   # 🆕 Multi-modal sentiment
 │   │   │   ├── bcg_classifier.py      # BCG matrix classification
 │   │   │   ├── sales_predictor.py     # XGBoost forecasting
 │   │   │   ├── neural_predictor.py    # LSTM/Transformer deep learning
-│   │   │   ├── campaign_generator.py  # AI campaign generation
-│   │   │   ├── verification_agent.py  # Vibe Engineering self-verification
-│   │   │   └── orchestrator.py        # Marathon Agent pipeline
-│   │   ├── models/                    # SQLAlchemy models
+│   │   │   └── campaign_generator.py  # AI campaign generation
+│   │   ├── models/
+│   │   │   ├── analysis.py            # Core analysis models
+│   │   │   ├── competitor.py          # 🆕 Competitor intelligence models
+│   │   │   ├── sentiment_analysis.py  # 🆕 Sentiment models
+│   │   │   └── thought_trace.py       # 🆕 AI reasoning trace models
 │   │   └── schemas/                   # Pydantic schemas
 │   ├── requirements.txt
 │   └── Dockerfile
@@ -209,12 +229,15 @@ menupilot/
 │   ├── src/
 │   │   ├── app/page.tsx               # Main UI
 │   │   └── components/
+│   │       ├── CompetitorDashboard.tsx # 🆕 Competitive insights UI
+│   │       └── SentimentDashboard.tsx  # 🆕 Sentiment analysis UI
 │   ├── package.json
 │   └── Dockerfile
 ├── docs/
 │   ├── DATA_CARD.md
 │   ├── MODEL_CARD.md
-│   └── ARCHITECTURE.md
+│   ├── ARCHITECTURE.md
+│   └── GEMINI_INTEGRATION.md          # 🆕 Detailed Gemini usage guide
 ├── docker-compose.yml
 └── README.md
 ```
@@ -255,6 +278,7 @@ Full API documentation: http://localhost:8000/docs
 - [Data Card](docs/DATA_CARD.md) - Data processing and requirements
 - [Model Card](docs/MODEL_CARD.md) - ML model details and limitations
 - [Architecture](docs/ARCHITECTURE.md) - System design and data flow
+- [Gemini Integration](docs/GEMINI_INTEGRATION.md) - 🆕 Detailed guide on Gemini 3 usage, agent architecture, and API patterns
 
 ---
 

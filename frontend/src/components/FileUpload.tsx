@@ -57,14 +57,16 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
   }
 
   const uploadSales = async (file: File) => {
-    if (!sessionId) return alert('Please upload menu first')
     setIsUploading('sales')
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('session_id', sessionId)
+    if (sessionId) formData.append('session_id', sessionId)
 
     try {
       const res = await axios.post(`${API_URL}/api/v1/ingest/sales`, formData)
+      if (!sessionId && res.data.session_id) {
+        onSessionCreated(res.data.session_id, res.data)
+      }
       setUploadResults((prev: any) => ({ ...prev, sales: res.data }))
       setSalesUploaded(true)
     } catch (err: any) {
@@ -101,9 +103,9 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
         ) : (
           <Image className="h-12 w-12 mx-auto text-gray-400" />
         )}
-        <p className="mt-4 font-medium">{menuUploaded ? 'Menu Uploaded!' : 'Upload Menu Image or PDF'}</p>
+        <p className="mt-4 font-medium">{menuUploaded ? 'Menu Uploaded!' : 'Upload Menu (Optional)'}</p>
         <p className="text-sm text-gray-500 mt-1">
-          {menuUploaded ? `${uploadResults.menu?.items_extracted || 0} items extracted` : 'Drop image/PDF or click to browse'}
+          {menuUploaded ? `${uploadResults.menu?.items_extracted || 0} items extracted` : 'Image/PDF for multimodal analysis'}
         </p>
       </div>
     )
@@ -140,12 +142,12 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
       if (files[0]) uploadSales(files[0])
     }, [])
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
-      onDrop, accept: { 'text/csv': ['.csv'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }, maxFiles: 1, disabled: !sessionId
+      onDrop, accept: { 'text/csv': ['.csv'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }, maxFiles: 1
     })
 
     return (
       <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-        !sessionId ? 'opacity-50 cursor-not-allowed' : isDragActive ? 'border-primary-500 bg-primary-50' : salesUploaded ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary-400'
+        isDragActive ? 'border-primary-500 bg-primary-50' : salesUploaded ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-primary-400'
       }`}>
         <input {...getInputProps()} />
         {isUploading === 'sales' ? (
@@ -155,21 +157,21 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
         ) : (
           <FileSpreadsheet className="h-12 w-12 mx-auto text-gray-400" />
         )}
-        <p className="mt-4 font-medium">{salesUploaded ? 'Sales Data Loaded!' : 'Upload Sales Data (CSV)'}</p>
+        <p className="mt-4 font-medium">{salesUploaded ? 'Sales Data Loaded!' : 'Upload Sales Data (Required)'}</p>
         <p className="text-sm text-gray-500 mt-1">
-          {salesUploaded ? `${uploadResults.sales?.records_imported || 0} records imported` : 'Columns: date, item_name, units_sold'}
+          {salesUploaded ? `${uploadResults.sales?.records_imported || 0} records imported` : 'CSV with: date, item_name, units_sold'}
         </p>
       </div>
     )
   }
 
-  const canProceed = menuUploaded
+  const canProceed = salesUploaded
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Upload Your Restaurant Data</h2>
-        <p className="text-gray-600 mt-2">Start by uploading your menu image. Dish photos and sales data are optional but improve analysis.</p>
+        <p className="text-gray-600 mt-2">Sales data (CSV) is required for BCG analysis. Menu image and dish photos are optional but enable multimodal AI features.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
