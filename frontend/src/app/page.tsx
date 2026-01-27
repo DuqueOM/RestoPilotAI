@@ -6,7 +6,7 @@ import CampaignCards from '@/components/CampaignCards'
 import FileUpload from '@/components/FileUpload'
 import ThoughtSignature from '@/components/ThoughtSignature'
 import { api } from '@/lib/api'
-import { BarChart3, ChefHat, Megaphone, Sparkles, TrendingUp, Upload } from 'lucide-react'
+import { BarChart3, ChefHat, Megaphone, Play, Sparkles, TrendingUp, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 

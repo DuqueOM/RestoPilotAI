@@ -9,7 +9,23 @@ MenuPilot is a multimodal AI assistant that helps small and medium restaurants o
 
 ---
 
-## 🎯 What MenuPilot Does
+## � Try the Demo (Hackathon Judges)
+
+We have created a pre-loaded **Demo Mode** so you can test all features without needing to upload files.
+
+1. **Start the app** (see Quick Start below)
+2. Open **http://localhost:3000**
+3. Click the **"Try Demo (Mexican Restaurant)"** button
+
+This loads a complete session with:
+- 🌮 **Menu**: 10 authentic items extracted from a menu image
+- 📊 **BCG Analysis**: Full strategic classification
+- 📈 **Sales Data**: 90 days of synthetic sales history
+- 📣 **Campaigns**: 3 AI-generated marketing proposals
+
+---
+
+## �🎯 What MenuPilot Does
 
 ### ✅ Core Features (Fully Implemented)
 
