@@ -4,9 +4,12 @@ Analysis and campaign Pydantic schemas.
 
 from datetime import date, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from app.schemas.menu import MenuExtractionResponse
 
 
 class BCGClass(str, Enum):
@@ -202,7 +205,7 @@ class FullAnalysisResponse(BaseModel):
     ]  # {"menu_images": 1, "dish_images": 5, "sales_records": 1000}
 
     # Results
-    menu_extraction: Optional[MenuExtractionResponse] = None
+    menu_extraction: Optional["MenuExtractionResponse"] = None
     bcg_analysis: Optional[BCGAnalysisResponse] = None
     predictions: Optional[PredictionResponse] = None
     campaigns: List[CampaignResponse] = []

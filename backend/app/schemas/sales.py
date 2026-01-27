@@ -2,14 +2,15 @@
 Sales-related Pydantic schemas.
 """
 
-from typing import Optional, List, Dict
-from datetime import date, datetime
+from datetime import date
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class SalesRecordCreate(BaseModel):
     """Schema for creating a sales record."""
-    
+
     item_name: str = Field(..., min_length=1, max_length=200)
     sale_date: date
     units_sold: int = Field(..., ge=0)
@@ -20,7 +21,7 @@ class SalesRecordCreate(BaseModel):
 
 class SalesDataUploadResponse(BaseModel):
     """Response from sales data upload."""
-    
+
     session_id: str
     status: str
     records_imported: int
@@ -34,7 +35,7 @@ class SalesDataUploadResponse(BaseModel):
 
 class ItemSalesMetrics(BaseModel):
     """Sales metrics for a single item."""
-    
+
     item_name: str
     total_units: int
     total_revenue: float
@@ -46,7 +47,7 @@ class ItemSalesMetrics(BaseModel):
 
 class SalesAnalyticsResponse(BaseModel):
     """Comprehensive sales analytics response."""
-    
+
     session_id: str
     analysis_period: Dict[str, str]
     total_revenue: float
