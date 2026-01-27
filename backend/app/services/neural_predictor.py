@@ -5,6 +5,8 @@ Complements XGBoost with a neural network approach for more sophisticated
 pattern recognition and ensemble predictions.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -25,76 +27,88 @@ except ImportError:
     logger.warning("PyTorch not available, neural predictor will use fallback")
 
 
-class SalesLSTM(nn.Module):
-    """LSTM-based neural network for sales time series prediction."""
+if TORCH_AVAILABLE:
 
-    def __init__(
-        self,
-        input_size: int = 10,
-        hidden_size: int = 64,
-        num_layers: int = 2,
-        dropout: float = 0.2,
-    ):
-        super().__init__()
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
+    class SalesLSTM(nn.Module):
+        """LSTM-based neural network for sales time series prediction."""
 
-        self.lstm = nn.LSTM(
-            input_size=input_size,
-            hidden_size=hidden_size,
-            num_layers=num_layers,
-            batch_first=True,
-            dropout=dropout if num_layers > 1 else 0,
-        )
+        def __init__(
+            self,
+            input_size: int = 10,
+            hidden_size: int = 64,
+            num_layers: int = 2,
+            dropout: float = 0.2,
+        ):
+            super().__init__()
+            self.hidden_size = hidden_size
+            self.num_layers = num_layers
 
-        self.fc_layers = nn.Sequential(
-            nn.Linear(hidden_size, 32),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(32, 1),
-        )
+            self.lstm = nn.LSTM(
+                input_size=input_size,
+                hidden_size=hidden_size,
+                num_layers=num_layers,
+                batch_first=True,
+                dropout=dropout if num_layers > 1 else 0,
+            )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        lstm_out, _ = self.lstm(x)
-        last_output = lstm_out[:, -1, :]
-        return self.fc_layers(last_output)
+            self.fc_layers = nn.Sequential(
+                nn.Linear(hidden_size, 32),
+                nn.ReLU(),
+                nn.Dropout(dropout),
+                nn.Linear(32, 1),
+            )
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            lstm_out, _ = self.lstm(x)
+            last_output = lstm_out[:, -1, :]
+            return self.fc_layers(last_output)
 
 
-class SalesTransformer(nn.Module):
-    """Transformer-based model for sales prediction with attention mechanism."""
+    class SalesTransformer(nn.Module):
+        """Transformer-based model for sales prediction with attention mechanism."""
 
-    def __init__(
-        self,
-        input_size: int = 10,
-        d_model: int = 64,
-        nhead: int = 4,
-        num_layers: int = 2,
-        dropout: float = 0.1,
-    ):
-        super().__init__()
+        def __init__(
+            self,
+            input_size: int = 10,
+            d_model: int = 64,
+            nhead: int = 4,
+            num_layers: int = 2,
+            dropout: float = 0.1,
+        ):
+            super().__init__()
 
-        self.input_projection = nn.Linear(input_size, d_model)
+            self.input_projection = nn.Linear(input_size, d_model)
 
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=d_model * 4,
-            dropout=dropout,
-            batch_first=True,
-        )
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+            encoder_layer = nn.TransformerEncoderLayer(
+                d_model=d_model,
+                nhead=nhead,
+                dim_feedforward=d_model * 4,
+                dropout=dropout,
+                batch_first=True,
+            )
+            self.transformer = nn.TransformerEncoder(
+                encoder_layer, num_layers=num_layers
+            )
 
-        self.output_layer = nn.Sequential(
-            nn.Linear(d_model, 32),
-            nn.ReLU(),
-            nn.Linear(32, 1),
-        )
+            self.output_layer = nn.Sequential(
+                nn.Linear(d_model, 32),
+                nn.ReLU(),
+                nn.Linear(32, 1),
+            )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.input_projection(x)
-        x = self.transformer(x)
-        x = x.mean(dim=1)
-        return self.output_layer(x)
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            x = self.input_projection(x)
+            x = self.transformer(x)
+            x = x.mean(dim=1)
+            return self.output_layer(x)
+
+else:
+
+    class SalesLSTM:  # pragma: no cover
+        pass
+
+    class SalesTransformer:  # pragma: no cover
+        pass
 
 
 class NeuralPredictor:

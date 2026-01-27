@@ -1,7 +1,9 @@
 # MenuPilot - Multi-stage Docker build
 # Optimized for production deployment
 
-FROM python:3.11-slim as builder
+ARG PYTHON_VERSION=3.11
+
+FROM python:${PYTHON_VERSION}-slim as builder
 
 WORKDIR /app
 
@@ -15,7 +17,7 @@ COPY backend/requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 # Production image
-FROM python:3.11-slim
+FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /app
 
