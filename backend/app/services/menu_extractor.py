@@ -7,9 +7,6 @@ from typing import Any, Dict, List, Optional
 
 import pytesseract
 from loguru import logger
-from PIL import Image
-
-from app.services.gemini_agent import GeminiAgent
 
 
 class MenuExtractor:
@@ -31,10 +28,10 @@ class MenuExtractor:
         business_context: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Extract menu items from an image.
+        Extract menu items from an image or PDF.
 
         Args:
-            image_path: Path to the menu image
+            image_path: Path to the menuor PDF file
             use_ocr: Whether to use local OCR as preprocessing
             business_context: Additional context about the business
 
@@ -44,9 +41,9 @@ class MenuExtractor:
 
         logger.info(f"Extracting menu from: {image_path}")
 
-        # Step 1: Local OCR preprocessing (optional)
-        ocr_text = None
-        if use_ocr:
+        # Check if it's a PDF and convert to images
+        file_path = Path(image_path)
+        if file_path.suffix.lower() == '.pdf':
             ocr_text = self._run_local_ocr(image_path)
             logger.debug(f"OCR extracted {len(ocr_text)} characters")
 
@@ -77,7 +74,42 @@ class MenuExtractor:
         }
 
     def _run_local_ocr(self, image_path: str) -> str:
-        """Run Tesseract OCR on the image."""
+        "
+
+    async def _convert_pdf_to_image(self, pdf_path: str) -> str:
+        """
+        Convert PDF to image for processing.
+        
+        Returns path to the converted image (first page).
+        """
+        try:
+            # Try PyMuPDF first (faster)
+            doc = fitz.open(pdf_path)
+            page = doc[0]  # Get first page
+            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x zoom for better quality
+            
+            # Save as PNG
+            output_path = pdf_path.replace('.pdf', '_page1.png')
+            pix.save(output_path)
+            doc.close()
+            
+            logger.info(f"PDF converted to image: {output_path}")
+            return output_path
+            
+        except Exception as e:
+            logger.warning(f"PyMuPDF conversion failed: {e}, trying pdf2image...")
+            
+            # Fallback to pdf2image
+            try:
+                images = convert_from_path(pdf_path, first_page=1, last_page=1, dpi=200)
+                if images:
+                    output_path = pdf_path.replace('.pdf', '_page1.png')
+                    images[0].save(output_path, 'PNG')
+                    logger.info(f"PDF converted to image with pdf2image: {output_path}")
+                    return output_path
+            except Exception as e2:
+                logger.error(f"PDF conversion failed: {e2}")
+                raise ValueError(f"Could not convert PDF to image: {e2}")""Run Tesseract OCR on the image."""
         try:
             image = Image.open(image_path)
 

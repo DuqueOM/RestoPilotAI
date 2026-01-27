@@ -53,12 +53,16 @@ Access:
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
 
-### Option 2: Local Development (with Makefile)
+### Option 2: Local Development (with Makefile - Recommended)
 
 ```bash
-# Quick setup (recommended)
+# Quick setup
 make setup              # Creates venv, installs all dependencies
-# Edit backend/.env and add your GEMINI_API_KEY
+
+# Configure API key (interactive)
+./scripts/setup_api_key.sh
+
+# Run!
 make run                # Starts backend (8000) and frontend (3000)
 ```
 

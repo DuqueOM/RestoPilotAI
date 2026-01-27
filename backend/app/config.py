@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # File Upload
     max_upload_size_mb: int = 10
-    allowed_image_extensions: str = "jpg,jpeg,png,webp"
+    allowed_image_extensions: str = "jpg,jpeg,png,webp,pdf"
     allowed_data_extensions: str = "csv,xlsx"
 
     # Model Settings

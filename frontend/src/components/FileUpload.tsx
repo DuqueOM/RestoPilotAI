@@ -94,9 +94,9 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
         ) : (
           <Image className="h-12 w-12 mx-auto text-gray-400" />
         )}
-        <p className="mt-4 font-medium">{menuUploaded ? 'Menu Uploaded!' : 'Upload Menu Image'}</p>
+        <p className="mt-4 font-medium">{menuUploaded ? 'Menu Uploaded!' : 'Upload Menu Image or PDF'}</p>
         <p className="text-sm text-gray-500 mt-1">
-          {menuUploaded ? `${uploadResults.menu?.items_extracted || 0} items extracted` : 'Drop image or click to browse'}
+          {menuUploaded ? `${uploadResults.menu?.items_extracted || 0} items extracted` : 'Drop image/PDF or click to browse'}
         </p>
       </div>
     )

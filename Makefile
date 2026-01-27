@@ -50,6 +50,10 @@ setup-frontend:
 	cd frontend && npm install
 	@echo "✅ Frontend setup complete"
 
+setup-apikey:
+	@echo "🔑 Configuring Gemini API Key..."
+	@./scripts/setup_api_key.sh
+
 # ============= RUN =============
 
 run:
