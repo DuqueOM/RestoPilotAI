@@ -1,0 +1,34 @@
+# Core Framework
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+python-multipart==0.0.9
+pydantic==2.6.1
+pydantic-settings==2.1.0
+
+# Google Gemini API
+google-genai==1.0.0
+
+# Machine Learning
+scikit-learn==1.4.0
+xgboost==2.0.3
+numpy==1.26.4
+pandas==2.2.0
+joblib==1.3.2
+
+# Image Processing & OCR
+Pillow==10.2.0
+pytesseract==0.3.10
+
+# Data Storage
+aiosqlite==0.19.0
+sqlalchemy==2.0.25
+
+# Utilities
+python-dotenv==1.0.1
+httpx==0.26.0
+aiofiles==23.2.1
+loguru==0.7.2
+
+# Testing
+pytest==8.0.0
+pytest-asyncio==0.23.4
