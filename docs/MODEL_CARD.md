@@ -2,10 +2,12 @@
 
 ## Model Overview
 
-MenuPilot uses two primary model components:
+MenuPilot uses four primary model components:
 
 1. **Google Gemini 3** - Multimodal AI for extraction, analysis, and generation
-2. **XGBoost Sales Predictor** - Local ML model for sales forecasting
+2. **XGBoost Sales Predictor** - Traditional ML model for sales forecasting
+3. **Neural Predictor (LSTM/Transformer)** - Deep learning for sophisticated pattern recognition
+4. **Verification Agent** - Self-verification and auto-improvement system
 
 ---
 
@@ -134,6 +136,110 @@ scenarios = [
 - **Feature Engineering**: Requires proper date parsing
 - **Seasonality**: Limited capture of long-term patterns
 - **Overfitting**: Risk with small datasets
+
+---
+
+## Model 3: Neural Predictor (LSTM/Transformer)
+
+### Model Details
+
+| Attribute | Value |
+|-----------|-------|
+| **Architectures** | LSTM + Transformer Encoder |
+| **Library** | `torch>=2.0.0` |
+| **Task** | Sales time-series prediction with uncertainty |
+| **Output** | Predictions + 95% confidence intervals |
+
+### LSTM Architecture
+
+```python
+SalesLSTM(
+    input_size=10,
+    hidden_size=64,
+    num_layers=2,
+    dropout=0.2,
+    # + FC layers for regression
+)
+```
+
+### Transformer Architecture
+
+```python
+SalesTransformer(
+    input_size=10,
+    d_model=64,
+    nhead=4,
+    num_layers=2,
+    dropout=0.1,
+)
+```
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Ensemble** | Combines LSTM + Transformer predictions |
+| **MC Dropout** | Monte Carlo Dropout for uncertainty quantification |
+| **Confidence Intervals** | 95% CI on all predictions |
+| **Sequence Length** | 14-day input sequences |
+
+### Advantages over XGBoost
+
+- Better capture of complex temporal patterns
+- Uncertainty quantification built-in
+- Learns feature interactions automatically
+- Ensemble approach reduces variance
+
+### Limitations (Neural)
+
+- Requires more data for optimal training
+- Higher computational cost
+- Less interpretable than tree-based models
+- PyTorch dependency (optional fallback to XGBoost)
+
+---
+
+## Model 4: Verification Agent
+
+### Overview
+
+The Verification Agent implements the **Vibe Engineering** pattern for autonomous self-verification and improvement of analysis results.
+
+### Verification Checks
+
+| Check | Description |
+|-------|-------------|
+| `data_completeness` | All required data sections present |
+| `bcg_classification_accuracy` | Classifications match metrics |
+| `prediction_reasonableness` | Predictions within realistic bounds |
+| `campaign_alignment` | Campaigns align with BCG strategy |
+| `business_viability` | Recommendations are practical |
+| `presentation_quality` | Analysis is well-documented |
+
+### Thinking Levels
+
+| Level | Description | Use Case |
+|-------|-------------|----------|
+| `QUICK` | Surface-level checks | Fast validation |
+| `STANDARD` | Normal depth | Default analysis |
+| `DEEP` | Multi-perspective | Important decisions |
+| `EXHAUSTIVE` | Maximum depth | Critical analysis |
+
+### Auto-Improvement Loop
+
+```python
+while score < threshold and iterations < max_iterations:
+    checks = run_verification_checks()
+    if not all_passed(checks):
+        analysis = improve_analysis(analysis, checks.feedback)
+    iterations += 1
+```
+
+### Metrics
+
+- **Passing Threshold**: 75% overall score
+- **Max Iterations**: 3 improvement attempts
+- **Quality Dimensions**: 6 independent checks
 
 ---
 

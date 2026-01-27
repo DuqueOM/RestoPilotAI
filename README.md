@@ -14,9 +14,11 @@ MenuPilot is a multimodal AI assistant that helps small and medium restaurants o
 1. **Menu Extraction**: Upload a menu image → Get structured product catalog (OCR + Gemini multimodal)
 2. **Visual Analysis**: Upload dish photos → Get attractiveness scores and presentation feedback
 3. **BCG Classification**: Automatic product categorization (Star, Cash Cow, Question Mark, Dog)
-4. **Sales Prediction**: ML-based forecasting for campaign scenarios (XGBoost)
+4. **Sales Prediction**: Dual ML approach - XGBoost + Neural Networks (LSTM/Transformer)
 5. **Campaign Generation**: AI-generated marketing campaigns with copy, scheduling, and rationale
-6. **Thought Signatures**: Transparent reasoning traces for verifiable AI decisions
+6. **Thought Signatures**: Multi-level transparent reasoning traces for verifiable AI decisions
+7. **Autonomous Verification**: Self-improving analysis with quality checks (Vibe Engineering pattern)
+8. **Pipeline Orchestration**: Marathon Agent pattern with checkpoints for reliable long-running tasks
 
 ---
 
@@ -78,45 +80,71 @@ MenuPilot leverages Gemini 3's capabilities extensively:
 | Dish photo analysis | **Visual understanding** for quality scoring |
 | BCG strategic insights | **Reasoning** for business recommendations |
 | Campaign copy generation | **Content generation** with context |
-| Self-verification | **Agentic function calling** for quality checks |
-| Thought signatures | **Transparent reasoning** traces |
+| Autonomous verification | **Agentic function calling** for quality checks |
+| Thought signatures | **Multi-level transparent reasoning** traces |
+| Pipeline orchestration | **Long-running task coordination** with checkpoints |
 
-### Agentic Workflow
+### Agentic Workflow Patterns
 
+MenuPilot implements three key agentic patterns from the hackathon tracks:
+
+**1. Marathon Agent Pattern** - Autonomous pipeline orchestration:
 ```python
-# MenuPilot uses Gemini function calling for orchestration
-tools = [
-    extract_menu,        # OCR + structure extraction
-    analyze_dish_image,  # Visual appeal scoring
-    classify_bcg,        # BCG matrix classification
-    generate_campaign,   # Marketing campaign creation
-    verify_analysis,     # Self-verification step
-]
+orchestrator = AnalysisOrchestrator()
+result = await orchestrator.run_full_pipeline(
+    session_id=session_id,
+    menu_images=[...],
+    thinking_level=ThinkingLevel.DEEP,
+    auto_verify=True,  # Self-verification loop
+)
 ```
+
+**2. Vibe Engineering Pattern** - Self-verification and improvement:
+```python
+verification = await verification_agent.verify_analysis(
+    analysis_data,
+    thinking_level=ThinkingLevel.EXHAUSTIVE,
+    auto_improve=True,  # Iteratively improve until quality threshold
+)
+```
+
+**3. Thought Signatures with Levels**:
+- `QUICK` - Fast, surface-level analysis
+- `STANDARD` - Normal analysis depth
+- `DEEP` - Multi-perspective analysis
+- `EXHAUSTIVE` - Maximum depth with multiple verification passes
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐     ┌─────────────────────────────────┐
-│    Frontend     │     │         Backend (FastAPI)       │
-│    (Next.js)    │────▶│                                 │
-│                 │     │  ┌─────────────────────────┐   │
-│  Upload UI      │     │  │     Gemini 3 Agent      │   │
-│  BCG Chart      │     │  │  - Menu Extraction      │   │
-│  Campaigns      │     │  │  - Visual Analysis      │   │
-│  Thought Sig    │     │  │  - Campaign Generation  │   │
-│                 │     │  │  - Self-Verification    │   │
-└─────────────────┘     │  └───────────┬─────────────┘   │
-                        │              │                  │
-                        │  ┌───────────▼─────────────┐   │
-                        │  │    ML Services          │   │
-                        │  │  - BCG Classifier       │   │
-                        │  │  - Sales Predictor      │   │
-                        │  │    (XGBoost)            │   │
-                        │  └─────────────────────────┘   │
-                        └─────────────────────────────────┘
+┌─────────────────┐     ┌─────────────────────────────────────────┐
+│    Frontend     │     │           Backend (FastAPI)             │
+│    (Next.js)    │───▶│                                         │
+│                 │     │  ┌─────────────────────────────────┐    │
+│  Upload UI      │     │  │     Analysis Orchestrator       │    │
+│  BCG Chart      │     │  │     (Marathon Agent Pattern)    │    │
+│  Campaigns      │     │  │  ┌───────────────────────────┐  │    │
+│  Thought Sig    │     │  │  │    Gemini 3 Agent         │  │    │
+│  Verification   │     │  │  │  - Menu Extraction        │  │    │
+│                 │     │  │  │  - Visual Analysis        │  │    │
+└─────────────────┘     │  │  │  - Campaign Generation    │  │    │
+                        │  │  └───────────────────────────┘  │    │
+                        │  │  ┌───────────────────────────┐  │    │
+                        │  │  │  Verification Agent       │  │    │
+                        │  │  │  (Vibe Engineering)       │  │    │
+                        │  │  │  - Self-verification      │  │    │
+                        │  │  │  - Auto-improvement       │  │    │
+                        │  │  └───────────────────────────┘  │    │
+                        │  └─────────────────────────────────┘    │
+                        │  ┌─────────────────────────────────┐    │
+                        │  │        ML Services              │    │
+                        │  │  - BCG Classifier               │    │
+                        │  │  - XGBoost Predictor            │    │
+                        │  │  - Neural Predictor (LSTM/Trans)│    │
+                        │  └─────────────────────────────────┘    │
+                        └─────────────────────────────────────────┘
 ```
 
 ---
@@ -127,20 +155,23 @@ tools = [
 menupilot/
 ├── backend/
 │   ├── app/
-│   │   ├── api/routes.py          # API endpoints
+│   │   ├── api/routes.py              # API endpoints (incl. orchestrator, verification)
 │   │   ├── services/
-│   │   │   ├── gemini_agent.py    # Gemini 3 orchestrator
-│   │   │   ├── menu_extractor.py  # OCR + multimodal
-│   │   │   ├── bcg_classifier.py  # BCG matrix logic
-│   │   │   ├── sales_predictor.py # XGBoost forecasting
-│   │   │   └── campaign_generator.py
-│   │   ├── models/                # SQLAlchemy models
-│   │   └── schemas/               # Pydantic schemas
+│   │   │   ├── gemini_agent.py        # Gemini 3 core agent
+│   │   │   ├── menu_extractor.py      # OCR + multimodal extraction
+│   │   │   ├── bcg_classifier.py      # BCG matrix classification
+│   │   │   ├── sales_predictor.py     # XGBoost forecasting
+│   │   │   ├── neural_predictor.py    # LSTM/Transformer deep learning
+│   │   │   ├── campaign_generator.py  # AI campaign generation
+│   │   │   ├── verification_agent.py  # Vibe Engineering self-verification
+│   │   │   └── orchestrator.py        # Marathon Agent pipeline
+│   │   ├── models/                    # SQLAlchemy models
+│   │   └── schemas/                   # Pydantic schemas
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── app/page.tsx           # Main UI
+│   │   ├── app/page.tsx               # Main UI
 │   │   └── components/
 │   ├── package.json
 │   └── Dockerfile
@@ -193,23 +224,25 @@ Full API documentation: http://localhost:8000/docs
 
 ## 📝 Submission Description (200 words)
 
-**MenuPilot** is a multimodal AI assistant for restaurant optimization built with the Gemini 3 API. It transforms scattered business data—menu images, dish photos, and sales records—into actionable insights and marketing strategies.
+**MenuPilot** is an autonomous multimodal AI assistant for restaurant optimization built with the Gemini 3 API. It implements three key agentic patterns: **Marathon Agent** for reliable long-running pipelines with checkpoints, **Vibe Engineering** for self-verification and iterative improvement, and **multi-level Thought Signatures** for transparent reasoning.
 
 **Gemini 3 Integration:**
-- **Multimodal extraction**: Menu images are processed using Gemini's vision capabilities combined with local OCR for robust text extraction
-- **Visual analysis**: Dish photographs are scored for attractiveness using Gemini's visual understanding
-- **Function calling**: An agentic workflow orchestrates BCG classification, campaign generation, and self-verification through structured tool calls
-- **Thought signatures**: Every analysis includes a transparent reasoning trace showing the AI's plan, observations, and assumptions
+- **Multimodal extraction**: Menu images processed with Gemini vision + OCR hybrid approach
+- **Visual analysis**: Dish photographs scored for presentation quality and appeal
+- **Autonomous orchestration**: Complete analysis pipeline runs with checkpoints for reliability
+- **Self-verification loop**: Analysis verified and auto-improved until quality thresholds met
+- **Multi-level thinking**: Quick/Standard/Deep/Exhaustive reasoning depth options
 
 **Key Features:**
-- BCG Matrix classification (Star/Cash Cow/Question Mark/Dog)
-- XGBoost-powered sales predictions for campaign scenarios
-- AI-generated marketing campaigns with copy, scheduling, and rationale
-- Self-verification loop that checks and corrects analysis quality
+- BCG Matrix classification with AI-enhanced strategic insights
+- Dual ML prediction: XGBoost + Neural Networks (LSTM/Transformer) with uncertainty quantification
+- AI-generated marketing campaigns aligned with product classification
+- 95% confidence intervals on all predictions
+- Transparent thought traces at every step
 
-**Technical Stack:** FastAPI backend, Next.js frontend, Docker deployment
+**Technical Stack:** FastAPI backend, Next.js frontend, PyTorch deep learning, Docker deployment
 
-MenuPilot demonstrates how Gemini 3 can serve as an intelligent orchestrator for PYMEs, combining multimodal understanding, reasoning, and content generation to deliver measurable business value.
+MenuPilot demonstrates how Gemini 3 can serve as an **autonomous intelligent orchestrator** for PYMEs, combining multimodal understanding, agentic coordination, self-verification, and sophisticated ML to deliver measurable, explainable business value.
 
 ---
 

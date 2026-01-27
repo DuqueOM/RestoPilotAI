@@ -24,7 +24,10 @@ from app.services.bcg_classifier import BCGClassifier
 from app.services.campaign_generator import CampaignGenerator
 from app.services.gemini_agent import GeminiAgent
 from app.services.menu_extractor import DishImageAnalyzer, MenuExtractor
+from app.services.neural_predictor import NeuralPredictor
+from app.services.orchestrator import AnalysisOrchestrator
 from app.services.sales_predictor import SalesPredictor
+from app.services.verification_agent import VerificationAgent, ThinkingLevel
 
 router = APIRouter()
 settings = get_settings()
@@ -36,6 +39,9 @@ dish_analyzer = DishImageAnalyzer(agent)
 bcg_classifier = BCGClassifier(agent)
 sales_predictor = SalesPredictor()
 campaign_generator = CampaignGenerator(agent)
+verification_agent = VerificationAgent(agent)
+neural_predictor = NeuralPredictor()
+orchestrator = AnalysisOrchestrator()
 
 # In-memory session storage (use Redis/DB in production)
 sessions = {}
@@ -459,3 +465,254 @@ async def export_session(session_id: str):
     }
 
     return JSONResponse(content=report, media_type="application/json")
+
+
+# ============================================================================
+# ENHANCED AGENTIC ENDPOINTS
+# ============================================================================
+
+
+@router.post("/orchestrator/run", tags=["Orchestrator"])
+async def run_autonomous_pipeline(
+    menu_image: Optional[UploadFile] = File(None),
+    dish_images: Optional[List[UploadFile]] = File(None),
+    sales_file: Optional[UploadFile] = File(None),
+    thinking_level: str = Form("standard"),
+    auto_verify: bool = Form(True),
+):
+    """
+    Run the complete autonomous analysis pipeline.
+
+    This endpoint orchestrates the entire MenuPilot workflow:
+    1. Menu extraction from images
+    2. Dish photo analysis
+    3. Sales data processing
+    4. BCG classification
+    5. Sales prediction
+    6. Campaign generation
+    7. Autonomous verification and improvement
+
+    Uses the Marathon Agent pattern with checkpoints for reliability.
+    """
+
+    try:
+        level = ThinkingLevel(thinking_level)
+    except ValueError:
+        level = ThinkingLevel.STANDARD
+
+    session_id = await orchestrator.create_session()
+
+    menu_bytes = None
+    dish_bytes = None
+    sales_csv = None
+
+    if menu_image:
+        menu_bytes = [await menu_image.read()]
+
+    if dish_images:
+        dish_bytes = [await img.read() for img in dish_images]
+
+    if sales_file:
+        content = await sales_file.read()
+        sales_csv = content.decode("utf-8")
+
+    try:
+        result = await orchestrator.run_full_pipeline(
+            session_id=session_id,
+            menu_images=menu_bytes,
+            dish_images=dish_bytes,
+            sales_csv=sales_csv,
+            thinking_level=level,
+            auto_verify=auto_verify,
+        )
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Orchestrator pipeline failed: {e}")
+        raise HTTPException(500, f"Pipeline failed: {str(e)}")
+
+
+@router.get("/orchestrator/status/{session_id}", tags=["Orchestrator"])
+async def get_orchestrator_status(session_id: str):
+    """Get the status of an orchestrator session."""
+
+    status = orchestrator.get_session_status(session_id)
+    if not status:
+        raise HTTPException(404, "Session not found")
+
+    return status
+
+
+@router.post("/verify/analysis", tags=["Verification"])
+async def verify_analysis(
+    session_id: str,
+    thinking_level: str = "standard",
+    auto_improve: bool = True,
+):
+    """
+    Run the verification agent on an existing analysis.
+
+    Implements the Vibe Engineering pattern:
+    - Validates data completeness
+    - Checks BCG classification accuracy
+    - Verifies prediction reasonableness
+    - Ensures campaign-BCG alignment
+    - Assesses business viability
+    - Auto-improves if quality thresholds not met
+    """
+
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found")
+
+    session = sessions[session_id]
+
+    try:
+        level = ThinkingLevel(thinking_level)
+    except ValueError:
+        level = ThinkingLevel.STANDARD
+
+    analysis_data = {
+        "products": session.get("menu_items", []),
+        "bcg_analysis": session.get("bcg_analysis"),
+        "predictions": session.get("predictions"),
+        "campaigns": session.get("campaigns", []),
+    }
+
+    try:
+        result = await verification_agent.verify_analysis(
+            analysis_data,
+            thinking_level=level,
+            auto_improve=auto_improve,
+        )
+
+        sessions[session_id]["verification"] = {
+            "status": result.status.value,
+            "overall_score": result.overall_score,
+            "iterations": result.iterations_used,
+            "improvements": result.improvements_made,
+        }
+
+        return {
+            "session_id": session_id,
+            "status": result.status.value,
+            "overall_score": result.overall_score,
+            "iterations_used": result.iterations_used,
+            "improvements_made": result.improvements_made,
+            "checks": [
+                {
+                    "name": c.check_name,
+                    "passed": c.passed,
+                    "score": c.score,
+                    "feedback": c.feedback,
+                    "suggestions": c.suggestions,
+                }
+                for c in result.checks
+            ],
+            "final_recommendation": result.final_recommendation,
+            "thinking_level": result.thinking_level.value,
+        }
+
+    except Exception as e:
+        logger.error(f"Verification failed: {e}")
+        raise HTTPException(500, f"Verification failed: {str(e)}")
+
+
+@router.post("/predict/neural", tags=["Predict"])
+async def predict_with_neural_network(
+    session_id: str,
+    horizon_days: int = 14,
+    use_ensemble: bool = True,
+    uncertainty_samples: int = 10,
+):
+    """
+    Run sales prediction using deep learning models.
+
+    Uses LSTM and Transformer neural networks for:
+    - More sophisticated pattern recognition
+    - Uncertainty quantification via Monte Carlo Dropout
+    - 95% confidence intervals on predictions
+    - Ensemble predictions combining multiple architectures
+    """
+
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found")
+
+    session = sessions[session_id]
+    menu_items = session.get("menu_items", [])
+    sales_data = session.get("sales_data", [])
+    image_scores = session.get("image_scores", {})
+
+    if not menu_items:
+        raise HTTPException(400, "No menu items found")
+
+    try:
+        # Train neural models if needed
+        if not neural_predictor.is_trained:
+            train_result = await neural_predictor.train(
+                sales_data, menu_items, epochs=30
+            )
+            logger.info(f"Neural training: {train_result}")
+
+        # Get predictions for each item
+        predictions = {}
+        for item in menu_items:
+            base_features = {
+                "price": item.get("price", 15),
+                "avg_daily_units": 20,
+                "image_score": image_scores.get(item["name"], 0.5),
+            }
+
+            scenarios = [
+                {"name": "baseline"},
+                {"name": "promotion", "promotion_active": True},
+                {"name": "premium", "price_change_percent": 10},
+            ]
+
+            result = await neural_predictor.predict(
+                item["name"],
+                horizon_days,
+                base_features,
+                scenarios,
+                use_ensemble=use_ensemble,
+                uncertainty_samples=uncertainty_samples,
+            )
+
+            predictions[item["name"]] = result
+
+        sessions[session_id]["neural_predictions"] = predictions
+
+        return {
+            "session_id": session_id,
+            "status": "success",
+            "model_info": neural_predictor.get_model_info(),
+            "horizon_days": horizon_days,
+            "use_ensemble": use_ensemble,
+            "predictions": predictions,
+            "thought_signature": await agent.create_thought_signature(
+                "Neural network sales prediction",
+                {
+                    "models": ["LSTM", "Transformer"],
+                    "ensemble": use_ensemble,
+                    "uncertainty_quantified": True,
+                },
+            ),
+        }
+
+    except Exception as e:
+        logger.error(f"Neural prediction failed: {e}")
+        raise HTTPException(500, f"Neural prediction failed: {str(e)}")
+
+
+@router.get("/models/info", tags=["Models"])
+async def get_model_info():
+    """Get information about all ML models."""
+
+    return {
+        "xgboost_predictor": {
+            "trained": sales_predictor.model is not None,
+            "metrics": sales_predictor.model_metrics,
+        },
+        "neural_predictor": neural_predictor.get_model_info(),
+        "verification_agent": verification_agent.get_verification_summary(),
+    }

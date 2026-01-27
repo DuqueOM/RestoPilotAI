@@ -2,39 +2,59 @@
 
 ## System Overview
 
+MenuPilot implements three key agentic patterns:
+- **Marathon Agent**: Autonomous pipeline orchestration with checkpoints
+- **Vibe Engineering**: Self-verification and iterative improvement
+- **Multi-level Thinking**: Configurable reasoning depth (Quick/Standard/Deep/Exhaustive)
+
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         MenuPilot Architecture                       │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  ┌──────────────┐     ┌──────────────────────────────────────────┐ │
-│  │   Frontend   │     │              Backend (FastAPI)            │ │
-│  │   (Next.js)  │────▶│                                          │ │
-│  │              │     │  ┌─────────────────────────────────────┐ │ │
-│  │  - Upload UI │     │  │         API Routes (/api/v1)        │ │ │
-│  │  - BCG Chart │     │  │  /ingest  /analyze  /predict  /camp │ │ │
-│  │  - Campaigns │     │  └─────────────┬───────────────────────┘ │ │
-│  │  - Thought   │     │                │                         │ │
-│  │    Signature │     │  ┌─────────────▼───────────────────────┐ │ │
-│  └──────────────┘     │  │           Services Layer            │ │ │
-│                       │  │                                      │ │ │
-│                       │  │  ┌────────────┐  ┌────────────────┐ │ │ │
-│                       │  │  │  Gemini    │  │  ML Services   │ │ │ │
-│                       │  │  │  Agent     │  │  - BCG         │ │ │ │
-│                       │  │  │            │  │  - Predictor   │ │ │ │
-│                       │  │  │  - Extract │  │  - Campaign    │ │ │ │
-│                       │  │  │  - Analyze │  │                │ │ │ │
-│                       │  │  │  - Verify  │  └────────────────┘ │ │ │
-│                       │  │  └─────┬──────┘                     │ │ │
-│                       │  └────────┼────────────────────────────┘ │ │
-│                       │           │                              │ │
-│                       │           ▼                              │ │
-│                       │  ┌─────────────────┐  ┌───────────────┐ │ │
-│                       │  │  Gemini 3 API   │  │  Local Store  │ │ │
-│                       │  │  (Google Cloud) │  │  (SQLite)     │ │ │
-│                       │  └─────────────────┘  └───────────────┘ │ │
-│                       └──────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         MenuPilot Architecture                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────┐     ┌──────────────────────────────────────────────────┐ │
+│  │   Frontend   │     │                Backend (FastAPI)                  │ │
+│  │   (Next.js)  │────▶│                                                  │ │
+│  │              │     │  ┌───────────────────────────────────────────┐  │ │
+│  │  - Upload UI │     │  │         Analysis Orchestrator              │  │ │
+│  │  - BCG Chart │     │  │         (Marathon Agent Pattern)           │  │ │
+│  │  - Campaigns │     │  │  ┌─────────────────────────────────────┐  │  │ │
+│  │  - Thought   │     │  │  │    Verification Agent               │  │  │ │
+│  │    Signature │     │  │  │    (Vibe Engineering Pattern)       │  │  │ │
+│  │  - Verify    │     │  │  │  - Self-verification loop           │  │  │ │
+│  │    Results   │     │  │  │  - Auto-improvement                 │  │  │ │
+│  └──────────────┘     │  │  │  - Quality threshold checks         │  │  │ │
+│                       │  │  └─────────────────────────────────────┘  │  │ │
+│                       │  │  ┌─────────────────────────────────────┐  │  │ │
+│                       │  │  │        Gemini 3 Agent               │  │  │ │
+│                       │  │  │  - Menu extraction (multimodal)     │  │  │ │
+│                       │  │  │  - Visual analysis                  │  │  │ │
+│                       │  │  │  - Campaign generation              │  │  │ │
+│                       │  │  │  - Thought signatures               │  │  │ │
+│                       │  │  └─────────────────────────────────────┘  │  │ │
+│                       │  └───────────────────────────────────────────┘  │ │
+│                       │                                                  │ │
+│                       │  ┌───────────────────────────────────────────┐  │ │
+│                       │  │              ML Services                   │  │ │
+│                       │  │  ┌─────────────┐  ┌─────────────────────┐ │  │ │
+│                       │  │  │   XGBoost   │  │  Neural Predictor   │ │  │ │
+│                       │  │  │  Predictor  │  │  - LSTM             │ │  │ │
+│                       │  │  │             │  │  - Transformer      │ │  │ │
+│                       │  │  │             │  │  - MC Dropout       │ │  │ │
+│                       │  │  │             │  │  - Uncertainty      │ │  │ │
+│                       │  │  └─────────────┘  └─────────────────────┘ │  │ │
+│                       │  │  ┌─────────────┐  ┌─────────────────────┐ │  │ │
+│                       │  │  │    BCG      │  │    Campaign         │ │  │ │
+│                       │  │  │  Classifier │  │    Generator        │ │  │ │
+│                       │  │  └─────────────┘  └─────────────────────┘ │  │ │
+│                       │  └───────────────────────────────────────────┘  │ │
+│                       │                                                  │ │
+│                       │  ┌─────────────────┐  ┌───────────────┐         │ │
+│                       │  │  Gemini 3 API   │  │  Local Store  │         │ │
+│                       │  │  (Google Cloud) │  │  (SQLite)     │         │ │
+│                       │  └─────────────────┘  └───────────────┘         │ │
+│                       └──────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Component Details
@@ -69,16 +89,26 @@
 **API Endpoints:**
 
 ```
+# Data Ingestion
 POST /api/v1/ingest/menu       - Upload menu image
 POST /api/v1/ingest/dishes     - Upload dish photos
 POST /api/v1/ingest/sales      - Upload sales CSV
 
+# Analysis
 POST /api/v1/analyze/bcg       - Run BCG classification
-POST /api/v1/predict/sales     - Generate predictions
+POST /api/v1/predict/sales     - XGBoost predictions
+POST /api/v1/predict/neural    - Neural network predictions with uncertainty
 POST /api/v1/campaigns/generate - Create campaign proposals
 
+# Agentic Endpoints (NEW)
+POST /api/v1/orchestrator/run  - Run complete autonomous pipeline
+GET  /api/v1/orchestrator/status/{id} - Get orchestrator session status
+POST /api/v1/verify/analysis   - Run verification agent
+
+# Session & Models
 GET  /api/v1/session/{id}      - Get session data
 GET  /api/v1/session/{id}/export - Export results
+GET  /api/v1/models/info       - Get ML model status
 ```
 
 ### Gemini Agent
