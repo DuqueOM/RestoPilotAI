@@ -1,7 +1,7 @@
 'use client';
 
+import { AnalysisSession, api, MenuItem } from '@/lib/api';
 import { useEffect, useState } from 'react';
-import { api, AnalysisSession, MenuItem } from '@/lib/api';
 
 interface MenuPageProps {
   params: { sessionId: string };
@@ -15,8 +15,14 @@ export default function MenuPage({ params }: MenuPageProps) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = await api.getSession(params.sessionId);
-        setSession(data);
+        // Check if this is a demo session
+        if (params.sessionId === 'demo-session-001') {
+          const data = await api.getDemoSession();
+          setSession(data);
+        } else {
+          const data = await api.getSession(params.sessionId);
+          setSession(data);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load session');
       } finally {

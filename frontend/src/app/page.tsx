@@ -5,17 +5,34 @@ import BCGChart from '@/components/BCGChart'
 import CampaignCards from '@/components/CampaignCards'
 import FileUpload from '@/components/FileUpload'
 import ThoughtSignature from '@/components/ThoughtSignature'
+import { api } from '@/lib/api'
 import { BarChart3, ChefHat, Megaphone, Sparkles, TrendingUp, Upload } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 type Step = 'upload' | 'analysis' | 'results'
 
 export default function Home() {
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState<Step>('upload')
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [sessionData, setSessionData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [thoughtSignature, setThoughtSignature] = useState<any>(null)
+  const [demoLoading, setDemoLoading] = useState(false)
+
+  const handleLoadDemo = async () => {
+    setDemoLoading(true)
+    try {
+      const demoData = await api.getDemoSession()
+      router.push(`/analysis/${demoData.session_id}`)
+    } catch (error) {
+      console.error('Failed to load demo:', error)
+      alert('Failed to load demo data. Make sure the backend is running.')
+    } finally {
+      setDemoLoading(false)
+    }
+  }
 
   const handleSessionCreated = (id: string, data: any) => {
     setSessionId(id)
@@ -86,11 +103,46 @@ export default function Home() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {currentStep === 'upload' && (
-          <FileUpload 
-            onSessionCreated={handleSessionCreated}
-            onComplete={() => setCurrentStep('analysis')}
-            sessionId={sessionId}
-          />
+          <div className="space-y-6">
+            <FileUpload 
+              onSessionCreated={handleSessionCreated}
+              onComplete={() => setCurrentStep('analysis')}
+              sessionId={sessionId}
+            />
+            
+            {/* Demo Button */}
+            <div className="text-center">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-gray-50 text-gray-500">or</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleLoadDemo}
+                disabled={demoLoading}
+                className="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+              >
+                {demoLoading ? (
+                  <>
+                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                    Loading Demo...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-5 w-5" />
+                    Try Demo (Mexican Restaurant)
+                  </>
+                )}
+              </button>
+              <p className="mt-2 text-sm text-gray-500">
+                See MenuPilot in action with pre-loaded sample data
+              </p>
+            </div>
+          </div>
         )}
 
         {currentStep === 'analysis' && sessionId && (

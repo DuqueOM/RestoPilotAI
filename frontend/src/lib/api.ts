@@ -258,6 +258,16 @@ class MenuPilotAPI {
   async healthCheck(): Promise<{ status: string; version: string }> {
     return this.request('/health');
   }
+
+  // ==================== Demo Endpoints ====================
+
+  async getDemoSession(): Promise<AnalysisSession> {
+    return this.request<AnalysisSession>('/api/v1/demo/session');
+  }
+
+  async loadDemo(): Promise<{ session_id: string; status: string; items_count: number }> {
+    return this.request('/api/v1/demo/load');
+  }
 }
 
 // Singleton instance

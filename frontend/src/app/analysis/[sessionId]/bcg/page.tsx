@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { api, BCGAnalysisResult, BCGItem } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
 interface BCGPageProps {
   params: { sessionId: string };
@@ -36,7 +36,10 @@ export default function BCGPage({ params }: BCGPageProps) {
   useEffect(() => {
     const fetchBCG = async () => {
       try {
-        const session = await api.getSession(params.sessionId);
+        // Check if this is a demo session
+        const session = params.sessionId === 'demo-session-001'
+          ? await api.getDemoSession()
+          : await api.getSession(params.sessionId);
         if (session.bcg) {
           setData(session.bcg);
         }

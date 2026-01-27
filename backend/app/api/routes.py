@@ -744,3 +744,77 @@ async def get_model_info():
         "neural_predictor": neural_predictor.get_model_info(),
         "verification_agent": verification_agent.get_verification_summary(),
     }
+
+
+# ============================================================================
+# DEMO ENDPOINTS
+# ============================================================================
+
+
+@router.get("/demo/session", tags=["Demo"])
+async def get_demo_session():
+    """
+    Get pre-loaded demo session data.
+
+    Returns a complete session with:
+    - 10 menu items (Mexican restaurant)
+    - BCG classification for all items
+    - 3 AI-generated marketing campaigns
+    - 90 days of sales data
+    """
+    import json
+
+    demo_file = Path("data/demo/session.json")
+    if not demo_file.exists():
+        raise HTTPException(
+            404, "Demo data not found. Run scripts/seed_demo_data.py first."
+        )
+
+    with open(demo_file, "r") as f:
+        demo_data = json.load(f)
+
+    # Also load into sessions for further API calls
+    sessions["demo-session-001"] = {
+        "menu_items": demo_data["menu"]["items"],
+        "bcg_analysis": demo_data["bcg"],
+        "campaigns": demo_data["campaigns"]["campaigns"],
+    }
+
+    return demo_data
+
+
+@router.get("/demo/load", tags=["Demo"])
+async def load_demo_into_session():
+    """
+    Load demo data into a new session for testing.
+
+    Returns a session_id that can be used with all other endpoints.
+    """
+    import json
+
+    demo_file = Path("data/demo/session.json")
+    if not demo_file.exists():
+        raise HTTPException(
+            404, "Demo data not found. Run scripts/seed_demo_data.py first."
+        )
+
+    with open(demo_file, "r") as f:
+        demo_data = json.load(f)
+
+    session_id = "demo-session-001"
+
+    # Load into sessions
+    sessions[session_id] = {
+        "menu_items": demo_data["menu"]["items"],
+        "categories": demo_data["menu"]["categories"],
+        "bcg_analysis": demo_data["bcg"],
+        "campaigns": demo_data["campaigns"]["campaigns"],
+        "created_at": demo_data["created_at"],
+    }
+
+    return {
+        "session_id": session_id,
+        "status": "loaded",
+        "items_count": len(demo_data["menu"]["items"]),
+        "message": "Demo session loaded. Use this session_id with /session/{session_id} endpoint.",
+    }

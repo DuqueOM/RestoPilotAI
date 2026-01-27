@@ -1,7 +1,7 @@
 'use client';
 
+import { api, Campaign, CampaignResult } from '@/lib/api';
 import { useEffect, useState } from 'react';
-import { api, CampaignResult, Campaign } from '@/lib/api';
 
 interface CampaignsPageProps {
   params: { sessionId: string };
@@ -16,7 +16,10 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const session = await api.getSession(params.sessionId);
+        // Check if this is a demo session
+        const session = params.sessionId === 'demo-session-001'
+          ? await api.getDemoSession()
+          : await api.getSession(params.sessionId);
         if (session.campaigns) {
           setData(session.campaigns);
         }
