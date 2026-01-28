@@ -1,14 +1,15 @@
 'use client';
 
 import { api, PredictionResult } from '@/lib/api';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 
 interface PredictionsPageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
 export default function PredictionsPage({ params }: PredictionsPageProps) {
+  const { sessionId } = use(params);
   const [data, setData] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,9 +17,9 @@ export default function PredictionsPage({ params }: PredictionsPageProps) {
   useEffect(() => {
     const fetchPredictions = async () => {
       try {
-        const session = params.sessionId === 'demo-session-001'
+        const session = sessionId === 'demo-session-001'
           ? await api.getDemoSession()
-          : await api.getSession(params.sessionId);
+          : await api.getSession(sessionId);
         if (session.predictions) {
           setData(session.predictions);
         }
@@ -30,7 +31,7 @@ export default function PredictionsPage({ params }: PredictionsPageProps) {
     };
 
     fetchPredictions();
-  }, [params.sessionId]);
+  }, [sessionId]);
 
   if (loading) {
     return <LoadingSkeleton />;

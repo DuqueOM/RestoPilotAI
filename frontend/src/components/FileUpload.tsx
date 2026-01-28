@@ -1,7 +1,7 @@
 'use client'
 
 import axios from 'axios'
-import { CheckCircle, FileSpreadsheet, FileText, Image as ImageIcon, Link2, Loader2, Mic, MicOff, Pause, Play, Trash2, X } from 'lucide-react'
+import { CheckCircle, FileSpreadsheet, FileText, Image as ImageIcon, Loader2, Mic, MicOff, Pause, Play, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
@@ -419,35 +419,47 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
         {/* Business Context */}
         <div className="bg-blue-50 rounded-xl p-5 border border-blue-200">
           <h3 className="font-semibold text-blue-900 mb-3">Your Business Context</h3>
-          <textarea
-            value={businessContext}
-            onChange={(e) => setBusinessContext(e.target.value)}
-            placeholder="Describe your restaurant, cuisine type, target customers..."
-            className="w-full h-24 p-3 rounded-lg border border-blue-200 text-sm resize-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-          />
+          <div className="relative">
+            <textarea
+              value={businessContext}
+              onChange={(e) => setBusinessContext(e.target.value)}
+              placeholder="Describe your restaurant, cuisine type, target customers..."
+              className="w-full h-24 p-3 pr-12 rounded-lg border border-blue-200 text-sm resize-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            />
+            {/* Voice Recording - Icon only, inside text box */}
+            <button
+              onClick={() => isRecordingBusiness ? stopRecording('business') : startRecording('business')}
+              className={`absolute right-2 top-2 p-2 rounded-lg transition-all ${
+                isRecordingBusiness 
+                  ? 'bg-red-500 text-white animate-pulse' 
+                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+              title={isRecordingBusiness ? 'Stop Recording' : 'Record Voice Note'}
+            >
+              {isRecordingBusiness ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </button>
+          </div>
           
-          {/* Voice Recording */}
-          <div className="mt-3">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => isRecordingBusiness ? stopRecording('business') : startRecording('business')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isRecordingBusiness 
-                    ? 'bg-red-500 text-white animate-pulse' 
-                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                }`}
-              >
-                {isRecordingBusiness ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                {isRecordingBusiness ? 'Stop Recording' : 'Record Voice Note'}
-              </button>
+          {/* Audio recordings */}
+          {businessAudios.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {businessAudios.map((blob, idx) => (
+                <AudioPlayer key={idx} blob={blob} index={idx} onDelete={() => deleteAudio('business', idx)} />
+              ))}
             </div>
-            {businessAudios.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {businessAudios.map((blob, idx) => (
-                  <AudioPlayer key={idx} blob={blob} index={idx} onDelete={() => deleteAudio('business', idx)} />
-                ))}
-              </div>
-            )}
+          )}
+
+          {/* Context Suggestions */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {['Family restaurant', 'Fast food', 'Fine dining', 'Weekday lunch crowd', 'Weekend dinners', 'Tourist area'].map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => setBusinessContext(prev => prev ? `${prev}, ${suggestion.toLowerCase()}` : suggestion)}
+                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+              >
+                + {suggestion}
+              </button>
+            ))}
           </div>
 
           {/* Links */}
@@ -461,8 +473,8 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
                 placeholder="Add link (website, social media...)"
                 className="flex-1 px-3 py-2 rounded-lg border border-blue-200 text-sm"
               />
-              <button onClick={() => addLink('business')} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
-                <Link2 className="h-4 w-4" />
+              <button onClick={() => addLink('business')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                Add
               </button>
             </div>
             {businessLinks.length > 0 && (
@@ -483,35 +495,47 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
         {/* Competitor Context */}
         <div className="bg-orange-50 rounded-xl p-5 border border-orange-200">
           <h3 className="font-semibold text-orange-900 mb-3">Competitor Context</h3>
-          <textarea
-            value={competitorContext}
-            onChange={(e) => setCompetitorContext(e.target.value)}
-            placeholder="Describe your competitors, their strengths, pricing..."
-            className="w-full h-24 p-3 rounded-lg border border-orange-200 text-sm resize-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-          />
+          <div className="relative">
+            <textarea
+              value={competitorContext}
+              onChange={(e) => setCompetitorContext(e.target.value)}
+              placeholder="Describe your competitors, their strengths, pricing..."
+              className="w-full h-24 p-3 pr-12 rounded-lg border border-orange-200 text-sm resize-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+            />
+            {/* Voice Recording - Icon only, inside text box */}
+            <button
+              onClick={() => isRecordingCompetitor ? stopRecording('competitor') : startRecording('competitor')}
+              className={`absolute right-2 top-2 p-2 rounded-lg transition-all ${
+                isRecordingCompetitor 
+                  ? 'bg-red-500 text-white animate-pulse' 
+                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+              }`}
+              title={isRecordingCompetitor ? 'Stop Recording' : 'Record Voice Note'}
+            >
+              {isRecordingCompetitor ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </button>
+          </div>
           
-          {/* Voice Recording */}
-          <div className="mt-3">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => isRecordingCompetitor ? stopRecording('competitor') : startRecording('competitor')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isRecordingCompetitor 
-                    ? 'bg-red-500 text-white animate-pulse' 
-                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                }`}
-              >
-                {isRecordingCompetitor ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                {isRecordingCompetitor ? 'Stop Recording' : 'Record Voice Note'}
-              </button>
+          {/* Audio recordings */}
+          {competitorAudios.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {competitorAudios.map((blob, idx) => (
+                <AudioPlayer key={idx} blob={blob} index={idx} onDelete={() => deleteAudio('competitor', idx)} />
+              ))}
             </div>
-            {competitorAudios.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {competitorAudios.map((blob, idx) => (
-                  <AudioPlayer key={idx} blob={blob} index={idx} onDelete={() => deleteAudio('competitor', idx)} />
-                ))}
-              </div>
-            )}
+          )}
+
+          {/* Context Suggestions */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {['Lower prices', 'Better location', 'More variety', 'Faster service', 'Larger portions', 'Open late'].map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => setCompetitorContext(prev => prev ? `${prev}, ${suggestion.toLowerCase()}` : suggestion)}
+                className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded-full hover:bg-orange-200 transition-colors"
+              >
+                + {suggestion}
+              </button>
+            ))}
           </div>
 
           {/* Links */}
@@ -525,8 +549,8 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
                 placeholder="Add competitor link..."
                 className="flex-1 px-3 py-2 rounded-lg border border-orange-200 text-sm"
               />
-              <button onClick={() => addLink('competitor')} className="px-3 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200">
-                <Link2 className="h-4 w-4" />
+              <button onClick={() => addLink('competitor')} className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-medium">
+                Add
               </button>
             </div>
             {competitorLinks.length > 0 && (

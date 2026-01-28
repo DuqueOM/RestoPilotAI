@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, X, MessageCircle, Loader2 } from 'lucide-react';
+import { Bot, Loader2, MessageCircle, Send, Sparkles, User, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Message {
   id: string;
@@ -140,14 +140,22 @@ export default function AIChat({
               <div className="text-center py-8">
                 <Bot className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500 text-sm">
-                  Ask me anything about your restaurant analysis!
+                  {context === 'onboarding' 
+                    ? 'Ask me anything about MenuPilot!' 
+                    : 'Ask me anything about your restaurant analysis!'}
                 </p>
                 <div className="mt-4 space-y-2">
-                  {[
+                  {(context === 'onboarding' ? [
+                    "What data should I upload?",
+                    "How does BCG analysis work?",
+                    "What insights can I get?",
+                    "How long does analysis take?"
+                  ] : [
                     "What are my top performing items?",
                     "How can I improve my menu?",
-                    "Explain the BCG analysis"
-                  ].map((suggestion, idx) => (
+                    "Explain the BCG analysis",
+                    "Suggest a marketing campaign"
+                  ]).map((suggestion, idx) => (
                     <button
                       key={idx}
                       onClick={() => setInput(suggestion)}

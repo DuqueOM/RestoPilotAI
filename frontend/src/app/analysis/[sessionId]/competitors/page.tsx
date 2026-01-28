@@ -2,23 +2,24 @@
 
 import { api } from '@/lib/api';
 import { MapPin, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 
 interface CompetitorsPageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
 export default function CompetitorsPage({ params }: CompetitorsPageProps) {
+  const { sessionId } = use(params);
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = params.sessionId === 'demo-session-001'
+        const data = sessionId === 'demo-session-001'
           ? await api.getDemoSession()
-          : await api.getSession(params.sessionId);
+          : await api.getSession(sessionId);
         setSession(data);
       } catch (err) {
         console.error('Failed to load session:', err);
@@ -27,7 +28,7 @@ export default function CompetitorsPage({ params }: CompetitorsPageProps) {
       }
     };
     fetchSession();
-  }, [params.sessionId]);
+  }, [sessionId]);
 
   if (loading) {
     return (

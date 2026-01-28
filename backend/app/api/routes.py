@@ -1509,61 +1509,73 @@ async def search_location(
     Search for a restaurant location using address or name.
 
     Returns coordinates and formatted address for mapping.
-
-    Note: Requires GOOGLE_MAPS_API_KEY environment variable.
+    Uses Nominatim (OpenStreetMap) as free fallback if no Google API key.
     """
     import httpx
 
     google_api_key = settings.google_maps_api_key
 
-    if not google_api_key:
-        # Return mock data for demo purposes
-        return {
-            "location": {
-                "lat": 19.4326,
-                "lng": -99.1332,
-                "address": f"{query} (Demo Location - Mexico City)",
-                "place_id": "demo_place_id",
-            },
-            "status": "demo_mode",
-        }
+    # Try Google Maps first if API key available
+    if google_api_key:
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://maps.googleapis.com/maps/api/geocode/json",
+                    params={"address": query, "key": google_api_key},
+                )
+                data = response.json()
 
+                if data.get("results"):
+                    result = data["results"][0]
+                    location = result["geometry"]["location"]
+
+                    return {
+                        "location": {
+                            "lat": location["lat"],
+                            "lng": location["lng"],
+                            "address": result["formatted_address"],
+                            "place_id": result.get("place_id"),
+                        },
+                        "status": "ok",
+                    }
+        except Exception as e:
+            logger.warning(f"Google geocoding failed, trying Nominatim: {e}")
+
+    # Fallback to Nominatim (OpenStreetMap) - FREE, no API key required
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://maps.googleapis.com/maps/api/geocode/json",
-                params={"address": query, "key": google_api_key},
+                "https://nominatim.openstreetmap.org/search",
+                params={
+                    "q": query,
+                    "format": "json",
+                    "limit": 1,
+                    "addressdetails": 1,
+                },
+                headers={"User-Agent": "MenuPilot/1.0"},
+                timeout=10.0,
             )
             data = response.json()
 
-            if data.get("results"):
-                result = data["results"][0]
-                location = result["geometry"]["location"]
-
+            if data and len(data) > 0:
+                result = data[0]
                 return {
                     "location": {
-                        "lat": location["lat"],
-                        "lng": location["lng"],
-                        "address": result["formatted_address"],
-                        "place_id": result.get("place_id"),
+                        "lat": float(result["lat"]),
+                        "lng": float(result["lon"]),
+                        "address": result.get("display_name", query),
+                        "place_id": f"osm_{result.get('osm_id', 'unknown')}",
                     },
                     "status": "ok",
                 }
 
-            raise HTTPException(404, "Location not found")
+            raise HTTPException(404, f"Location not found for: {query}")
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Location search error: {e}")
-        # Fallback to demo mode
-        return {
-            "location": {
-                "lat": 19.4326,
-                "lng": -99.1332,
-                "address": f"{query} (Demo Mode)",
-                "place_id": "demo_place_id",
-            },
-            "status": "demo_mode",
-        }
+        raise HTTPException(500, f"Location search failed: {str(e)}")
 
 
 @router.post("/location/nearby-restaurants", tags=["Location"])

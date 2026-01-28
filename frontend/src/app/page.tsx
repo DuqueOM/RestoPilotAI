@@ -526,15 +526,13 @@ export default function Home() {
         )}
       </div>
 
-      {/* AI Chat - Floating on all pages */}
-      {sessionId && (
-        <AIChat 
-          sessionId={sessionId} 
-          context={resultsTab}
-          title="MenuPilot AI"
-          placeholder="Ask about your restaurant analysis..."
-        />
-      )}
+      {/* AI Chat - Always visible, even without session */}
+      <AIChat 
+        sessionId={sessionId || 'general'} 
+        context={sessionId ? resultsTab : 'onboarding'}
+        title="MenuPilot AI"
+        placeholder={sessionId ? "Ask about your restaurant analysis..." : "Ask questions about MenuPilot..."}
+      />
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-auto">

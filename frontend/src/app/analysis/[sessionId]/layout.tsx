@@ -3,11 +3,11 @@
 import { api } from '@/lib/api';
 import { BarChart3, Brain, ChefHat, Megaphone, MessageSquare, Sparkles, Target, TrendingUp } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, use, useEffect, useState } from 'react';
 
 interface AnalysisLayoutProps {
   children: ReactNode;
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
 const tabs = [
@@ -21,6 +21,7 @@ const tabs = [
 ];
 
 export default function AnalysisLayout({ children, params }: AnalysisLayoutProps) {
+  const { sessionId } = use(params);
   const router = useRouter();
   const pathname = usePathname();
   const [sessionData, setSessionData] = useState<any>(null);
@@ -28,21 +29,21 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
   const pathParts = pathname.split('/');
   const lastPart = pathParts[pathParts.length - 1];
   const currentTab = tabs.find(t => t.href === `/${lastPart}`)?.value || 
-                     (pathname.endsWith(params.sessionId) ? 'overview' : 'overview');
+                     (pathname.endsWith(sessionId) ? 'overview' : 'overview');
 
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = params.sessionId === 'demo-session-001'
+        const data = sessionId === 'demo-session-001'
           ? await api.getDemoSession()
-          : await api.getSession(params.sessionId);
+          : await api.getSession(sessionId);
         setSessionData(data);
       } catch (err) {
         console.error('Failed to load session:', err);
       }
     };
     fetchSession();
-  }, [params.sessionId]);
+  }, [sessionId]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,7 +66,7 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
                 <span className="text-sm font-medium text-gray-600">Powered by Gemini 3</span>
               </div>
               <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-                {params.sessionId === 'demo-session-001' ? '🎭 Demo' : `Session: ${params.sessionId.slice(0, 8)}...`}
+                {sessionId === 'demo-session-001' ? '🎭 Demo' : `Session: ${sessionId.slice(0, 8)}...`}
               </span>
             </div>
           </div>
@@ -82,7 +83,7 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
             return (
               <button
                 key={tab.value}
-                onClick={() => router.push(`/analysis/${params.sessionId}${tab.href}`)}
+                onClick={() => router.push(`/analysis/${sessionId}${tab.href}`)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-blue-500 text-white shadow-sm'

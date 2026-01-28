@@ -93,7 +93,7 @@ competitor_data = await agent.extract_competitor_menu(
 # Returns: items[], pricing_analysis{}, competitive_observations[]
 ```
 
-### 2. Deep Reasoning (gemini-2.0-flash / gemini-2.5-pro-preview)
+### 2. Deep Reasoning (gemini-3-flash-preview / gemini-3-pro-preview)
 
 **Thinking Levels**
 ```python
@@ -316,7 +316,7 @@ ws = await websocket.connect(f"/api/v1/ws/analysis/{session_id}")
 GEMINI_API_KEY=your_api_key
 
 # Optional - defaults shown
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-3-flash-preview
 GEMINI_MAX_RETRIES=3
 GEMINI_RATE_LIMIT_RPM=60
 GEMINI_RATE_LIMIT_TPM=1000000
@@ -336,9 +336,9 @@ GEMINI_CACHE_TTL_SECONDS=3600
 
 | Task | Recommended Model | Thinking Level |
 |------|-------------------|----------------|
-| Menu extraction | gemini-2.0-flash | STANDARD |
-| Dish analysis | gemini-2.0-flash | STANDARD |
-| BCG strategy | gemini-2.0-flash | DEEP |
-| Competitive analysis | gemini-2.0-flash | DEEP |
-| Executive summary | gemini-2.0-flash | EXHAUSTIVE |
-| Verification | gemini-2.0-flash | EXHAUSTIVE |
+| Menu extraction | gemini-3-flash-preview | STANDARD |
+| Dish analysis | gemini-3-flash-preview | STANDARD |
+| BCG strategy | gemini-3-flash-preview | DEEP |
+| Competitive analysis | gemini-3-flash-preview | DEEP |
+| Executive summary | gemini-3-pro-preview | EXHAUSTIVE |
+| Verification | gemini-3-pro-preview | EXHAUSTIVE |

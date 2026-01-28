@@ -1,14 +1,15 @@
 'use client';
 
 import { api, MenuItem } from '@/lib/api';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 
 interface MenuPageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
 export default function MenuPage({ params }: MenuPageProps) {
+  const { sessionId } = use(params);
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,9 +17,9 @@ export default function MenuPage({ params }: MenuPageProps) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = params.sessionId === 'demo-session-001'
+        const data = sessionId === 'demo-session-001'
           ? await api.getDemoSession()
-          : await api.getSession(params.sessionId);
+          : await api.getSession(sessionId);
         setSession(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load session');
@@ -27,7 +28,7 @@ export default function MenuPage({ params }: MenuPageProps) {
       }
     };
     fetchSession();
-  }, [params.sessionId]);
+  }, [sessionId]);
 
   if (loading) {
     return <LoadingSkeleton />;

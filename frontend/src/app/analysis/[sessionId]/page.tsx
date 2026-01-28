@@ -3,14 +3,15 @@
 import { api } from '@/lib/api';
 import { Brain, Sparkles, Target } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 
 interface OverviewPageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
 export default function OverviewPage({ params }: OverviewPageProps) {
+  const { sessionId } = use(params);
   const router = useRouter();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -24,9 +25,9 @@ export default function OverviewPage({ params }: OverviewPageProps) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = params.sessionId === 'demo-session-001'
+        const data = sessionId === 'demo-session-001'
           ? await api.getDemoSession()
-          : await api.getSession(params.sessionId);
+          : await api.getSession(sessionId);
         setSession(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load session');
@@ -35,7 +36,7 @@ export default function OverviewPage({ params }: OverviewPageProps) {
       }
     };
     fetchSession();
-  }, [params.sessionId]);
+  }, [sessionId]);
 
   if (loading) {
     return <LoadingSkeleton />;

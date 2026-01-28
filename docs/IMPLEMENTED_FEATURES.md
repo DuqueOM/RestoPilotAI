@@ -252,7 +252,7 @@ cd frontend && npm run dev
 ## 📝 Technical Notes
 
 ### Gemini API Usage
-- **Model:** gemini-2.0-flash (default)
+- **Model:** gemini-3-flash-preview (Gemini 3 for hackathon)
 - **Rate Limiting:** 60 requests/minute
 - **Token Tracking:** Per-session usage stats
 - **Error Handling:** Exponential backoff retry

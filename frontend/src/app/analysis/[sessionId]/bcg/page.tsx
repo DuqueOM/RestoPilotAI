@@ -1,11 +1,11 @@
 'use client';
 
 import { api, BCGAnalysisResult, BCGItem } from '@/lib/api';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 
 interface BCGPageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -30,6 +30,7 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
 };
 
 export default function BCGPage({ params }: BCGPageProps) {
+  const { sessionId } = use(params);
   const [data, setData] = useState<BCGAnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,9 +39,9 @@ export default function BCGPage({ params }: BCGPageProps) {
     const fetchBCG = async () => {
       try {
         // Check if this is a demo session
-        const session = params.sessionId === 'demo-session-001'
+        const session = sessionId === 'demo-session-001'
           ? await api.getDemoSession()
-          : await api.getSession(params.sessionId);
+          : await api.getSession(sessionId);
         if (session.bcg) {
           setData(session.bcg);
         }
@@ -52,7 +53,7 @@ export default function BCGPage({ params }: BCGPageProps) {
     };
 
     fetchBCG();
-  }, [params.sessionId]);
+  }, [sessionId]);
 
   if (loading) {
     return <LoadingSkeleton />;

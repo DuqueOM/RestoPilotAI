@@ -1,14 +1,15 @@
 'use client';
 
 import { api, Campaign, CampaignResult } from '@/lib/api';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 
 interface CampaignsPageProps {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }
 
 export default function CampaignsPage({ params }: CampaignsPageProps) {
+  const { sessionId } = use(params);
   const [data, setData] = useState<CampaignResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,9 +19,9 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
     const fetchCampaigns = async () => {
       try {
         // Check if this is a demo session
-        const session = params.sessionId === 'demo-session-001'
+        const session = sessionId === 'demo-session-001'
           ? await api.getDemoSession()
-          : await api.getSession(params.sessionId);
+          : await api.getSession(sessionId);
         if (session.campaigns) {
           setData(session.campaigns);
         }
@@ -32,7 +33,7 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
     };
 
     fetchCampaigns();
-  }, [params.sessionId]);
+  }, [sessionId]);
 
   const copyToClipboard = async (text: string, index: number) => {
     try {
