@@ -59,7 +59,7 @@ MenuPilot leverages **Google Gemini 3's** advanced capabilities through a modula
 
 ## Gemini 3 Features Used
 
-### 1. Multimodal Vision (gemini-2.0-flash)
+### 1. Multimodal Vision (gemini-3-flash-preview)
 
 **Menu Extraction**
 ```python

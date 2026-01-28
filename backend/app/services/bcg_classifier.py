@@ -15,7 +15,7 @@ Professional BCG Implementation Notes:
 - Includes profitability-weighted scoring for strategic recommendations
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -125,7 +125,7 @@ class BCGClassifier:
             "thresholds": thresholds,
             "summary": summary,
             "ai_insights": ai_insights,
-            "analysis_timestamp": datetime.utcnow().isoformat(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def _calculate_item_metrics(
@@ -181,7 +181,8 @@ class BCGClassifier:
             sum(s["gross_profits"]) for s in sales_by_item.values()
         )
         total_units = sum(sum(s["units"]) for s in sales_by_item.values())
-        total_revenue = sum(sum(s["revenues"]) for s in sales_by_item.values())
+        # total_revenue calculated but reserved for future revenue-based analysis
+        _ = sum(sum(s["revenues"]) for s in sales_by_item.values())
 
         # Calculate metrics for each item
         metrics = []
@@ -346,8 +347,9 @@ class BCGClassifier:
 
         high_share = item["market_share"] >= thresholds["high_share_threshold"]
         high_growth = item["growth_rate"] >= thresholds["high_growth_threshold"]
-        high_margin = item["margin"] >= 0.60  # 60%+ margin is excellent for food
-        low_margin = item["margin"] < 0.40  # Below 40% needs attention
+        # Margin thresholds for future enhanced classification
+        _high_margin = item["margin"] >= 0.60  # 60%+ margin is excellent
+        _low_margin = item["margin"] < 0.40  # Below 40% needs attention
 
         if high_share and high_growth:
             bcg_class = BCGClass.STAR

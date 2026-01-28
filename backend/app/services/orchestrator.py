@@ -6,7 +6,7 @@ and autonomous execution with transparent reasoning.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
@@ -58,7 +58,7 @@ class ThoughtTrace:
     observations: List[str]
     decisions: List[str]
     confidence: float
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
@@ -78,7 +78,7 @@ class AnalysisState:
     campaigns: List[Dict[str, Any]] = field(default_factory=list)
     verification_result: Optional[Dict[str, Any]] = None
 
-    started_at: datetime = field(default_factory=datetime.utcnow)
+    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
     total_thinking_time_ms: int = 0
 
@@ -207,7 +207,7 @@ class AnalysisOrchestrator:
                 )
 
             state.current_stage = PipelineStage.COMPLETED
-            state.completed_at = datetime.utcnow()
+            state.completed_at = datetime.now(timezone.utc)
 
             self.completed_sessions[session_id] = state
             del self.active_sessions[session_id]
@@ -229,14 +229,16 @@ class AnalysisOrchestrator:
     ):
         """Run a pipeline stage with checkpointing."""
         state.current_stage = stage
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         logger.info(f"Running stage: {stage.value}")
 
         try:
             await handler(state, *args)
 
-            elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            elapsed_ms = int(
+                (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            )
             state.total_thinking_time_ms += elapsed_ms
 
             self._save_checkpoint(state, success=True)
@@ -526,7 +528,7 @@ class AnalysisOrchestrator:
         """Save a checkpoint for the current stage."""
         checkpoint = PipelineCheckpoint(
             stage=state.current_stage,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             data={
                 "menu_items_count": len(state.menu_items),
                 "sales_records_count": len(state.sales_data),

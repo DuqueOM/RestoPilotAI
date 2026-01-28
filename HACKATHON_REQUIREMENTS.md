@@ -6,26 +6,35 @@
 
 **El proyecto DEBE usar la API de Gemini 3** según las reglas oficiales del hackathon:
 - URL: https://gemini3.devpost.com/
-- Período: 17 de diciembre 2025 - 9 de febrero 2026
+- Período: 9 de febrero - Deadline 2026
+- Premio Total: **$100,000 USD**
+
+### Criterios de Evaluación (Oficiales)
+
+| Criterio | Peso | Descripción |
+|----------|------|-------------|
+| **Technical Execution** | 40% | Calidad del código, uso efectivo de Gemini 3, funcionalidad |
+| **Innovation / Wow Factor** | 30% | Originalidad, solución única, factor sorpresa |
+| **Potential Impact** | 20% | Utilidad real, mercado potencial, resolución de problema |
+| **Presentation / Demo** | 10% | Claridad, documentación, diagrama arquitectura |
 
 ### Modelos Oficiales de Gemini 3
 
-El código debe usar uno de estos modelos:
+MenuPilot usa los siguientes modelos Gemini 3:
 
-1. **`gemini-3-pro-preview`** ⭐ Recomendado para MenuPilot
-   - Mejor modelo para razonamiento multimodal complejo
+1. **`gemini-3-flash-preview`** ✅ **Modelo Principal**
+   - Velocidad optimizada para producción
    - Soporta: Texto, Imagen, Video, Audio, PDF
-   - Context window: 1,048,576 tokens
-   - Características: Function calling, Code execution, Thinking, Structured outputs
+   - Context window: 1,048,576 tokens (1M)
+   - Usado para: Extracción de menús, análisis BCG, campañas
 
-2. **`gemini-3-flash-preview`** ✅ Actualmente en uso
-   - Más rápido y económico
-   - Mismas capacidades que Pro
-   - Ideal para aplicaciones de producción
+2. **`gemini-3-pro-preview`** ⭐ Para análisis profundo
+   - Mejor razonamiento y calidad
+   - Usado para: Verificación exhaustiva, resumen ejecutivo
 
 3. **`gemini-3-pro-image-preview`**
-   - Para generación de imágenes (Nano Banana Pro)
-   - No aplicable a MenuPilot
+   - Para generación de imágenes
+   - No usado en MenuPilot actualmente
 
 ## 🔑 Configuración de API Key
 

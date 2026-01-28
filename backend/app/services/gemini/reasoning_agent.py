@@ -10,29 +10,25 @@ Handles:
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
-from app.services.gemini.base_agent import (
-    GeminiBaseAgent,
-    GeminiModel,
-    ThinkingLevel,
-)
+from app.services.gemini.base_agent import GeminiBaseAgent, GeminiModel, ThinkingLevel
 
 
 @dataclass
 class ThoughtTrace:
     """Detailed thought trace for transparent reasoning."""
-    
+
     step: str
     reasoning: str
     observations: List[str]
     decisions: List[str]
     confidence: float
-    timestamp: datetime = field(default_factory=datetime.utcnow)
-    
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "step": self.step,
@@ -47,13 +43,13 @@ class ThoughtTrace:
 @dataclass
 class ReasoningResult:
     """Result from a reasoning operation."""
-    
+
     analysis: Dict[str, Any]
     thought_traces: List[ThoughtTrace]
     thinking_level: ThinkingLevel
     confidence: float
     processing_time_ms: int
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "analysis": self.analysis,
@@ -67,14 +63,14 @@ class ReasoningResult:
 class ReasoningAgent(GeminiBaseAgent):
     """
     Agent specialized in deep strategic analysis and reasoning.
-    
+
     Implements multi-level thinking:
     - QUICK: Fast, surface-level analysis
     - STANDARD: Balanced analysis with key insights
     - DEEP: Multi-perspective analysis with detailed reasoning
     - EXHAUSTIVE: Comprehensive analysis with scenario planning
     """
-    
+
     # Temperature settings per thinking level
     THINKING_CONFIGS = {
         ThinkingLevel.QUICK: {
@@ -98,7 +94,7 @@ class ReasoningAgent(GeminiBaseAgent):
             "reasoning_depth": "comprehensive",
         },
     }
-    
+
     def __init__(
         self,
         model: GeminiModel = GeminiModel.FLASH,
@@ -106,11 +102,11 @@ class ReasoningAgent(GeminiBaseAgent):
     ):
         super().__init__(model=model, **kwargs)
         self.thought_traces: List[ThoughtTrace] = []
-    
+
     async def process(self, *args, **kwargs) -> Any:
         """Main entry point - routes to specific reasoning method."""
         task = kwargs.get("task", "bcg_analysis")
-        
+
         if task == "bcg_analysis":
             return await self.analyze_bcg_strategy(**kwargs)
         elif task == "competitive_analysis":
@@ -121,7 +117,7 @@ class ReasoningAgent(GeminiBaseAgent):
             return await self.generate_executive_summary(**kwargs)
         else:
             raise ValueError(f"Unknown task: {task}")
-    
+
     async def create_thought_signature(
         self,
         task: str,
@@ -130,11 +126,11 @@ class ReasoningAgent(GeminiBaseAgent):
     ) -> Dict[str, Any]:
         """
         Generate a Thought Signature - transparent reasoning trace.
-        
+
         Shows the agent's planning and reasoning process before executing.
         """
         config = self.THINKING_CONFIGS[thinking_level]
-        
+
         prompt = f"""You are MenuPilot, an AI assistant for restaurant optimization.
 
 Before executing the following task, create a detailed thought signature that outlines your reasoning process.
@@ -172,9 +168,9 @@ RESPOND WITH VALID JSON:
                 max_output_tokens=2048,
                 feature="thought_signature",
             )
-            
+
             result = self._parse_json_response(response)
-            
+
             # Record thought trace
             trace = ThoughtTrace(
                 step=f"Planning: {task}",
@@ -184,9 +180,9 @@ RESPOND WITH VALID JSON:
                 confidence=result.get("confidence", 0.7),
             )
             self.thought_traces.append(trace)
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Thought signature generation failed: {e}")
             return {
@@ -196,7 +192,7 @@ RESPOND WITH VALID JSON:
                 "assumptions": ["Data is accurate"],
                 "confidence": 0.6,
             }
-    
+
     async def analyze_bcg_strategy(
         self,
         products: List[Dict[str, Any]],
@@ -207,28 +203,29 @@ RESPOND WITH VALID JSON:
     ) -> ReasoningResult:
         """
         Generate strategic BCG insights with deep reasoning.
-        
+
         Args:
             products: List of product data
             sales_data: Historical sales data
             bcg_classifications: Pre-computed BCG classifications
             thinking_level: Depth of analysis
-            
+
         Returns:
             ReasoningResult with strategic insights
         """
         import time
+
         start_time = time.time()
-        
+
         config = self.THINKING_CONFIGS[thinking_level]
-        
+
         # Create thought signature first
         await self.create_thought_signature(
             task="BCG Strategic Analysis",
             context={"products": len(products), "has_sales": bool(sales_data)},
             thinking_level=thinking_level,
         )
-        
+
         prompt = f"""You are a senior restaurant business strategist using the BCG Matrix framework.
 
 PRODUCT DATA ({len(products)} items):
@@ -326,21 +323,24 @@ Think step-by-step. Be specific with numbers and item names."""
                 max_output_tokens=config["max_tokens"],
                 feature="bcg_strategy",
             )
-            
+
             analysis = self._parse_json_response(response)
-            
+
             # Record thought trace
             trace = ThoughtTrace(
                 step="BCG Strategic Analysis",
                 reasoning=analysis.get("thinking_trace", {}).get("market_analysis", ""),
                 observations=analysis.get("thinking_trace", {}).get("key_patterns", []),
-                decisions=[r.get("action", "") for r in analysis.get("strategic_recommendations", [])[:3]],
+                decisions=[
+                    r.get("action", "")
+                    for r in analysis.get("strategic_recommendations", [])[:3]
+                ],
                 confidence=analysis.get("confidence_scores", {}).get("overall", 0.7),
             )
             self.thought_traces.append(trace)
-            
+
             processing_time = int((time.time() - start_time) * 1000)
-            
+
             return ReasoningResult(
                 analysis=analysis,
                 thought_traces=self.thought_traces.copy(),
@@ -348,7 +348,7 @@ Think step-by-step. Be specific with numbers and item names."""
                 confidence=analysis.get("confidence_scores", {}).get("overall", 0.7),
                 processing_time_ms=processing_time,
             )
-            
+
         except Exception as e:
             logger.error(f"BCG strategy analysis failed: {e}")
             return ReasoningResult(
@@ -358,7 +358,7 @@ Think step-by-step. Be specific with numbers and item names."""
                 confidence=0,
                 processing_time_ms=int((time.time() - start_time) * 1000),
             )
-    
+
     async def analyze_competitive_position(
         self,
         our_menu: Dict[str, Any],
@@ -369,21 +369,22 @@ Think step-by-step. Be specific with numbers and item names."""
     ) -> ReasoningResult:
         """
         Analyze competitive positioning with strategic recommendations.
-        
+
         Args:
             our_menu: Our restaurant's menu data
             competitor_menus: List of competitor menu data
             our_sentiment: Our customer sentiment data
             thinking_level: Depth of analysis
-            
+
         Returns:
             ReasoningResult with competitive insights
         """
         import time
+
         start_time = time.time()
-        
+
         config = self.THINKING_CONFIGS[thinking_level]
-        
+
         prompt = f"""You are a restaurant competitive intelligence analyst.
 
 OUR MENU:
@@ -477,20 +478,25 @@ Be specific with competitor names, prices, and item references."""
                 max_output_tokens=config["max_tokens"],
                 feature="competitive_analysis",
             )
-            
+
             analysis = self._parse_json_response(response)
-            
+
             trace = ThoughtTrace(
                 step="Competitive Position Analysis",
                 reasoning="Analyzed competitive landscape across price, product, and positioning dimensions",
-                observations=analysis.get("competitive_landscape", {}).get("key_differentiators", []),
-                decisions=[r.get("recommendation", "") for r in analysis.get("strategic_recommendations", [])[:3]],
+                observations=analysis.get("competitive_landscape", {}).get(
+                    "key_differentiators", []
+                ),
+                decisions=[
+                    r.get("recommendation", "")
+                    for r in analysis.get("strategic_recommendations", [])[:3]
+                ],
                 confidence=analysis.get("confidence", 0.7),
             )
             self.thought_traces.append(trace)
-            
+
             processing_time = int((time.time() - start_time) * 1000)
-            
+
             return ReasoningResult(
                 analysis=analysis,
                 thought_traces=self.thought_traces.copy(),
@@ -498,7 +504,7 @@ Be specific with competitor names, prices, and item references."""
                 confidence=analysis.get("confidence", 0.7),
                 processing_time_ms=processing_time,
             )
-            
+
         except Exception as e:
             logger.error(f"Competitive analysis failed: {e}")
             return ReasoningResult(
@@ -508,7 +514,7 @@ Be specific with competitor names, prices, and item references."""
                 confidence=0,
                 processing_time_ms=int((time.time() - start_time) * 1000),
             )
-    
+
     async def generate_strategic_recommendations(
         self,
         bcg_analysis: Dict[str, Any],
@@ -520,14 +526,15 @@ Be specific with competitor names, prices, and item references."""
     ) -> ReasoningResult:
         """
         Generate comprehensive strategic recommendations.
-        
+
         Synthesizes all available data into actionable strategy.
         """
         import time
+
         start_time = time.time()
-        
+
         config = self.THINKING_CONFIGS[thinking_level]
-        
+
         prompt = f"""You are a senior restaurant strategy consultant creating actionable recommendations.
 
 BCG ANALYSIS:
@@ -651,20 +658,26 @@ Be specific, actionable, and data-driven."""
                 max_output_tokens=config["max_tokens"],
                 feature="strategic_recommendations",
             )
-            
+
             analysis = self._parse_json_response(response)
-            
+
             trace = ThoughtTrace(
                 step="Strategic Recommendations",
                 reasoning=analysis.get("executive_summary", ""),
-                observations=[a.get("rationale", "") for a in analysis.get("immediate_actions", [])[:3]],
-                decisions=[a.get("action", "") for a in analysis.get("immediate_actions", [])[:3]],
+                observations=[
+                    a.get("rationale", "")
+                    for a in analysis.get("immediate_actions", [])[:3]
+                ],
+                decisions=[
+                    a.get("action", "")
+                    for a in analysis.get("immediate_actions", [])[:3]
+                ],
                 confidence=analysis.get("confidence", 0.7),
             )
             self.thought_traces.append(trace)
-            
+
             processing_time = int((time.time() - start_time) * 1000)
-            
+
             return ReasoningResult(
                 analysis=analysis,
                 thought_traces=self.thought_traces.copy(),
@@ -672,7 +685,7 @@ Be specific, actionable, and data-driven."""
                 confidence=analysis.get("confidence", 0.7),
                 processing_time_ms=processing_time,
             )
-            
+
         except Exception as e:
             logger.error(f"Strategic recommendations failed: {e}")
             return ReasoningResult(
@@ -682,7 +695,7 @@ Be specific, actionable, and data-driven."""
                 confidence=0,
                 processing_time_ms=int((time.time() - start_time) * 1000),
             )
-    
+
     async def generate_executive_summary(
         self,
         complete_analysis: Dict[str, Any],
@@ -692,17 +705,17 @@ Be specific, actionable, and data-driven."""
     ) -> str:
         """
         Generate comprehensive executive summary from all analysis data.
-        
+
         Args:
             complete_analysis: All analysis results combined
             restaurant_name: Name of the restaurant
             thinking_level: Depth of summary
-            
+
         Returns:
             Formatted executive summary text
         """
         config = self.THINKING_CONFIGS[thinking_level]
-        
+
         prompt = f"""You are a senior restaurant consultant creating an executive summary for {restaurant_name}.
 
 COMPLETE ANALYSIS DATA:
@@ -751,17 +764,17 @@ Write the executive summary now:"""
                 max_output_tokens=config["max_tokens"],
                 feature="executive_summary",
             )
-            
+
             return response
-            
+
         except Exception as e:
             logger.error(f"Executive summary generation failed: {e}")
             return f"Error generating executive summary: {str(e)}"
-    
+
     def _summarize_context(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Summarize context for thought signature generation."""
         summary = {}
-        
+
         for key, value in context.items():
             if isinstance(value, list):
                 summary[key] = f"List with {len(value)} items"
@@ -771,13 +784,13 @@ Write the executive summary now:"""
                 summary[key] = value[:200] + "..."
             else:
                 summary[key] = value
-        
+
         return summary
-    
+
     def get_thought_traces(self) -> List[Dict[str, Any]]:
         """Get all thought traces from this session."""
         return [t.to_dict() for t in self.thought_traces]
-    
+
     def clear_thought_traces(self) -> None:
         """Clear thought traces for new session."""
         self.thought_traces = []

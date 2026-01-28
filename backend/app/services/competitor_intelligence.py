@@ -10,7 +10,7 @@ Provides comprehensive competitive analysis capabilities:
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
@@ -43,7 +43,7 @@ class CompetitorMenu:
     currency: str
     source_type: str
     extraction_confidence: float
-    extracted_at: datetime = field(default_factory=datetime.utcnow)
+    extracted_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -128,7 +128,7 @@ class CompetitiveAnalysisResult:
     confidence: float
     thinking_level: str
     gemini_tokens_used: int
-    analyzed_at: datetime = field(default_factory=datetime.utcnow)
+    analyzed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> Dict[str, Any]:
         return {

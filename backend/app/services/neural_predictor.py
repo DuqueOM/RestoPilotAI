@@ -7,7 +7,7 @@ pattern recognition and ensemble predictions.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -62,7 +62,6 @@ if TORCH_AVAILABLE:
             lstm_out, _ = self.lstm(x)
             last_output = lstm_out[:, -1, :]
             return self.fc_layers(last_output)
-
 
     class SalesTransformer(nn.Module):
         """Transformer-based model for sales prediction with attention mechanism."""
@@ -268,7 +267,7 @@ class NeuralPredictor:
             "transformer": transformer_metrics,
             "training_samples": len(X_train),
             "validation_samples": len(X_val),
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
         }
 
         return {

@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
+from app import __version__
 from app.api.routes import router as api_router
 from app.api.websocket import router as ws_router
 from app.config import get_settings
@@ -65,7 +66,7 @@ app = FastAPI(
     - `/api/v1/predict` - Sales prediction for different scenarios
     - `/api/v1/campaigns` - Generate marketing campaign proposals
     """,
-    version="1.0.0",
+    version=__version__,
     contact={
         "name": "MenuPilot Team",
         "url": "https://github.com/menupilot/menupilot",
@@ -105,10 +106,11 @@ async def root():
     """Root endpoint with API information."""
     return {
         "name": "MenuPilot API",
-        "version": "1.0.0",
+        "version": __version__,
         "status": "operational",
         "docs": "/docs",
         "health": "/health",
+        "gemini_model": settings.gemini_model,
     }
 
 

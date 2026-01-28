@@ -3,7 +3,7 @@ Sales Prediction Service - ML-based forecasting for menu items.
 Uses XGBoost for time-series forecasting.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -102,7 +102,7 @@ class SalesPredictor:
             "mae": round(mean_absolute_error(y_test, y_pred), 2),
             "rmse": round(np.sqrt(mean_squared_error(y_test, y_pred)), 2),
             "training_samples": len(X_train),
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
         }
 
         self._save_model()
@@ -129,7 +129,7 @@ class SalesPredictor:
 
         scenarios = scenarios or [{"name": "baseline"}]
         results = {}
-        start_date = datetime.utcnow().date()
+        start_date = datetime.now(timezone.utc).date()
 
         for scenario in scenarios:
             scenario_name = scenario.get("name", "baseline")
@@ -204,7 +204,7 @@ class SalesPredictor:
         """Generate synthetic training data for demo."""
         np.random.seed(42)
         records = []
-        start_date = datetime.utcnow().date() - timedelta(days=90)
+        start_date = datetime.now(timezone.utc).date() - timedelta(days=90)
 
         for item in menu_items:
             item_name = item["name"]

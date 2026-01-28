@@ -8,7 +8,7 @@ Generates highly personalized, actionable marketing campaigns based on:
 - Specific product characteristics and performance data
 """
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from loguru import logger
@@ -88,7 +88,7 @@ class CampaignGenerator:
 
         return {
             "campaigns": processed_campaigns,
-            "generation_timestamp": datetime.utcnow().isoformat(),
+            "generation_timestamp": datetime.now(timezone.utc).isoformat(),
             "thought_signature": thought_signature,
             "total_generated": len(processed_campaigns),
         }
@@ -213,7 +213,10 @@ Keep the tone friendly, appetizing, and action-oriented."""
     response = await agent._call_gemini(prompt)
 
     try:
-        return {"content": response.text, "generated_at": datetime.utcnow().isoformat()}
+        return {
+            "content": response.text,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
     except Exception as e:
         logger.error(f"Content generation failed: {e}")
         return {"error": str(e)}

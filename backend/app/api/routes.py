@@ -8,9 +8,10 @@ Provides endpoints for:
 - /campaigns: Generate marketing campaign proposals
 """
 
+import json
 import shutil
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -63,7 +64,7 @@ async def ingest_menu_image(
     session_id = session_id or str(uuid.uuid4())
     if session_id not in sessions:
         sessions[session_id] = {
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "menu_items": [],
             "sales_data": [],
         }
@@ -238,10 +239,8 @@ async def ingest_audio_context(
 
     # Process audio with Gemini multimodal (native audio understanding)
     try:
-        import base64
 
         audio_bytes = Path(file_path).read_bytes()
-        audio_base64 = base64.b64encode(audio_bytes).decode()
 
         # Determine MIME type
         mime_types = {
@@ -280,7 +279,7 @@ Responde en JSON:
         client = genai.Client(api_key=settings.gemini_api_key)
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-3-flash-preview",  # Gemini 3 for hackathon
             contents=[
                 types.Content(
                     parts=[
@@ -710,7 +709,7 @@ async def export_session(session_id: str):
     # Compile final report
     report = {
         "session_id": session_id,
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "menu_catalog": session.get("menu_items", []),
         "bcg_analysis": session.get("bcg_analysis"),
         "predictions": session.get("predictions"),
@@ -989,7 +988,6 @@ async def get_demo_session():
     - Sales predictions with scenarios
     - Thought signature and Marathon Agent context
     """
-    import json
 
     demo_file = Path("data/demo/session.json")
     if not demo_file.exists():
@@ -1016,8 +1014,11 @@ async def get_demo_session():
     if isinstance(campaigns_data, dict) and "campaigns" in campaigns_data:
         campaigns_result = campaigns_data
     else:
-        campaigns_result = {"campaigns": campaigns_data, "thought_process": "Demo campaign generation"}
-    
+        campaigns_result = {
+            "campaigns": campaigns_data,
+            "thought_process": "Demo campaign generation",
+        }
+
     return {
         "session_id": demo_data["session_id"],
         "status": demo_data["status"],
@@ -1039,7 +1040,6 @@ async def load_demo_into_session():
 
     Returns a session_id that can be used with all other endpoints.
     """
-    import json
 
     demo_file = Path("data/demo/session.json")
     if not demo_file.exists():

@@ -1,31 +1,42 @@
 # MenuPilot - Development Commands
 # Usage: make <target>
+# Version: 1.0.0
 
-.PHONY: help setup setup-backend setup-frontend run run-backend run-frontend docker test lint clean
+.PHONY: help setup setup-backend setup-frontend run run-backend run-frontend docker test lint clean demo typecheck
 
 # Default Python version
 PYTHON_VERSION ?= 3.11
 
+# Colors for output
+GREEN  := \033[0;32m
+YELLOW := \033[0;33m
+CYAN   := \033[0;36m
+NC     := \033[0m
+
 help:
-	@echo "MenuPilot Development Commands"
+	@echo "$(CYAN)MenuPilot Development Commands$(NC)"
 	@echo ""
-	@echo "Setup:"
+	@echo "$(GREEN)Setup:$(NC)"
 	@echo "  make setup          - Setup both backend and frontend"
 	@echo "  make setup-backend  - Setup backend only (creates venv, installs deps)"
 	@echo "  make setup-frontend - Setup frontend only (npm install)"
+	@echo "  make setup-apikey   - Configure Gemini API key"
 	@echo ""
-	@echo "Run:"
+	@echo "$(GREEN)Run:$(NC)"
 	@echo "  make run            - Run both backend and frontend"
 	@echo "  make run-backend    - Run backend API (port 8000)"
 	@echo "  make run-frontend   - Run frontend dev server (port 3000)"
+	@echo "  make demo           - Generate demo data"
 	@echo ""
-	@echo "Docker:"
+	@echo "$(GREEN)Docker:$(NC)"
 	@echo "  make docker         - Build and run with Docker Compose"
 	@echo "  make docker-build   - Build Docker images"
 	@echo "  make docker-down    - Stop Docker containers"
+	@echo "  make docker-logs    - View Docker logs"
 	@echo ""
-	@echo "Quality:"
+	@echo "$(GREEN)Quality:$(NC)"
 	@echo "  make test           - Run backend tests"
+	@echo "  make typecheck      - Run TypeScript type checking"
 	@echo "  make lint           - Run linters"
 	@echo "  make clean          - Clean temporary files"
 
@@ -83,6 +94,16 @@ docker-build:
 docker-down:
 	docker-compose down
 
+docker-logs:
+	docker-compose logs -f
+
+# ============= DEMO =============
+
+demo:
+	@echo "🎭 Generating demo data..."
+	cd backend && . venv/bin/activate && python ../scripts/seed_demo_data.py
+	@echo "✅ Demo data generated in data/demo/"
+
 # ============= QUALITY =============
 
 test:
@@ -94,6 +115,11 @@ lint:
 	@echo "🔍 Running linters..."
 	cd backend && . venv/bin/activate && pip install -q ruff
 	cd backend && . venv/bin/activate && ruff check app/
+
+typecheck:
+	@echo "📝 Running type checks..."
+	cd frontend && npm run typecheck
+	@echo "✅ TypeScript check complete"
 
 # ============= CLEAN =============
 

@@ -1,15 +1,27 @@
 # 🍽️ MenuPilot
 
-**AI-Powered Restaurant Menu Optimization**
+**AI-Powered Restaurant Menu Optimization — Gemini 3 Hackathon Entry**
 
-[![Gemini 3](https://img.shields.io/badge/Powered%20by-Gemini%203-blue)](https://ai.google.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Gemini 3 Hackathon](https://img.shields.io/badge/Hackathon-Gemini%203-4285F4?style=for-the-badge&logo=google)](https://gemini3.devpost.com/)
+[![Powered by Gemini 3](https://img.shields.io/badge/Powered%20by-Gemini%203%20API-blue?style=for-the-badge)](https://ai.google.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-MenuPilot is a multimodal AI assistant that helps small and medium restaurants optimize their menu, pricing, and marketing campaigns using real data and automated reasoning powered by **Google Gemini 3**.
+> **MenuPilot** is an autonomous multimodal AI assistant that helps small and medium restaurants optimize their menu, pricing, and marketing campaigns using real data and automated reasoning powered by **Google Gemini 3 API**.
+
+## 🏆 Hackathon Highlights
+
+| Gemini 3 Feature | MenuPilot Implementation |
+|------------------|-------------------------|
+| **1M Token Context** | Marathon Agent with 6+ months of restaurant memory |
+| **Multimodal Vision** | Menu PDF/image extraction, dish photo analysis |
+| **Audio Understanding** | Voice business context input (native, no transcription) |
+| **Function Calling** | Autonomous BCG classification & campaign generation |
+| **Structured Output** | JSON schemas for all AI responses |
+| **Agentic Patterns** | Self-verification (Vibe Engineering), orchestration |
 
 ---
 
-## � Try the Demo (Hackathon Judges)
+## 🎬 Try the Demo (Hackathon Judges)
 
 We have created a pre-loaded **Demo Mode** so you can test all features without needing to upload files.
 
@@ -87,13 +99,12 @@ This loads a complete session with:
 
 ### Prerequisites
 
-- Python 3.11+
-- Recommended: Python 3.11 or 3.12 (for easiest installs)
-- Node.js 18+
-- Docker (optional)
-- [Gemini API Key](https://aistudio.google.com/apikey)
+- **Python 3.12** (recommended) or 3.11+
+- **Node.js 18+** (LTS recommended)
+- **Docker** (optional, for containerized deployment)
+- **[Gemini API Key](https://aistudio.google.com/apikey)** - Get yours free at Google AI Studio
 
-Note: If you're using Python 3.13, some scientific packages may build from source depending on your platform. If install fails, use Python 3.11/3.12.
+> **Note:** Python 3.12 is recommended for best compatibility. If using Python 3.13, some scientific packages may build from source.
 
 ### Option 1: Docker (Recommended)
 

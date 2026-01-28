@@ -1,5 +1,10 @@
-"""
-Application configuration management using Pydantic Settings.
+"""Application configuration management using Pydantic Settings.
+
+Centralized configuration for MenuPilot backend with support for:
+- Gemini 3 API settings
+- Rate limiting and caching
+- File upload constraints
+- ML model parameters
 """
 
 from functools import lru_cache
@@ -15,33 +20,47 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
-    # API Keys
+    # ==================== API Keys ====================
     gemini_api_key: str = ""
 
-    # Application
+    # ==================== Application ====================
+    app_name: str = "MenuPilot"
     app_env: str = "development"
     debug: bool = True
     log_level: str = "INFO"
 
-    # Server
+    # ==================== Server ====================
     host: str = "0.0.0.0"
     port: int = 8000
-    cors_origins: str = "*"
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
-    # Database
+    # ==================== Database ====================
     database_url: str = "sqlite+aiosqlite:///./data/menupilot.db"
 
-    # File Upload
+    # ==================== Gemini 3 Configuration ====================
+    gemini_model: str = "gemini-3-flash-preview"
+    gemini_model_pro: str = "gemini-3-pro-preview"
+    gemini_max_retries: int = 3
+    gemini_rate_limit_rpm: int = 60
+    gemini_rate_limit_tpm: int = 1000000
+    gemini_cache_ttl_seconds: int = 3600
+    gemini_timeout_seconds: int = 120
+
+    # ==================== File Upload ====================
     max_upload_size_mb: int = 10
     allowed_image_extensions: str = "jpg,jpeg,png,webp,pdf"
     allowed_data_extensions: str = "csv,xlsx"
+    allowed_audio_extensions: str = "mp3,wav,m4a,ogg,webm,flac,aac"
 
-    # Model Settings
+    # ==================== ML Model Settings ====================
     sales_prediction_horizon_days: int = 14
     bcg_high_share_percentile: int = 75
     bcg_high_growth_percentile: int = 75
+    neural_predictor_epochs: int = 30
+    neural_predictor_batch_size: int = 32
 
     @property
     def allowed_image_ext_list(self) -> List[str]:
@@ -52,8 +71,16 @@ class Settings(BaseSettings):
         return [ext.strip() for ext in self.allowed_data_extensions.split(",")]
 
     @property
+    def allowed_audio_ext_list(self) -> List[str]:
+        return [ext.strip() for ext in self.allowed_audio_extensions.split(",")]
+
+    @property
     def max_upload_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env.lower() == "production"
 
 
 @lru_cache()
