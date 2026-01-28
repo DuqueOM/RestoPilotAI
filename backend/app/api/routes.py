@@ -291,73 +291,25 @@ async def run_bcg_analysis(session_id: str):
         raise HTTPException(404, "Session not found")
 
     session = sessions[session_id]
-    extracted_menu_items = session.get("menu_items", [])
+    menu_items = session.get("menu_items", [])
     sales_data = session.get("sales_data", [])
     image_scores = session.get("image_scores", {})
 
-    # CRITICAL: Sales data is PRIMARY source, menu extraction is COMPLEMENTARY
-    # 1. Get all unique items from sales data (primary source)
-    sales_items_map = {}
-    if sales_data:
-        for record in sales_data:
-            item_name = record.get("item_name", "").strip()
-            if item_name and item_name not in sales_items_map:
-                # Calculate average price from revenue/units if available
-                item_records = [
-                    r for r in sales_data if r.get("item_name") == item_name
-                ]
-                total_revenue = sum(r.get("revenue", 0) or 0 for r in item_records)
-                total_units = sum(r.get("units_sold", 0) or 0 for r in item_records)
-                avg_price = (
-                    total_revenue / total_units
-                    if total_units > 0 and total_revenue > 0
-                    else 0.0
-                )
-
-                sales_items_map[item_name] = {
-                    "name": item_name,
-                    "price": round(avg_price, 2),
-                    "description": "",
-                    "category": "From Sales",
-                    "source": "sales_data",
-                }
-
-    # 2. Create lookup for extracted menu items (for enrichment)
-    menu_lookup = {
-        item.get("name", "").lower().strip(): item for item in extracted_menu_items
-    }
-
-    # 3. Combine: Start with ALL sales items, enrich with menu data
-    combined_items = []
-    for item_name, item_data in sales_items_map.items():
-        menu_match = menu_lookup.get(item_name.lower())
-        if menu_match:
-            item_data["price"] = menu_match.get("price") or item_data["price"]
-            item_data["description"] = menu_match.get("description", "")
-            item_data["category"] = menu_match.get("category") or item_data["category"]
-            item_data["source"] = "sales+menu"
-        combined_items.append(item_data)
-
-    # 4. Add menu items with NO sales (new items or low performers)
-    sales_names_lower = {name.lower() for name in sales_items_map.keys()}
-    for menu_item in extracted_menu_items:
-        menu_name = menu_item.get("name", "").strip()
-        if menu_name.lower() not in sales_names_lower:
-            combined_items.append(
-                {
-                    "name": menu_name,
-                    "price": menu_item.get("price", 0.0),
-                    "description": menu_item.get("description", ""),
-                    "category": menu_item.get("category", "Menu Only"),
-                    "source": "menu_only",
-                }
-            )
-
-    menu_items = combined_items
-    logger.info(
-        f"Combined {len(sales_items_map)} sales items + {len(extracted_menu_items)} menu items = {len(menu_items)} total"
-    )
-    sessions[session_id]["menu_items"] = menu_items
+    # If no menu items from image extraction, infer from sales data
+    if not menu_items and sales_data:
+        logger.info("No menu items from extraction, inferring from sales data")
+        unique_items = list(set(record["item_name"] for record in sales_data))
+        menu_items = [
+            {
+                "name": item_name,
+                "price": 0.0,  # Will be calculated from sales data
+                "description": "",
+                "category": "Unknown",
+                "source": "sales_data",
+            }
+            for item_name in unique_items
+        ]
+        sessions[session_id]["menu_items"] = menu_items
 
     if not menu_items:
         raise HTTPException(
