@@ -49,22 +49,15 @@ sessions = {}
 
 @router.post("/ingest/menu", tags=["Ingest"])
 async def ingest_menu_image(
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     session_id: Optional[str] = Form(None),
     business_context: Optional[str] = Form(None),
 ):
     """
-    Upload and process a menu image.
+    Upload and process menu images/PDFs (supports multiple files).
 
     Extracts menu items using OCR and Gemini multimodal analysis.
     """
-
-    # Validate file
-    ext = file.filename.split(".")[-1].lower() if file.filename else ""
-    if ext not in settings.allowed_image_ext_list:
-        raise HTTPException(
-            400, f"Invalid file type. Allowed: {settings.allowed_image_extensions}"
-        )
 
     # Create or get session
     session_id = session_id or str(uuid.uuid4())
@@ -75,50 +68,68 @@ async def ingest_menu_image(
             "sales_data": [],
         }
 
-    # Save file
     upload_dir = Path("data/uploads") / session_id
     upload_dir.mkdir(parents=True, exist_ok=True)
-    file_path = upload_dir / f"menu_{file.filename}"
 
-    with open(file_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+    all_items = []
+    total_files_processed = 0
 
-    # Extract menu items
-    try:
-        # Use PDF-specific extraction for PDFs to handle multiple pages
-        if ext == "pdf":
-            result = await menu_extractor.extract_from_pdf_all_pages(
-                str(file_path), use_ocr=True, business_context=business_context
-            )
-        else:
-            result = await menu_extractor.extract_from_image(
-                str(file_path), use_ocr=True, business_context=business_context
-            )
+    for file in files:
+        # Validate file
+        ext = file.filename.split(".")[-1].lower() if file.filename else ""
+        if ext not in settings.allowed_image_ext_list:
+            logger.warning(f"Skipping invalid file type: {file.filename}")
+            continue
 
-        # Store in session
-        sessions[session_id]["menu_items"].extend(result["items"])
-        sessions[session_id]["menu_extraction"] = result
+        # Save file
+        file_path = upload_dir / f"menu_{file.filename}"
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
 
-        # Create thought signature
-        thought = await agent.create_thought_signature(
-            "Extract menu items from uploaded image",
-            {"filename": file.filename, "items_found": len(result["items"])},
-        )
+        # Extract menu items
+        try:
+            # Use PDF-specific extraction for PDFs to handle multiple pages
+            if ext == "pdf":
+                result = await menu_extractor.extract_from_pdf_all_pages(
+                    str(file_path), use_ocr=True, business_context=business_context
+                )
+            else:
+                result = await menu_extractor.extract_from_image(
+                    str(file_path), use_ocr=True, business_context=business_context
+                )
 
-        return {
-            "session_id": session_id,
-            "status": "success",
-            "items_extracted": len(result["items"]),
-            "categories_found": [c["name"] for c in result["categories"]],
-            "items": result["items"],
-            "extraction_confidence": result["extraction_confidence"],
-            "thought_process": thought,
-            "warnings": result["warnings"],
-        }
+            all_items.extend(result.get("items", []))
+            total_files_processed += 1
+        except Exception as e:
+            logger.error(f"Failed to process {file.filename}: {e}")
+            continue
 
-    except Exception as e:
-        logger.error(f"Menu extraction failed: {e}")
-        raise HTTPException(500, f"Menu extraction failed: {str(e)}")
+    # Store in session - deduplicate items by name
+    existing_names = {
+        item["name"].lower() for item in sessions[session_id]["menu_items"]
+    }
+    new_items = [
+        item for item in all_items if item["name"].lower() not in existing_names
+    ]
+    sessions[session_id]["menu_items"].extend(new_items)
+
+    result = {"items": new_items, "item_count": len(new_items)}
+    sessions[session_id]["menu_extraction"] = result
+
+    # Create thought signature
+    thought = await agent.create_thought_signature(
+        "Extract menu items from uploaded files",
+        {"files_processed": total_files_processed, "items_found": len(new_items)},
+    )
+
+    return {
+        "session_id": session_id,
+        "status": "success",
+        "items_extracted": len(new_items),
+        "files_processed": total_files_processed,
+        "items": new_items,
+        "thought_process": thought,
+    }
 
 
 @router.post("/ingest/dishes", tags=["Ingest"])
@@ -178,6 +189,168 @@ async def ingest_dish_images(
     except Exception as e:
         logger.error(f"Dish analysis failed: {e}")
         raise HTTPException(500, f"Dish analysis failed: {str(e)}")
+
+
+@router.post("/ingest/audio", tags=["Ingest"])
+async def ingest_audio_context(
+    file: UploadFile = File(...),
+    session_id: str = Form(...),
+    context_type: str = Form(...),  # 'business' or 'competitor'
+):
+    """
+    Upload audio file for multimodal analysis with Gemini.
+
+    Audio is NOT transcribed locally - it's sent directly to Gemini
+    for multimodal understanding, exploiting its native audio capabilities.
+
+    Args:
+        file: Audio file (mp3, wav, m4a, ogg, webm)
+        session_id: Session identifier
+        context_type: 'business' for company context, 'competitor' for competition context
+    """
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found. Upload sales data first.")
+
+    # Validate file type
+    ext = file.filename.split(".")[-1].lower() if file.filename else ""
+    allowed_audio = ["mp3", "wav", "m4a", "ogg", "webm", "flac", "aac"]
+    if ext not in allowed_audio:
+        raise HTTPException(400, f"Invalid audio format. Allowed: {allowed_audio}")
+
+    if context_type not in ["business", "competitor"]:
+        raise HTTPException(400, "context_type must be 'business' or 'competitor'")
+
+    # Save audio file
+    upload_dir = Path("data/uploads") / session_id / "audio"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    file_path = upload_dir / f"{context_type}_{file.filename}"
+
+    with open(file_path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    # Store audio path in session for later Gemini processing
+    if "audio_files" not in sessions[session_id]:
+        sessions[session_id]["audio_files"] = {"business": [], "competitor": []}
+
+    sessions[session_id]["audio_files"][context_type].append(str(file_path))
+
+    logger.info(f"Audio uploaded for {context_type} context: {file.filename}")
+
+    # Process audio with Gemini multimodal (native audio understanding)
+    try:
+        import base64
+
+        audio_bytes = Path(file_path).read_bytes()
+        audio_base64 = base64.b64encode(audio_bytes).decode()
+
+        # Determine MIME type
+        mime_types = {
+            "mp3": "audio/mpeg",
+            "wav": "audio/wav",
+            "m4a": "audio/mp4",
+            "ogg": "audio/ogg",
+            "webm": "audio/webm",
+            "flac": "audio/flac",
+            "aac": "audio/aac",
+        }
+        mime_type = mime_types.get(ext, "audio/mpeg")
+
+        # Analyze audio directly with Gemini (multimodal)
+        prompt = f"""Analiza este audio que contiene información sobre {'el negocio/restaurante' if context_type == 'business' else 'la competencia del negocio'}.
+
+Extrae:
+1. Información clave mencionada
+2. Tono y sentimiento general
+3. Puntos importantes para el análisis de mercado
+4. Cualquier dato específico (precios, ubicaciones, características)
+
+Responde en JSON:
+{{
+    "summary": "Resumen breve del contenido",
+    "key_points": ["punto 1", "punto 2"],
+    "sentiment": "positive/neutral/negative",
+    "market_insights": ["insight 1", "insight 2"],
+    "raw_context": "Texto completo extraído del audio para contexto"
+}}"""
+
+        # Use Gemini multimodal for audio analysis
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=settings.gemini_api_key)
+
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=[
+                types.Content(
+                    parts=[
+                        types.Part(text=prompt),
+                        types.Part(
+                            inline_data=types.Blob(
+                                mime_type=mime_type,
+                                data=audio_bytes,
+                            )
+                        ),
+                    ]
+                )
+            ],
+        )
+
+        # Parse response
+        import json
+
+        response_text = response.text
+        # Try to extract JSON from response
+        try:
+            if "```json" in response_text:
+                response_text = response_text.split("```json")[1].split("```")[0]
+            elif "```" in response_text:
+                response_text = response_text.split("```")[1].split("```")[0]
+            audio_analysis = json.loads(response_text.strip())
+        except json.JSONDecodeError:
+            audio_analysis = {
+                "summary": response_text[:500],
+                "key_points": [],
+                "sentiment": "neutral",
+                "market_insights": [],
+                "raw_context": response_text,
+            }
+
+        # Store analysis in session
+        if "audio_analysis" not in sessions[session_id]:
+            sessions[session_id]["audio_analysis"] = {"business": [], "competitor": []}
+
+        sessions[session_id]["audio_analysis"][context_type].append(audio_analysis)
+
+        # Add to context for future analysis
+        context_key = f"{context_type}_context"
+        existing_context = sessions[session_id].get(context_key, "")
+        sessions[session_id][context_key] = (
+            existing_context
+            + "\n\n[Audio Context]:\n"
+            + audio_analysis.get("raw_context", "")
+        )
+
+        return {
+            "session_id": session_id,
+            "status": "success",
+            "context_type": context_type,
+            "filename": file.filename,
+            "analysis": audio_analysis,
+            "message": "Audio analyzed directly by Gemini multimodal (no transcription)",
+        }
+
+    except Exception as e:
+        logger.error(f"Audio analysis failed: {e}")
+        # Still return success for upload, even if analysis failed
+        return {
+            "session_id": session_id,
+            "status": "uploaded",
+            "context_type": context_type,
+            "filename": file.filename,
+            "analysis": None,
+            "warning": f"Audio saved but analysis pending: {str(e)}",
+        }
 
 
 @router.post("/ingest/sales", tags=["Ingest"])
@@ -295,21 +468,68 @@ async def run_bcg_analysis(session_id: str):
     sales_data = session.get("sales_data", [])
     image_scores = session.get("image_scores", {})
 
-    # If no menu items from image extraction, infer from sales data
-    if not menu_items and sales_data:
-        logger.info("No menu items from extraction, inferring from sales data")
-        unique_items = list(set(record["item_name"] for record in sales_data))
-        menu_items = [
-            {
-                "name": item_name,
-                "price": 0.0,  # Will be calculated from sales data
-                "description": "",
-                "category": "Unknown",
-                "source": "sales_data",
-            }
-            for item_name in unique_items
-        ]
+    # MERGE menu items from both sources: menu extraction AND sales data
+    # Primary source: sales_data (database), Complementary: menu extraction (visual)
+    existing_menu_names = {item["name"].lower().strip() for item in menu_items}
+
+    if sales_data:
+        # Get unique items from sales data
+        unique_sales_items = set(
+            record.get("item_name", "")
+            for record in sales_data
+            if record.get("item_name")
+        )
+
+        # Add items from sales that aren't already in menu
+        items_added_from_sales = 0
+        for item_name in unique_sales_items:
+            if item_name.lower().strip() not in existing_menu_names:
+                # Calculate average price from sales if revenue available
+                item_sales = [s for s in sales_data if s.get("item_name") == item_name]
+                total_revenue = sum(s.get("revenue", 0) for s in item_sales)
+                total_units = sum(s.get("units_sold", 0) for s in item_sales)
+                avg_price = (
+                    total_revenue / total_units
+                    if total_units > 0 and total_revenue > 0
+                    else 0.0
+                )
+
+                menu_items.append(
+                    {
+                        "name": item_name,
+                        "price": round(avg_price, 2),
+                        "description": "",
+                        "category": "From Sales Data",
+                        "source": "sales_data",
+                    }
+                )
+                existing_menu_names.add(item_name.lower().strip())
+                items_added_from_sales += 1
+
+        if items_added_from_sales > 0:
+            logger.info(f"Added {items_added_from_sales} items from sales data to menu")
+
+    # Also add menu items that have no sales (they still need to be analyzed)
+    if menu_items:
+        for item in menu_items:
+            if item.get("source") != "sales_data":
+                # Mark items from menu extraction that have no sales
+                item_sales = [
+                    s
+                    for s in sales_data
+                    if s.get("item_name", "").lower().strip()
+                    == item["name"].lower().strip()
+                ]
+                if not item_sales:
+                    item["has_sales_data"] = False
+                    item["analysis_note"] = "Item visible in menu but no sales recorded"
+                else:
+                    item["has_sales_data"] = True
+
         sessions[session_id]["menu_items"] = menu_items
+        logger.info(
+            f"Total menu items for BCG analysis: {len(menu_items)} (menu: {len([i for i in menu_items if i.get('source') != 'sales_data'])}, sales: {len([i for i in menu_items if i.get('source') == 'sales_data'])})"
+        )
 
     if not menu_items:
         raise HTTPException(
@@ -791,6 +1011,13 @@ async def get_demo_session():
     }
 
     # Return complete data including predictions
+    # campaigns needs to be the full object with campaigns array for frontend
+    campaigns_data = demo_data.get("campaigns", {})
+    if isinstance(campaigns_data, dict) and "campaigns" in campaigns_data:
+        campaigns_result = campaigns_data
+    else:
+        campaigns_result = {"campaigns": campaigns_data, "thought_process": "Demo campaign generation"}
+    
     return {
         "session_id": demo_data["session_id"],
         "status": demo_data["status"],
@@ -798,7 +1025,7 @@ async def get_demo_session():
         "menu": demo_data["menu"],
         "bcg": demo_data["bcg"],
         "bcg_analysis": demo_data["bcg"],  # Alias for frontend compatibility
-        "campaigns": demo_data["campaigns"]["campaigns"],
+        "campaigns": campaigns_result,
         "predictions": demo_data.get("predictions"),
         "thought_signature": demo_data.get("thought_signature"),
         "marathon_agent_context": demo_data.get("marathon_agent_context"),

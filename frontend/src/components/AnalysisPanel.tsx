@@ -24,11 +24,22 @@ export default function AnalysisPanel({ sessionId, onComplete, isLoading, setIsL
     setCurrentStep('bcg')
     setIsLoading(true)
     try {
-      const res = await axios.post(`${API_URL}/api/v1/analyze/bcg?session_id=${sessionId}`)
+      const res = await axios.post(
+        `${API_URL}/api/v1/analyze/bcg?session_id=${sessionId}`,
+        {},
+        { timeout: 60000 }
+      )
       setResults((prev: any) => ({ ...prev, bcg_analysis: res.data }))
       setBcgDone(true)
     } catch (err: any) {
-      alert(`BCG Analysis failed: ${err.response?.data?.detail || err.message}`)
+      console.error('BCG error:', err)
+      let errorMsg = 'Network Error - is the backend running?'
+      if (err.response?.data?.detail) {
+        errorMsg = typeof err.response.data.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response.data.detail)
+      } else if (err.message) {
+        errorMsg = err.message
+      }
+      alert(`BCG Analysis failed: ${errorMsg}`)
     } finally {
       setIsLoading(false)
       setCurrentStep(null)
@@ -39,11 +50,24 @@ export default function AnalysisPanel({ sessionId, onComplete, isLoading, setIsL
     setCurrentStep('predictions')
     setIsLoading(true)
     try {
-      const res = await axios.post(`${API_URL}/api/v1/predict/sales?session_id=${sessionId}&horizon_days=14`)
+      const res = await axios.post(
+        `${API_URL}/api/v1/predict/sales?session_id=${sessionId}&horizon_days=14`,
+        [],
+        { timeout: 60000 } // 60 second timeout for ML predictions
+      )
       setResults((prev: any) => ({ ...prev, predictions: res.data }))
       setPredictionsDone(true)
     } catch (err: any) {
-      alert(`Predictions failed: ${err.response?.data?.detail || err.message}`)
+      console.error('Predictions error:', err)
+      let errorMsg = 'Network Error - is the backend running?'
+      if (err.code === 'ECONNABORTED') {
+        errorMsg = 'Prediction timed out. Try again or check if backend is running.'
+      } else if (err.response?.data?.detail) {
+        errorMsg = typeof err.response.data.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response.data.detail)
+      } else if (err.message) {
+        errorMsg = err.message
+      }
+      alert(`Predictions failed: ${errorMsg}`)
     } finally {
       setIsLoading(false)
       setCurrentStep(null)
@@ -54,11 +78,22 @@ export default function AnalysisPanel({ sessionId, onComplete, isLoading, setIsL
     setCurrentStep('campaigns')
     setIsLoading(true)
     try {
-      const res = await axios.post(`${API_URL}/api/v1/campaigns/generate?session_id=${sessionId}&num_campaigns=3`)
+      const res = await axios.post(
+        `${API_URL}/api/v1/campaigns/generate?session_id=${sessionId}&num_campaigns=3`,
+        [],
+        { timeout: 90000 } // 90 seconds for Gemini campaign generation
+      )
       setResults((prev: any) => ({ ...prev, campaigns: res.data.campaigns, thought_signature: res.data.thought_signature }))
       setCampaignsDone(true)
     } catch (err: any) {
-      alert(`Campaign generation failed: ${err.response?.data?.detail || err.message}`)
+      console.error('Campaign error:', err)
+      let errorMsg = 'Network Error - is the backend running?'
+      if (err.response?.data?.detail) {
+        errorMsg = typeof err.response.data.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response.data.detail)
+      } else if (err.message) {
+        errorMsg = err.message
+      }
+      alert(`Campaign generation failed: ${errorMsg}`)
     } finally {
       setIsLoading(false)
       setCurrentStep(null)

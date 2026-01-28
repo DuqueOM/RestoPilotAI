@@ -80,6 +80,68 @@
   },
   "bcg": {
     "session_id": "demo-session-001",
+    "summary": {
+      "total_items": 10,
+      "counts": {
+        "star": 2,
+        "cash_cow": 3,
+        "question_mark": 2,
+        "dog": 3
+      },
+      "percentages": {
+        "star": 20,
+        "cash_cow": 30,
+        "question_mark": 20,
+        "dog": 30
+      },
+      "portfolio_health_score": 0.72,
+      "is_balanced": true,
+      "needs_attention": false
+    },
+    "classifications": [
+      {
+        "name": "Tacos al Pastor",
+        "bcg_class": "star",
+        "bcg_label": "Star ⭐",
+        "market_share": 0.75,
+        "growth_rate": 0.85,
+        "price": 12.99,
+        "margin": 0.65,
+        "priority": "high",
+        "strategy": {
+          "summary": "INVERTIR - Este es un ganador. Alto crecimiento y alta contribución al profit.",
+          "actions": ["Aumentar visibilidad en el menú", "Capacitar al personal para recomendar"]
+        }
+      },
+      {
+        "name": "Guacamole Premium",
+        "bcg_class": "star",
+        "bcg_label": "Star ⭐",
+        "market_share": 0.68,
+        "growth_rate": 0.72,
+        "price": 8.99,
+        "margin": 0.70,
+        "priority": "high",
+        "strategy": {
+          "summary": "INVERTIR - Producto estrella con excelente margen.",
+          "actions": ["Promocionar en redes sociales", "Considerar versión premium"]
+        }
+      },
+      {
+        "name": "Birria Tacos",
+        "bcg_class": "question_mark",
+        "bcg_label": "Question Mark ❓",
+        "market_share": 0.25,
+        "growth_rate": 0.90,
+        "price": 15.99,
+        "margin": 0.55,
+        "priority": "high",
+        "strategy": {
+          "summary": "ANALIZAR - Alto crecimiento pero baja contribución. Decidir: invertir para convertir en Star.",
+          "actions": ["Campaña de awareness en redes", "Probar promoción temporal"]
+        }
+      }
+    ],
     "items": [
       {
         "name": "Tacos al Pastor",
@@ -168,7 +230,10 @@
       "QUESTION_MARK": "Question Marks (Birria Tacos, Elote) show potential. Consider promotional campaigns to increase market share.",
       "DOG": "Dogs (Ensalada, Sopa, Flan) have low performance. Evaluate if they should be repositioned or removed."
     },
-    "summary": "Your menu shows a healthy mix with strong Stars driving growth and reliable Cash Cows generating steady revenue. Focus marketing on Stars, optimize Cash Cow costs, evaluate Question Marks for investment, and consider refreshing Dogs."
+    "ai_insights": {
+      "portfolio_assessment": "Tu menú muestra una mezcla saludable con Stars fuertes impulsando el crecimiento y Cash Cows confiables generando ingresos estables.",
+      "recommendations": "Enfoca marketing en Stars, optimiza costos de Cash Cows, evalúa Question Marks para inversión y considera renovar Dogs."
+    }
   },
   "campaigns": {
     "session_id": "demo-session-001",
@@ -217,5 +282,70 @@
       }
     ],
     "thought_process": "Analyzed BCG matrix to create targeted campaigns. Stars get awareness campaigns, Question Marks get conversion campaigns, and Cash Cows get bundling strategies."
+  },
+  "predictions": {
+    "session_id": "demo-session-001",
+    "scenario_totals": {
+      "baseline": 2450,
+      "with_promotion": 3120,
+      "premium": 2180
+    },
+    "horizon_days": 14,
+    "model_info": {
+      "primary": "XGBoost",
+      "ensemble": "LSTM + Transformer"
+    },
+    "metrics": {
+      "mape": 0.085,
+      "rmse": 45.2,
+      "r2": 0.87
+    },
+    "predictions": [
+      {"date": "2026-01-28", "predicted": 175.50, "actual": null, "confidence_lower": 150, "confidence_upper": 200},
+      {"date": "2026-01-29", "predicted": 182.30, "actual": null, "confidence_lower": 155, "confidence_upper": 210},
+      {"date": "2026-01-30", "predicted": 168.20, "actual": null, "confidence_lower": 140, "confidence_upper": 195},
+      {"date": "2026-01-31", "predicted": 195.80, "actual": null, "confidence_lower": 170, "confidence_upper": 225},
+      {"date": "2026-02-01", "predicted": 245.60, "actual": null, "confidence_lower": 210, "confidence_upper": 280},
+      {"date": "2026-02-02", "predicted": 268.40, "actual": null, "confidence_lower": 230, "confidence_upper": 310},
+      {"date": "2026-02-03", "predicted": 178.90, "actual": null, "confidence_lower": 150, "confidence_upper": 205},
+      {"date": "2026-02-04", "predicted": 172.10, "actual": null, "confidence_lower": 145, "confidence_upper": 200},
+      {"date": "2026-02-05", "predicted": 185.70, "actual": null, "confidence_lower": 160, "confidence_upper": 215},
+      {"date": "2026-02-06", "predicted": 169.30, "actual": null, "confidence_lower": 140, "confidence_upper": 195},
+      {"date": "2026-02-07", "predicted": 198.50, "actual": null, "confidence_lower": 175, "confidence_upper": 225},
+      {"date": "2026-02-08", "predicted": 252.80, "actual": null, "confidence_lower": 220, "confidence_upper": 290},
+      {"date": "2026-02-09", "predicted": 275.20, "actual": null, "confidence_lower": 240, "confidence_upper": 315},
+      {"date": "2026-02-10", "predicted": 182.40, "actual": null, "confidence_lower": 155, "confidence_upper": 210}
+    ],
+    "item_predictions": [
+      {"name": "Tacos al Pastor", "trend": "up", "seasonality": "high", "baseline": {"total": 580}, "with_promotion": {"total": 725}},
+      {"name": "Guacamole Premium", "trend": "stable", "seasonality": "medium", "baseline": {"total": 320}, "with_promotion": {"total": 400}},
+      {"name": "Birria Tacos", "trend": "up", "seasonality": "high", "baseline": {"total": 180}, "with_promotion": {"total": 290}}
+    ],
+    "insights": [
+      "Tacos al Pastor shows upward trend with 15% projected growth",
+      "Promotions have higher impact on Question Mark products (+60%)",
+      "Weekends represent 45% of total sales"
+    ]
+  },
+  "marathon_agent_context": {
+    "session_count": 12,
+    "total_analyses": 47,
+    "last_interaction": "2h",
+    "long_term_insights": [
+      "Tacos al Pastor has been consistently the star product across 12 sessions",
+      "Weekend promotions generate 35% more conversions than weekdays",
+      "Average ticket has increased 12% since family bundle implementation"
+    ]
+  },
+  "thought_signature": {
+    "level": "STANDARD",
+    "reasoning": "Complete BCG portfolio analysis with ML predictions and personalized campaign generation",
+    "confidence": 0.89,
+    "steps": [
+      "Multimodal menu extraction with Gemini Vision",
+      "BCG classification based on gross profit contribution",
+      "Sales prediction with XGBoost + Neural ensemble",
+      "Campaign generation with competitor context"
+    ]
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { api, PredictionResult } from '@/lib/api';
+import { useEffect, useState } from 'react';
 
 interface PredictionsPageProps {
   params: { sessionId: string };
@@ -15,7 +15,9 @@ export default function PredictionsPage({ params }: PredictionsPageProps) {
   useEffect(() => {
     const fetchPredictions = async () => {
       try {
-        const session = await api.getSession(params.sessionId);
+        const session = params.sessionId === 'demo-session-001'
+          ? await api.getDemoSession()
+          : await api.getSession(params.sessionId);
         if (session.predictions) {
           setData(session.predictions);
         }
