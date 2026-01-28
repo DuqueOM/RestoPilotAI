@@ -85,7 +85,7 @@ origins = [origin.strip() for origin in settings.cors_origins.split(",")]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=False,  # Disable credentials to allow wildcard '*' origin
     allow_methods=["*"],
     allow_headers=["*"],
 )
