@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, Brain, CheckCircle, Lightbulb, ListChecks } from 'lucide-react'
+import { AlertTriangle, Brain, CheckCircle, ChevronDown, ChevronUp, Lightbulb, ListChecks, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 
 interface ThoughtSignatureProps {
@@ -12,14 +12,24 @@ interface ThoughtSignatureProps {
     confidence: number
     verification_checks?: Array<{ check: string; passed: boolean }>
     corrections_made?: string[]
+    thinking_level?: 'QUICK' | 'STANDARD' | 'DEEP' | 'EXHAUSTIVE'
   }
+}
+
+const THINKING_LEVEL_COLORS = {
+  QUICK: 'bg-blue-100 text-blue-700',
+  STANDARD: 'bg-purple-100 text-purple-700',
+  DEEP: 'bg-indigo-100 text-indigo-700',
+  EXHAUSTIVE: 'bg-violet-100 text-violet-700',
 }
 
 export default function ThoughtSignature({ signature }: ThoughtSignatureProps) {
   const [expanded, setExpanded] = useState(false)
+  const [showAllSteps, setShowAllSteps] = useState(false)
 
   const confidenceColor = signature.confidence >= 0.8 ? 'text-green-600' : signature.confidence >= 0.6 ? 'text-yellow-600' : 'text-red-600'
-  const confidenceLabel = signature.confidence >= 0.8 ? 'High' : signature.confidence >= 0.6 ? 'Medium' : 'Low'
+  const confidenceLabel = signature.confidence >= 0.8 ? 'Alta' : signature.confidence >= 0.6 ? 'Media' : 'Baja'
+  const thinkingLevel = signature.thinking_level || 'STANDARD'
 
   return (
     <div className="card bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
@@ -27,38 +37,70 @@ export default function ThoughtSignature({ signature }: ThoughtSignatureProps) {
         <div className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-purple-600" />
           <h3 className="font-semibold text-purple-900">Thought Signature</h3>
-          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">AI Reasoning Trace</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${THINKING_LEVEL_COLORS[thinkingLevel]}`}>
+            {thinkingLevel}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <span className={`text-sm font-medium ${confidenceColor}`}>
-            {confidenceLabel} Confidence ({(signature.confidence * 100).toFixed(0)}%)
+            Confianza {confidenceLabel} ({(signature.confidence * 100).toFixed(0)}%)
           </span>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-sm text-purple-600 hover:text-purple-800"
+            className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors"
           >
-            {expanded ? 'Collapse' : 'Expand'}
+            {expanded ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                Colapsar
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                Expandir
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Always visible: Plan */}
+      {/* Always visible: Plan with expandable steps */}
       <div className="mb-4">
-        <div className="flex items-center gap-2 text-purple-700 mb-2">
-          <ListChecks className="h-4 w-4" />
-          <span className="text-sm font-medium">Agent Plan</span>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2 text-purple-700">
+            <ListChecks className="h-4 w-4" />
+            <span className="text-sm font-medium">Plan del Agente</span>
+            <span className="text-xs text-purple-500">({signature.plan.length} pasos)</span>
+          </div>
+          {signature.plan.length > 3 && (
+            <button
+              onClick={() => setShowAllSteps(!showAllSteps)}
+              className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1"
+            >
+              {showAllSteps ? 'Ver menos' : `Ver todos (+${signature.plan.length - 3})`}
+              {showAllSteps ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>
+          )}
         </div>
-        <ol className="space-y-1">
-          {signature.plan.slice(0, expanded ? undefined : 3).map((step, idx) => (
-            <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-              <span className="text-purple-500 font-medium">{idx + 1}.</span>
-              {step}
+        <ol className="space-y-1.5">
+          {signature.plan.slice(0, showAllSteps ? undefined : 3).map((step, idx) => (
+            <li key={idx} className="text-sm text-gray-700 flex items-start gap-2 p-2 bg-white/50 rounded-lg">
+              <span className="flex items-center justify-center w-5 h-5 bg-purple-500 text-white text-xs font-bold rounded-full shrink-0">
+                {idx + 1}
+              </span>
+              <span>{step}</span>
             </li>
           ))}
-          {!expanded && signature.plan.length > 3 && (
-            <li className="text-sm text-purple-600">+{signature.plan.length - 3} more steps...</li>
-          )}
         </ol>
+        {!showAllSteps && signature.plan.length > 3 && (
+          <button 
+            onClick={() => setShowAllSteps(true)}
+            className="mt-2 w-full py-2 text-sm text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors flex items-center justify-center gap-1"
+          >
+            <Sparkles className="h-4 w-4" />
+            Mostrar {signature.plan.length - 3} pasos adicionales
+          </button>
+        )}
       </div>
 
       {expanded && (

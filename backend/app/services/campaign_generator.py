@@ -1,5 +1,11 @@
 """
 Campaign Generator Service - AI-powered marketing campaign creation.
+
+Generates highly personalized, actionable marketing campaigns based on:
+- BCG Matrix classification and gross profit analysis
+- Business context provided by the user
+- Industry best practices for restaurant marketing
+- Specific product characteristics and performance data
 """
 
 from datetime import date, datetime, timedelta
@@ -12,17 +18,25 @@ from app.services.gemini_agent import GeminiAgent
 
 class CampaignGenerator:
     """
-    Generates marketing campaign proposals using Gemini AI.
+    Generates highly specific, personalized marketing campaign proposals using Gemini AI.
 
-    Creates targeted campaigns based on BCG analysis, focusing on:
-    - Star products: Amplification campaigns
-    - Question Marks: Discovery/trial campaigns
-    - Cash Cows: Loyalty/bundle campaigns
-    - Dogs: Repositioning or clearance campaigns
+    Key differentiators from generic campaign generators:
+    - Uses BCG classification with gross profit data for targeting
+    - Provides specific, actionable recommendations (not generic advice)
+    - Includes ready-to-use copy for social media, email, and in-store
+    - Calculates expected ROI based on historical data
+    - Considers business context (type of restaurant, target audience, location)
+
+    Campaign Types by BCG Classification:
+    - **Star products**: Amplification & premium positioning campaigns
+    - **Question Marks**: Discovery, trial, and viral potential campaigns
+    - **Cash Cows**: Loyalty programs & strategic bundling
+    - **Dogs**: Repositioning, limited-time, or graceful exit strategies
     """
 
     def __init__(self, agent: GeminiAgent):
         self.agent = agent
+        self.business_context = None
 
     async def generate_campaigns(
         self,

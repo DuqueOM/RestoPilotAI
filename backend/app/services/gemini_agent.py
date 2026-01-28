@@ -347,34 +347,74 @@ Respond in structured JSON format."""
         bcg_analysis: Dict[str, Any],
         num_campaigns: int = 3,
         constraints: Optional[Dict[str, Any]] = None,
+        business_context: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Generate marketing campaign proposals based on BCG analysis.
+        Generate highly specific, personalized marketing campaign proposals.
+
+        Key improvements over generic generators:
+        - Uses actual product names and prices
+        - Provides specific discount amounts (not "consider a discount")
+        - Includes ready-to-post social media copy
+        - Calculates specific expected ROI
+        - Tailored to restaurant type and audience
         """
 
-        prompt = f"""You are a restaurant marketing strategist. Based on this BCG analysis, create {num_campaigns} distinct marketing campaign proposals.
+        # Extract key data for personalization
+        classifications = bcg_analysis.get("classifications", [])
+        stars = [c for c in classifications if c.get("bcg_class") == "star"]
+        question_marks = [
+            c for c in classifications if c.get("bcg_class") == "question_mark"
+        ]
+        cash_cows = [c for c in classifications if c.get("bcg_class") == "cash_cow"]
+        dogs = [c for c in classifications if c.get("bcg_class") == "dog"]
 
-BCG Analysis:
-{json.dumps(bcg_analysis, indent=2)}
+        prompt = f"""Eres un estratega de marketing de restaurantes experto. Genera {num_campaigns} campañas de marketing ALTAMENTE ESPECÍFICAS y PERSONALIZADAS.
 
-{"Constraints: " + json.dumps(constraints, indent=2) if constraints else ""}
+DATOS DEL ANÁLISIS BCG:
+- STARS (invertir fuerte): {json.dumps([{"name": s["name"], "price": s.get("price", 0), "margin": s.get("margin", 0), "growth": s.get("growth_rate", 0)} for s in stars], indent=2)}
+- QUESTION MARKS (decidir): {json.dumps([{"name": q["name"], "price": q.get("price", 0), "margin": q.get("margin", 0), "growth": q.get("growth_rate", 0)} for q in question_marks], indent=2)}
+- CASH COWS (ordeñar): {json.dumps([{"name": c["name"], "price": c.get("price", 0), "margin": c.get("margin", 0)} for c in cash_cows], indent=2)}
+- DOGS (revisar): {json.dumps([{"name": d["name"], "price": d.get("price", 0)} for d in dogs], indent=2)}
 
-For each campaign, provide:
-1. Creative title
-2. Clear objective
-3. Target audience
-4. Recommended channels
-5. Key messages (3-5)
-6. Featured menu items
-7. Discount/promotion strategy
-8. Social media post copy (ready to use)
-9. Image generation prompt (for promotional material)
-10. Expected sales uplift percentage
-11. Detailed rationale
+{"CONTEXTO DEL NEGOCIO: " + business_context if business_context else ""}
+{"RESTRICCIONES: " + json.dumps(constraints, indent=2) if constraints else ""}
 
-Make campaigns diverse: one should focus on Stars, one on reviving Question Marks, and one on general brand building.
+INSTRUCCIONES CRÍTICAS - Las campañas deben ser ESPECÍFICAS, no genéricas:
+❌ MAL: "Considera ofrecer un descuento"
+✅ BIEN: "Ofrece 20% de descuento en Tacos al Pastor los martes, reduciendo precio de $12.99 a $10.39"
 
-Respond in JSON array format."""
+❌ MAL: "Promociona en redes sociales"
+✅ BIEN: "Post de Instagram con foto del platillo, copy: '🌮 MARTES DE TACOS 🌮 Hoy tu Pastor favorito a $10.39...'"
+
+Para CADA campaña, proporciona EN JSON:
+{{
+  "title": "Nombre creativo y memorable",
+  "objective": "Objetivo específico con métrica (ej: 'Aumentar ventas de Birria 40% en 2 semanas')",
+  "target_audience": "Audiencia específica con demografía y psicografía",
+  "channels": ["instagram", "email", "in_store"],
+  "key_messages": ["Mensaje 1 específico", "Mensaje 2", "Mensaje 3"],
+  "promotional_items": ["Nombre exacto del producto 1", "Producto 2"],
+  "discount_strategy": "Estrategia específica: '25% off' o 'Compra 2 lleva 3' con precios exactos",
+  "social_post_copy": "Copy COMPLETO listo para publicar con emojis y hashtags",
+  "email_subject": "Línea de asunto del email",
+  "email_preview": "Texto de preview del email",
+  "in_store_copy": "Copy para señalización en tienda",
+  "expected_uplift_percent": 25,
+  "expected_revenue_increase": 1500,
+  "investment_required": "Bajo/Medio/Alto con estimación",
+  "roi_estimate": "Retorno esperado específico",
+  "rationale": "Explicación detallada de por qué esta campaña funcionará para ESTE restaurante",
+  "success_metrics": ["Métrica 1 medible", "Métrica 2"],
+  "timeline": "Cronograma específico de implementación"
+}}
+
+DIVERSIFICACIÓN REQUERIDA:
+1. Primera campaña: Amplificar STARS (productos exitosos)
+2. Segunda campaña: Convertir QUESTION MARKS en Stars (alto potencial)
+3. Tercera campaña: Bundle/Loyalty con CASH COWS (revenue estable)
+
+Responde SOLO con un array JSON de {num_campaigns} campañas, sin texto adicional."""
 
         response = await self._call_gemini(prompt)
         self.call_count += 1

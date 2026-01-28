@@ -2,7 +2,19 @@
 
 ## Overview
 
-MenuPilot leverages Google Gemini 3's advanced capabilities through a modular, production-ready agent architecture. This document details how each Gemini feature is used and integrated.
+MenuPilot leverages **Google Gemini 3's** advanced capabilities through a modular, production-ready agent architecture. This document details how each Gemini feature is used and integrated.
+
+### Hackathon Highlights 🏆
+
+| Feature | Gemini 3 Capability Used |
+|---------|-------------------------|
+| **Marathon Agent** | 1M token context window for long-term restaurant memory |
+| **Business Profiling** | Multimodal understanding of voice/text business context |
+| **Multi-PDF Menus** | Vision API for multi-page PDF processing |
+| **Professional BCG** | Deep reasoning for gross profit analysis |
+| **Personalized Campaigns** | Function calling for specific, actionable recommendations |
+| **Agent Dashboard** | Real-time thought trace visualization |
+| **Vibe Engineering** | Self-verification with auto-correction loop |
 
 ## Agent Architecture
 
@@ -147,23 +159,46 @@ result = await verifier.verify_analysis(
 - Campaign alignment with strategy
 - Business viability
 
-### 4. Long Context Handling
+### 4. Long Context Handling & Marathon Agent
 
-**Pipeline Orchestration (Marathon Agent Pattern)**
+**Marathon Agent Pattern with Long-Term Memory**
+
+The Marathon Agent leverages Gemini 3's **1M token context window** to maintain persistent memory across sessions, enabling:
+
+- Historical trend analysis across multiple visits
+- Strategic recommendations based on past performance
+- Campaign effectiveness tracking over time
+- Personalized advice that improves with each interaction
+
 ```python
 from app.services.gemini import OrchestratorAgent, PipelineStage
 
 orchestrator = OrchestratorAgent()
 
-# Create persistent session
-session_id = await orchestrator.create_session()
+# Create persistent session with long-term context
+session_id = await orchestrator.create_session(
+    restaurant_id="restaurant_123",
+    load_history=True  # Load up to 6 months of past interactions
+)
+
+# Marathon Agent context includes:
+marathon_context = {
+    "session_count": 15,  # Previous sessions
+    "total_analyses": 42,
+    "long_term_insights": [
+        "Restaurant has shown 12% growth in last 3 months",
+        "Taco Tuesday campaign increased traffic 18%",
+        "Question Marks from Q3 (Birria) evolving to Stars"
+    ],
+    "memory_context": "Gemini 3 context window (1M tokens) enables 6+ months of strategic memory"
+}
 
 # Run with checkpoints for recovery
 result = await orchestrator.run_full_pipeline(
     session_id=session_id,
     menu_images=[...],
     sales_csv=csv_content,
-    competitor_data=[...],
+    business_context="Restaurante mexicano en zona universitaria, público joven...",
     thinking_level=ThinkingLevel.DEEP,
     auto_verify=True
 )

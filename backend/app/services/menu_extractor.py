@@ -87,40 +87,136 @@ class MenuExtractor:
 
     async def _convert_pdf_to_image(self, pdf_path: str) -> str:
         """
-        Convert PDF to image for processing.
+        Convert PDF to images for processing.
+
+        Handles multi-page PDFs by converting all pages and returning
+        the first page path (other pages are processed separately).
 
         Returns path to the converted image (first page).
         """
         try:
-            # Try PyMuPDF first (faster)
+            # Try PyMuPDF first (faster and better quality)
             doc = fitz.open(pdf_path)
-            page = doc[0]  # Get first page
-            pix = page.get_pixmap(
-                matrix=fitz.Matrix(2, 2)
-            )  # 2x zoom for better quality
+            total_pages = len(doc)
+            logger.info(f"PDF has {total_pages} pages, converting all...")
 
-            # Save as PNG
-            output_path = pdf_path.replace(".pdf", "_page1.png")
-            pix.save(output_path)
+            output_paths = []
+            for page_num in range(total_pages):
+                page = doc[page_num]
+                # Higher resolution for better OCR
+                pix = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5))
+
+                # Save each page as PNG
+                output_path = pdf_path.replace(".pdf", f"_page{page_num + 1}.png")
+                pix.save(output_path)
+                output_paths.append(output_path)
+                logger.info(
+                    f"Converted page {page_num + 1}/{total_pages}: {output_path}"
+                )
+
             doc.close()
 
-            logger.info(f"PDF converted to image: {output_path}")
-            return output_path
+            # Store all page paths for later processing
+            self._pdf_pages = output_paths
+
+            logger.info(f"PDF converted successfully: {total_pages} pages")
+            return output_paths[0]  # Return first page for immediate processing
 
         except Exception as e:
             logger.warning(f"PyMuPDF conversion failed: {e}, trying pdf2image...")
 
-            # Fallback to pdf2image
+            # Fallback to pdf2image (poppler-based)
             try:
-                images = convert_from_path(pdf_path, first_page=1, last_page=1, dpi=200)
-                if images:
-                    output_path = pdf_path.replace(".pdf", "_page1.png")
-                    images[0].save(output_path, "PNG")
-                    logger.info(f"PDF converted to image with pdf2image: {output_path}")
-                    return output_path
+                images = convert_from_path(pdf_path, dpi=200)
+                output_paths = []
+
+                for idx, image in enumerate(images):
+                    output_path = pdf_path.replace(".pdf", f"_page{idx + 1}.png")
+                    image.save(output_path, "PNG")
+                    output_paths.append(output_path)
+                    logger.info(
+                        f"Converted page {idx + 1}/{len(images)} with pdf2image"
+                    )
+
+                self._pdf_pages = output_paths
+
+                if output_paths:
+                    return output_paths[0]
+
             except Exception as e2:
                 logger.error(f"PDF conversion failed: {e2}")
                 raise ValueError(f"Could not convert PDF to image: {e2}")
+
+    async def extract_from_pdf_all_pages(
+        self,
+        pdf_path: str,
+        use_ocr: bool = True,
+        business_context: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Extract menu items from ALL pages of a PDF.
+
+        This is useful for multi-page menus where different sections
+        are on different pages.
+        """
+        logger.info(f"Extracting menu from all pages of PDF: {pdf_path}")
+
+        # Convert PDF to images
+        first_page = await self._convert_pdf_to_image(pdf_path)
+
+        all_items = []
+        all_categories = {}
+        total_confidence = 0
+        warnings = []
+
+        # Process each page
+        pages_to_process = getattr(self, "_pdf_pages", [first_page])
+
+        for idx, page_path in enumerate(pages_to_process):
+            logger.info(f"Processing page {idx + 1}/{len(pages_to_process)}")
+
+            try:
+                # Extract from this page
+                page_result = await self.extract_from_image(
+                    page_path, use_ocr=use_ocr, business_context=business_context
+                )
+
+                # Merge items (avoid duplicates)
+                existing_names = {item["name"].lower() for item in all_items}
+                for item in page_result.get("items", []):
+                    if item["name"].lower() not in existing_names:
+                        all_items.append(item)
+                        existing_names.add(item["name"].lower())
+
+                # Merge categories
+                for cat in page_result.get("categories", []):
+                    cat_name = cat["name"]
+                    if cat_name not in all_categories:
+                        all_categories[cat_name] = cat
+                    else:
+                        # Merge items lists
+                        all_categories[cat_name]["items"].extend(cat.get("items", []))
+
+                total_confidence += page_result.get("extraction_confidence", 0.7)
+                warnings.extend(page_result.get("warnings", []))
+
+            except Exception as e:
+                logger.error(f"Failed to process page {idx + 1}: {e}")
+                warnings.append(f"Page {idx + 1} extraction failed: {str(e)}")
+
+        avg_confidence = (
+            total_confidence / len(pages_to_process) if pages_to_process else 0
+        )
+
+        return {
+            "items": all_items,
+            "categories": list(all_categories.values()),
+            "item_count": len(all_items),
+            "pages_processed": len(pages_to_process),
+            "extraction_confidence": round(avg_confidence, 2),
+            "ocr_used": use_ocr,
+            "warnings": warnings,
+        }
 
     def _run_local_ocr(self, image_path: str) -> str:
         """Run Tesseract OCR on the image."""

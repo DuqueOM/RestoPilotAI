@@ -176,23 +176,20 @@ class MenuPilotAPI {
   // ==================== Analysis Endpoints ====================
 
   async analyzeBCG(sessionId: string): Promise<BCGAnalysisResult> {
-    return this.request<BCGAnalysisResult>('/api/v1/analyze/bcg', {
+    return this.request<BCGAnalysisResult>(`/api/v1/analyze/bcg?session_id=${sessionId}`, {
       method: 'POST',
-      body: JSON.stringify({ session_id: sessionId }),
     });
   }
 
   async predictSales(sessionId: string): Promise<PredictionResult> {
-    return this.request<PredictionResult>('/api/v1/predict/sales', {
+    return this.request<PredictionResult>(`/api/v1/predict/sales?session_id=${sessionId}`, {
       method: 'POST',
-      body: JSON.stringify({ session_id: sessionId }),
     });
   }
 
   async generateCampaigns(sessionId: string): Promise<CampaignResult> {
-    return this.request<CampaignResult>('/api/v1/campaigns/generate', {
+    return this.request<CampaignResult>(`/api/v1/campaigns/generate?session_id=${sessionId}`, {
       method: 'POST',
-      body: JSON.stringify({ session_id: sessionId }),
     });
   }
 
