@@ -1,8 +1,9 @@
 'use client';
 
 import { api } from '@/lib/api';
+import { MapPin, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ExternalLink, MapPin, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
+
 
 interface CompetitorsPageProps {
   params: { sessionId: string };

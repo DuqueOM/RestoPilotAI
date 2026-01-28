@@ -265,6 +265,182 @@ class MenuPilotAPI {
   async loadDemo(): Promise<{ session_id: string; status: string; items_count: number }> {
     return this.request('/api/v1/demo/load');
   }
+
+  // ==================== Advanced Analytics Endpoints ====================
+
+  async analyzeCapabilities(sessionId: string): Promise<DataCapabilityReport> {
+    const formData = new FormData();
+    formData.append('session_id', sessionId);
+    
+    return this.request<DataCapabilityReport>('/api/v1/analyze/capabilities', {
+      method: 'POST',
+      body: formData,
+      headers: {}, // Let browser set content-type for FormData
+    });
+  }
+
+  async runMenuOptimization(sessionId: string): Promise<MenuOptimizationResult> {
+    const formData = new FormData();
+    formData.append('session_id', sessionId);
+    
+    return this.request<MenuOptimizationResult>('/api/v1/analyze/menu-optimization', {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+  }
+
+  async runAdvancedAnalytics(
+    sessionId: string, 
+    capabilities?: string[]
+  ): Promise<AdvancedAnalyticsResult> {
+    const formData = new FormData();
+    formData.append('session_id', sessionId);
+    if (capabilities) {
+      formData.append('capabilities', capabilities.join(','));
+    }
+    
+    return this.request<AdvancedAnalyticsResult>('/api/v1/analyze/advanced', {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+  }
+}
+
+// ==================== Advanced Analytics Types ====================
+
+export interface DataCapabilityReport {
+  session_id: string;
+  available_capabilities: string[];
+  missing_for_advanced: Record<string, string[]>;
+  data_quality_score: number;
+  row_count: number;
+  date_range_days: number | null;
+  unique_items: number;
+  unique_categories: number;
+  recommendations: string[];
+  detected_at: string;
+}
+
+export interface ItemOptimization {
+  item_name: string;
+  current_price: number;
+  suggested_price: number | null;
+  current_margin: number | null;
+  action: 'increase_price' | 'decrease_price' | 'promote' | 'remove' | 'bundle' | 'reposition' | 'maintain';
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  reasoning: string;
+  expected_impact: string;
+  rotation_score: number;
+  margin_score: number;
+  combined_score: number;
+  bcg_category: string | null;
+}
+
+export interface CategorySummary {
+  category: string;
+  item_count: number;
+  avg_margin: number;
+  avg_rotation: number;
+  total_revenue: number;
+  recommendations: string[];
+}
+
+export interface MenuOptimizationResult {
+  session_id: string;
+  generated_at: string;
+  item_optimizations: ItemOptimization[];
+  category_summaries: CategorySummary[];
+  quick_wins: Array<{
+    type: string;
+    item?: string;
+    items?: string[];
+    action: string;
+    impact: string;
+    difficulty: string;
+  }>;
+  revenue_opportunity: number;
+  margin_improvement_potential: number;
+  items_to_promote: string[];
+  items_to_review: string[];
+  items_to_remove: string[];
+  price_adjustments: Array<{
+    item: string;
+    current: number;
+    suggested: number;
+    change_pct: number;
+  }>;
+  ai_insights: string[];
+  thought_process: string;
+}
+
+export interface HourlyPattern {
+  hour: number;
+  avg_quantity: number;
+  avg_revenue: number;
+  peak_indicator: boolean;
+  staffing_recommendation: string;
+}
+
+export interface DailyPattern {
+  day_of_week: number;
+  day_name: string;
+  avg_quantity: number;
+  avg_revenue: number;
+  avg_tickets: number | null;
+  is_peak_day: boolean;
+}
+
+export interface SeasonalTrend {
+  season_type: string;
+  pattern_description: string;
+  peak_periods: string[];
+  low_periods: string[];
+  variance_pct: number;
+}
+
+export interface ProductAnalytic {
+  item_name: string;
+  total_quantity: number;
+  total_revenue: number;
+  avg_daily_sales: number;
+  sales_trend: 'increasing' | 'decreasing' | 'stable';
+  trend_pct: number;
+  category: string | null;
+}
+
+export interface CategoryAnalytic {
+  category: string;
+  item_count: number;
+  total_revenue: number;
+  revenue_share: number;
+  top_performer: string;
+  worst_performer: string;
+}
+
+export interface DemandForecast {
+  period: string;
+  predicted_quantity: number;
+  predicted_revenue: number;
+  confidence_lower: number;
+  confidence_upper: number;
+  factors: string[];
+}
+
+export interface AdvancedAnalyticsResult {
+  session_id: string;
+  generated_at: string;
+  capabilities_used: string[];
+  hourly_patterns: HourlyPattern[];
+  daily_patterns: DailyPattern[];
+  seasonal_trends: SeasonalTrend[];
+  product_analytics: ProductAnalytic[];
+  category_analytics: CategoryAnalytic[];
+  demand_forecast: DemandForecast[];
+  key_insights: string[];
+  recommendations: string[];
+  data_quality_notes: string[];
 }
 
 // Singleton instance

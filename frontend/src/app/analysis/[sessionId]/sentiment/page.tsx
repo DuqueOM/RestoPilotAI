@@ -1,8 +1,9 @@
 'use client';
 
 import { api } from '@/lib/api';
+import { MessageCircle, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ExternalLink, MessageCircle, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
+
 
 interface SentimentPageProps {
   params: { sessionId: string };

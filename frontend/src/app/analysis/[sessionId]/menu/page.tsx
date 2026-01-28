@@ -3,6 +3,7 @@
 import { api, MenuItem } from '@/lib/api';
 import { useEffect, useState } from 'react';
 
+
 interface MenuPageProps {
   params: { sessionId: string };
 }

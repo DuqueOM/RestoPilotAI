@@ -27,7 +27,7 @@ export default function AnalysisPanel({ sessionId, onComplete, isLoading, setIsL
       const res = await axios.post(
         `${API_URL}/api/v1/analyze/bcg?session_id=${sessionId}`,
         {},
-        { timeout: 60000 }
+        { timeout: 180000 }
       )
       setResults((prev: any) => ({ ...prev, bcg_analysis: res.data }))
       setBcgDone(true)
@@ -53,7 +53,7 @@ export default function AnalysisPanel({ sessionId, onComplete, isLoading, setIsL
       const res = await axios.post(
         `${API_URL}/api/v1/predict/sales?session_id=${sessionId}&horizon_days=14`,
         [],
-        { timeout: 60000 } // 60 second timeout for ML predictions
+        { timeout: 180000 } // 60 second timeout for ML predictions
       )
       setResults((prev: any) => ({ ...prev, predictions: res.data }))
       setPredictionsDone(true)

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     # ==================== API Keys ====================
     gemini_api_key: str = ""
+    google_maps_api_key: str = ""
 
     # ==================== Application ====================
     app_name: str = "MenuPilot"

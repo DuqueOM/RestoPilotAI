@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 const nextConfig = {
   output: 'standalone',
   
@@ -12,11 +16,44 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
     formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
+    unoptimized: true,
   },
 
   // Compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
+  },
+
+  // Webpack optimizations for bundle size
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Tree shake unused lodash methods
+      config.resolve.alias = {
+        ...config.resolve.alias,
+      }
+      
+      // Optimize chunks
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            recharts: {
+              test: /[\\/]node_modules[\\/](recharts|d3-.*)[\\/]/,
+              name: 'recharts',
+              priority: 10,
+            },
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              priority: 5,
+            },
+          },
+        },
+      }
+    }
+    return config
   },
 
   // Headers for security
@@ -35,8 +72,8 @@ const nextConfig = {
 
   // Experimental features
   experimental: {
-    optimizePackageImports: ['lucide-react', 'recharts'],
+    optimizePackageImports: ['lucide-react', 'recharts', 'clsx'],
   },
 }
 
-module.exports = nextConfig
+module.exports = withBundleAnalyzer(nextConfig)

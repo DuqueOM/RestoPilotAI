@@ -2,16 +2,24 @@
 
 import { api } from '@/lib/api';
 import { Brain, Sparkles, Target } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
 
 interface OverviewPageProps {
   params: { sessionId: string };
 }
 
 export default function OverviewPage({ params }: OverviewPageProps) {
+  const router = useRouter();
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchSession = async () => {

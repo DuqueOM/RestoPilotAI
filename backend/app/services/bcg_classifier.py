@@ -138,7 +138,30 @@ class BCGClassifier:
         - Uses GROSS PROFIT (revenue - cost) not just revenue/units
         - Calculates relative market share vs portfolio average
         - Applies professional financial metrics
+
+        Optimized for large datasets (3+ years of data):
+        - Samples data if exceeds threshold for faster processing
+        - Uses efficient aggregation with dictionary comprehensions
         """
+
+        # OPTIMIZATION: Sample large datasets to prevent timeout
+        MAX_RECORDS = 50000  # Process at most 50k records
+        if len(sales_data) > MAX_RECORDS:
+            logger.info(
+                f"Sampling {MAX_RECORDS} from {len(sales_data)} records for BCG analysis"
+            )
+            # Use stratified sampling - take most recent data + sample from older
+            sorted_data = sorted(
+                sales_data,
+                key=lambda x: x.get("sale_date", x.get("date", "")),
+                reverse=True,
+            )
+            recent = sorted_data[: MAX_RECORDS // 2]  # Most recent 50%
+            older_sample = sorted_data[
+                MAX_RECORDS // 2 :: max(1, len(sorted_data) // (MAX_RECORDS // 2))
+            ][: MAX_RECORDS // 2]
+            sales_data = recent + older_sample
+            logger.info(f"Using {len(sales_data)} sampled records")
 
         # Aggregate sales by item with cost tracking
         sales_by_item = {}

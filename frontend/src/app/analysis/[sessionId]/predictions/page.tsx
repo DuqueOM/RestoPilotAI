@@ -3,6 +3,7 @@
 import { api, PredictionResult } from '@/lib/api';
 import { useEffect, useState } from 'react';
 
+
 interface PredictionsPageProps {
   params: { sessionId: string };
 }

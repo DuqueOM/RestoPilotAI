@@ -21,10 +21,13 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 
 from app.config import get_settings
+from app.services.advanced_analytics import AdvancedAnalyticsService
 from app.services.bcg_classifier import BCGClassifier
 from app.services.campaign_generator import CampaignGenerator
+from app.services.data_capability_detector import DataCapabilityDetector
 from app.services.gemini_agent import GeminiAgent
 from app.services.menu_extractor import DishImageAnalyzer, MenuExtractor
+from app.services.menu_optimizer import MenuOptimizer
 from app.services.neural_predictor import NeuralPredictor
 from app.services.orchestrator import AnalysisOrchestrator
 from app.services.sales_predictor import SalesPredictor
@@ -43,6 +46,9 @@ campaign_generator = CampaignGenerator(agent)
 verification_agent = VerificationAgent(agent)
 neural_predictor = NeuralPredictor()
 orchestrator = AnalysisOrchestrator()
+data_capability_detector = DataCapabilityDetector()
+menu_optimizer = MenuOptimizer()
+advanced_analytics = AdvancedAnalyticsService()
 
 # In-memory session storage (use Redis/DB in production)
 sessions = {}
@@ -1066,4 +1072,743 @@ async def load_demo_into_session():
         "status": "loaded",
         "items_count": len(demo_data["menu"]["items"]),
         "message": "Demo session loaded. Use this session_id with /session/{session_id} endpoint.",
+    }
+
+
+# ============= ADVANCED ANALYTICS ENDPOINTS =============
+
+
+@router.post("/analyze/capabilities", tags=["Advanced Analytics"])
+async def analyze_data_capabilities(
+    session_id: str = Form(...),
+):
+    """
+    Analyze uploaded sales data to determine available analytics capabilities.
+
+    This endpoint detects what columns are present in the data and returns
+    a list of analytics features that can be performed.
+
+    **Returns:**
+    - Available capabilities (hourly demand, margin analysis, etc.)
+    - Missing columns for advanced features
+    - Data quality score
+    - Recommendations to unlock more features
+    """
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found")
+
+    session = sessions[session_id]
+    sales_data = session.get("sales_data", [])
+
+    if not sales_data:
+        return {
+            "session_id": session_id,
+            "available_capabilities": ["bcg_analysis"],
+            "missing_for_advanced": {
+                "all_features": ["Upload sales CSV data to unlock advanced analytics"]
+            },
+            "data_quality_score": 0,
+            "recommendations": [
+                "📊 Upload a sales CSV file to enable demand prediction",
+                "💰 Include cost data for margin analysis",
+                "⏰ Include datetime for hourly patterns",
+            ],
+        }
+
+    # Convert to DataFrame
+    df = pd.DataFrame(sales_data)
+
+    # Analyze capabilities
+    report = data_capability_detector.analyze(df)
+
+    # Store capability report in session
+    session["capability_report"] = {
+        "available": [cap.value for cap in report.available_capabilities],
+        "column_mapping": {
+            "date_col": report.column_mapping.date_col,
+            "time_col": report.column_mapping.time_col,
+            "datetime_col": report.column_mapping.datetime_col,
+            "item_name_col": report.column_mapping.item_name_col,
+            "quantity_col": report.column_mapping.quantity_col,
+            "revenue_col": report.column_mapping.revenue_col,
+            "cost_col": report.column_mapping.cost_col,
+            "category_col": report.column_mapping.category_col,
+        },
+    }
+
+    return {
+        "session_id": session_id,
+        "available_capabilities": [cap.value for cap in report.available_capabilities],
+        "missing_for_advanced": report.missing_for_advanced,
+        "data_quality_score": report.data_quality_score,
+        "row_count": report.row_count,
+        "date_range_days": report.date_range_days,
+        "unique_items": report.unique_items,
+        "unique_categories": report.unique_categories,
+        "recommendations": report.recommendations,
+        "detected_at": report.detected_at,
+    }
+
+
+@router.post("/analyze/menu-optimization", tags=["Advanced Analytics"])
+async def run_menu_optimization(
+    session_id: str = Form(...),
+):
+    """
+    Run AI-powered menu optimization analysis.
+
+    Analyzes price, margin, and rotation to provide actionable recommendations:
+    - Items to increase/decrease price
+    - Items to promote or remove
+    - Quick wins for immediate impact
+    - Revenue opportunity estimation
+
+    **Requires:** Sales data with item_name and revenue columns.
+    **Enhanced by:** Cost data for margin analysis.
+    """
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found")
+
+    session = sessions[session_id]
+    sales_data = session.get("sales_data", [])
+    menu_items = session.get("menu_items", [])
+    bcg_results = session.get("bcg_analysis", {})
+
+    if not sales_data:
+        raise HTTPException(400, "No sales data available. Upload sales CSV first.")
+
+    # Get column mapping from capability report or use defaults
+    cap_report = session.get("capability_report", {})
+    column_mapping = cap_report.get(
+        "column_mapping",
+        {
+            "item_name": "item_name",
+            "quantity": "quantity",
+            "revenue": "revenue",
+            "cost": "cost",
+            "category": "category",
+            "date": "date",
+        },
+    )
+
+    # Convert to DataFrame
+    df = pd.DataFrame(sales_data)
+
+    try:
+        # Run optimization
+        report = await menu_optimizer.analyze(
+            sales_df=df,
+            menu_items=menu_items,
+            session_id=session_id,
+            column_mapping=column_mapping,
+            bcg_results=bcg_results,
+        )
+
+        # Store in session
+        session["menu_optimization"] = {
+            "generated_at": report.generated_at,
+            "quick_wins": report.quick_wins,
+            "items_to_promote": report.items_to_promote,
+            "items_to_remove": report.items_to_remove,
+            "price_adjustments": report.price_adjustments,
+        }
+
+        # Convert dataclass to dict for JSON response
+        return {
+            "session_id": report.session_id,
+            "generated_at": report.generated_at,
+            "item_optimizations": [
+                {
+                    "item_name": opt.item_name,
+                    "current_price": opt.current_price,
+                    "suggested_price": opt.suggested_price,
+                    "current_margin": opt.current_margin,
+                    "action": opt.action.value,
+                    "priority": opt.priority.value,
+                    "reasoning": opt.reasoning,
+                    "expected_impact": opt.expected_impact,
+                    "rotation_score": opt.rotation_score,
+                    "margin_score": opt.margin_score,
+                    "combined_score": opt.combined_score,
+                    "bcg_category": opt.bcg_category,
+                }
+                for opt in report.item_optimizations
+            ],
+            "category_summaries": [
+                {
+                    "category": cat.category,
+                    "item_count": cat.item_count,
+                    "avg_margin": cat.avg_margin,
+                    "avg_rotation": cat.avg_rotation,
+                    "total_revenue": cat.total_revenue,
+                    "recommendations": cat.recommendations,
+                }
+                for cat in report.category_summaries
+            ],
+            "quick_wins": report.quick_wins,
+            "revenue_opportunity": report.revenue_opportunity,
+            "margin_improvement_potential": report.margin_improvement_potential,
+            "items_to_promote": report.items_to_promote,
+            "items_to_review": report.items_to_review,
+            "items_to_remove": report.items_to_remove,
+            "price_adjustments": report.price_adjustments,
+            "ai_insights": report.ai_insights,
+            "thought_process": report.thought_process,
+        }
+
+    except Exception as e:
+        logger.error(f"Menu optimization error: {e}")
+        raise HTTPException(500, f"Optimization failed: {str(e)}")
+
+
+@router.post("/analyze/advanced", tags=["Advanced Analytics"])
+async def run_advanced_analytics(
+    session_id: str = Form(...),
+    capabilities: Optional[str] = Form(None),
+):
+    """
+    Run advanced analytics based on available data capabilities.
+
+    Provides:
+    - **Hourly demand patterns** (if time data available)
+    - **Daily patterns** (if date data available)
+    - **Seasonal trends** (if 60+ days of data)
+    - **Product analytics** (sales trends, performance)
+    - **Category analytics** (if category data available)
+    - **Demand forecast** (7-day prediction)
+
+    **Parameters:**
+    - session_id: Session with uploaded data
+    - capabilities: Optional comma-separated list of specific capabilities to run
+    """
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found")
+
+    session = sessions[session_id]
+    sales_data = session.get("sales_data", [])
+
+    if not sales_data:
+        raise HTTPException(400, "No sales data available. Upload sales CSV first.")
+
+    # Convert to DataFrame
+    df = pd.DataFrame(sales_data)
+
+    # Get capabilities from request or detect automatically
+    if capabilities:
+        caps_list = [c.strip() for c in capabilities.split(",")]
+    else:
+        # Detect capabilities
+        cap_report = data_capability_detector.analyze(df)
+        caps_list = [cap.value for cap in cap_report.available_capabilities]
+
+        # Store column mapping
+        session["capability_report"] = {
+            "available": caps_list,
+            "column_mapping": {
+                "date_col": cap_report.column_mapping.date_col,
+                "time_col": cap_report.column_mapping.time_col,
+                "datetime_col": cap_report.column_mapping.datetime_col,
+                "item_name_col": cap_report.column_mapping.item_name_col,
+                "quantity_col": cap_report.column_mapping.quantity_col,
+                "revenue_col": cap_report.column_mapping.revenue_col,
+                "cost_col": cap_report.column_mapping.cost_col,
+                "category_col": cap_report.column_mapping.category_col,
+                "hour_col": cap_report.column_mapping.hour_col,
+            },
+        }
+
+    # Get column mapping
+    cap_data = session.get("capability_report", {})
+    column_mapping = cap_data.get("column_mapping", {})
+
+    try:
+        # Run advanced analytics
+        report = await advanced_analytics.analyze(
+            df=df,
+            session_id=session_id,
+            column_mapping=column_mapping,
+            capabilities=caps_list,
+        )
+
+        # Store in session
+        session["advanced_analytics"] = {
+            "generated_at": report.generated_at,
+            "capabilities_used": report.capabilities_used,
+            "key_insights": report.key_insights,
+        }
+
+        # Convert to JSON-serializable format
+        return {
+            "session_id": report.session_id,
+            "generated_at": report.generated_at,
+            "capabilities_used": report.capabilities_used,
+            "hourly_patterns": [
+                {
+                    "hour": p.hour,
+                    "avg_quantity": p.avg_quantity,
+                    "avg_revenue": p.avg_revenue,
+                    "peak_indicator": p.peak_indicator,
+                    "staffing_recommendation": p.staffing_recommendation,
+                }
+                for p in report.hourly_patterns
+            ],
+            "daily_patterns": [
+                {
+                    "day_of_week": p.day_of_week,
+                    "day_name": p.day_name,
+                    "avg_quantity": p.avg_quantity,
+                    "avg_revenue": p.avg_revenue,
+                    "avg_tickets": p.avg_tickets,
+                    "is_peak_day": p.is_peak_day,
+                }
+                for p in report.daily_patterns
+            ],
+            "seasonal_trends": [
+                {
+                    "season_type": t.season_type.value,
+                    "pattern_description": t.pattern_description,
+                    "peak_periods": t.peak_periods,
+                    "low_periods": t.low_periods,
+                    "variance_pct": t.variance_pct,
+                }
+                for t in report.seasonal_trends
+            ],
+            "product_analytics": [
+                {
+                    "item_name": p.item_name,
+                    "total_quantity": p.total_quantity,
+                    "total_revenue": p.total_revenue,
+                    "avg_daily_sales": p.avg_daily_sales,
+                    "sales_trend": p.sales_trend,
+                    "trend_pct": p.trend_pct,
+                    "category": p.category,
+                }
+                for p in report.product_analytics[:20]  # Top 20 items
+            ],
+            "category_analytics": [
+                {
+                    "category": c.category,
+                    "item_count": c.item_count,
+                    "total_revenue": c.total_revenue,
+                    "revenue_share": c.revenue_share,
+                    "top_performer": c.top_performer,
+                    "worst_performer": c.worst_performer,
+                }
+                for c in report.category_analytics
+            ],
+            "demand_forecast": [
+                {
+                    "period": f.period,
+                    "predicted_quantity": f.predicted_quantity,
+                    "predicted_revenue": f.predicted_revenue,
+                    "confidence_lower": f.confidence_lower,
+                    "confidence_upper": f.confidence_upper,
+                    "factors": f.factors,
+                }
+                for f in report.demand_forecast
+            ],
+            "key_insights": report.key_insights,
+            "recommendations": report.recommendations,
+            "data_quality_notes": report.data_quality_notes,
+        }
+
+    except Exception as e:
+        logger.error(f"Advanced analytics error: {e}")
+        raise HTTPException(500, f"Analytics failed: {str(e)}")
+
+
+# ============= AI CHAT ENDPOINT =============
+
+
+@router.post("/chat", tags=["AI Chat"])
+async def chat_with_ai(
+    session_id: str = Form(...),
+    message: str = Form(...),
+    context: str = Form("general"),
+):
+    """
+    Interactive chat with Gemini AI about the restaurant analysis.
+
+    The AI has full context of:
+    - Menu items and categories
+    - BCG analysis results
+    - Sales predictions
+    - Campaign recommendations
+
+    **Parameters:**
+    - session_id: Current analysis session
+    - message: User's question or request
+    - context: Context hint (general, bcg, predictions, campaigns)
+    """
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found")
+
+    session = sessions[session_id]
+
+    # Build context from session data
+    session_context = f"""
+You are MenuPilot AI, an expert restaurant business consultant powered by Gemini 3.
+You are helping analyze a restaurant with the following data:
+
+MENU ITEMS: {len(session.get('menu_items', []))} products
+Categories: {', '.join(session.get('categories', ['Unknown']))}
+
+BCG ANALYSIS:
+{_format_bcg_for_chat(session.get('bcg_analysis', {}))}
+
+CURRENT CONTEXT: {context}
+
+Be helpful, specific, and actionable in your responses.
+Use the data available to give concrete recommendations.
+Keep responses concise but informative.
+"""
+
+    try:
+        # Use Gemini agent for chat
+        response = await agent.generate_response(
+            prompt=f"{session_context}\n\nUser Question: {message}",
+            system_instruction="You are a friendly restaurant business consultant. Provide clear, actionable advice based on the data.",
+        )
+
+        return {"response": response, "session_id": session_id, "context": context}
+
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        return {
+            "response": "I apologize, but I encountered an error processing your request. Please try again.",
+            "session_id": session_id,
+            "error": str(e),
+        }
+
+
+def _format_bcg_for_chat(bcg_data: dict) -> str:
+    """Format BCG data for chat context."""
+    if not bcg_data:
+        return "No BCG analysis available yet."
+
+    summary = bcg_data.get("summary", {})
+    counts = summary.get("counts", {})
+
+    return f"""
+- Stars (high growth, high share): {counts.get('star', 0)} items
+- Cash Cows (low growth, high share): {counts.get('cash_cow', 0)} items
+- Question Marks (high growth, low share): {counts.get('question_mark', 0)} items
+- Dogs (low growth, low share): {counts.get('dog', 0)} items
+- Portfolio Health Score: {summary.get('portfolio_health_score', 0):.0%}
+"""
+
+
+# ============= LOCATION ENDPOINTS =============
+
+
+@router.post("/location/search", tags=["Location"])
+async def search_location(
+    query: str = Form(...),
+):
+    """
+    Search for a restaurant location using address or name.
+
+    Returns coordinates and formatted address for mapping.
+
+    Note: Requires GOOGLE_MAPS_API_KEY environment variable.
+    """
+    import httpx
+
+    google_api_key = settings.google_maps_api_key
+
+    if not google_api_key:
+        # Return mock data for demo purposes
+        return {
+            "location": {
+                "lat": 19.4326,
+                "lng": -99.1332,
+                "address": f"{query} (Demo Location - Mexico City)",
+                "place_id": "demo_place_id",
+            },
+            "status": "demo_mode",
+        }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://maps.googleapis.com/maps/api/geocode/json",
+                params={"address": query, "key": google_api_key},
+            )
+            data = response.json()
+
+            if data.get("results"):
+                result = data["results"][0]
+                location = result["geometry"]["location"]
+
+                return {
+                    "location": {
+                        "lat": location["lat"],
+                        "lng": location["lng"],
+                        "address": result["formatted_address"],
+                        "place_id": result.get("place_id"),
+                    },
+                    "status": "ok",
+                }
+
+            raise HTTPException(404, "Location not found")
+
+    except Exception as e:
+        logger.error(f"Location search error: {e}")
+        # Fallback to demo mode
+        return {
+            "location": {
+                "lat": 19.4326,
+                "lng": -99.1332,
+                "address": f"{query} (Demo Mode)",
+                "place_id": "demo_place_id",
+            },
+            "status": "demo_mode",
+        }
+
+
+@router.post("/location/nearby-restaurants", tags=["Location"])
+async def get_nearby_restaurants(
+    lat: float = Form(...),
+    lng: float = Form(...),
+    radius: int = Form(1500),
+):
+    """
+    Find nearby restaurants (competitors) within radius.
+
+    Uses Google Places API to find restaurants near the specified location.
+
+    **Parameters:**
+    - lat, lng: Coordinates of the restaurant
+    - radius: Search radius in meters (default 1500m)
+    """
+    import httpx
+
+    google_api_key = settings.google_maps_api_key
+
+    if not google_api_key:
+        # Return mock competitors for demo
+        return {
+            "restaurants": [
+                {
+                    "name": "El Rincón Mexicano",
+                    "address": "Calle Ejemplo 123",
+                    "rating": 4.5,
+                    "userRatingsTotal": 234,
+                    "placeId": "demo_1",
+                    "distance": "200m",
+                },
+                {
+                    "name": "Taquería Los Amigos",
+                    "address": "Av. Principal 456",
+                    "rating": 4.2,
+                    "userRatingsTotal": 156,
+                    "placeId": "demo_2",
+                    "distance": "450m",
+                },
+                {
+                    "name": "Restaurant La Casona",
+                    "address": "Plaza Central 789",
+                    "rating": 4.7,
+                    "userRatingsTotal": 312,
+                    "placeId": "demo_3",
+                    "distance": "800m",
+                },
+            ],
+            "status": "demo_mode",
+        }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://maps.googleapis.com/maps/api/place/nearbysearch/json",
+                params={
+                    "location": f"{lat},{lng}",
+                    "radius": radius,
+                    "type": "restaurant",
+                    "key": google_api_key,
+                },
+            )
+            data = response.json()
+
+            restaurants = []
+            for place in data.get("results", [])[:10]:
+                restaurants.append(
+                    {
+                        "name": place.get("name"),
+                        "address": place.get("vicinity"),
+                        "rating": place.get("rating"),
+                        "userRatingsTotal": place.get("user_ratings_total"),
+                        "placeId": place.get("place_id"),
+                        "types": place.get("types", []),
+                    }
+                )
+
+            return {"restaurants": restaurants, "status": "ok"}
+
+    except Exception as e:
+        logger.error(f"Nearby search error: {e}")
+        return {"restaurants": [], "status": "error", "message": str(e)}
+
+
+# ============= FEEDBACK ENDPOINT =============
+
+
+@router.post("/analyze/feedback", tags=["Advanced Analytics"])
+async def generate_feedback(
+    session_id: str = Form(...),
+):
+    """
+    Generate comprehensive AI feedback and recommendations for the restaurant.
+
+    Analyzes all available data to provide:
+    - Overall business health score
+    - Key strengths and weaknesses
+    - Prioritized action items
+    - Revenue opportunities
+    - Competitive positioning advice
+    """
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found")
+
+    session = sessions[session_id]
+
+    # Gather all session data for analysis
+    menu_items = session.get("menu_items", [])
+    bcg_analysis = session.get("bcg_analysis", {})
+    campaigns = session.get("campaigns", [])
+    predictions = session.get("predictions", {})
+    location_data = session.get("location", {})
+    competitors = session.get("competitors", [])
+
+    # Calculate overall score based on available data
+    score = 50  # Base score
+    health_status = "needs_attention"
+
+    # Adjust score based on BCG portfolio
+    if bcg_analysis:
+        summary = bcg_analysis.get("summary", {})
+        portfolio_health = summary.get("portfolio_health_score", 0.5)
+        score += int(portfolio_health * 30)
+
+        counts = summary.get("counts", {})
+        stars = counts.get("star", 0)
+        dogs = counts.get("dog", 0)
+
+        if stars >= 3 and dogs <= 2:
+            health_status = "excellent"
+            score += 10
+        elif stars >= 2:
+            health_status = "good"
+            score += 5
+        elif dogs >= 4:
+            health_status = "critical"
+            score -= 10
+
+    # Cap score
+    score = max(20, min(95, score))
+
+    # Generate strengths based on data
+    strengths = []
+    if bcg_analysis:
+        counts = bcg_analysis.get("summary", {}).get("counts", {})
+        if counts.get("star", 0) > 0:
+            strengths.append(f"You have {counts['star']} Star products driving growth")
+        if counts.get("cash_cow", 0) > 0:
+            strengths.append(f"{counts['cash_cow']} Cash Cows providing stable revenue")
+
+    if len(menu_items) >= 10:
+        strengths.append("Good menu diversity with multiple offerings")
+    if campaigns:
+        strengths.append("Marketing campaigns ready for execution")
+
+    if not strengths:
+        strengths = [
+            "Data uploaded and ready for analysis",
+            "Using AI-powered optimization",
+        ]
+
+    # Generate improvement areas
+    improvements = []
+    if bcg_analysis:
+        counts = bcg_analysis.get("summary", {}).get("counts", {})
+        if counts.get("dog", 0) > 2:
+            improvements.append(
+                f"Review {counts['dog']} underperforming products (Dogs)"
+            )
+        if counts.get("question_mark", 0) > 2:
+            improvements.append(
+                f"Make decisions on {counts['question_mark']} Question Mark items"
+            )
+
+    if not location_data:
+        improvements.append("Add location data for competitive analysis")
+    if len(menu_items) < 5:
+        improvements.append("Upload more menu items for comprehensive analysis")
+
+    if not improvements:
+        improvements = [
+            "Continue monitoring performance metrics",
+            "Test new menu items periodically",
+        ]
+
+    # Generate actions
+    actions = [
+        {
+            "action": "Review and optimize prices for Star products",
+            "impact": "high",
+            "effort": "easy",
+        },
+        {
+            "action": "Run promotional campaign for Question Mark items",
+            "impact": "medium",
+            "effort": "moderate",
+        },
+        {
+            "action": "Consider removing or rebranding Dog products",
+            "impact": "medium",
+            "effort": "moderate",
+        },
+    ]
+
+    # Revenue opportunities
+    revenue_opps = [
+        {"description": "Optimize Star product pricing", "potential": "+5-10% revenue"},
+        {
+            "description": "Promote underperforming items",
+            "potential": "+3-7% sales volume",
+        },
+        {
+            "description": "Bundle complementary items",
+            "potential": "+8-15% ticket size",
+        },
+    ]
+
+    # AI recommendation
+    ai_recommendation = (
+        f"Based on the analysis, your restaurant has a health score of {score}/100. "
+    )
+    if health_status == "excellent":
+        ai_recommendation += "Your portfolio is well-balanced. Focus on maintaining Stars and maximizing Cash Cows."
+    elif health_status == "good":
+        ai_recommendation += (
+            "Good foundation! Invest in Question Marks and optimize underperformers."
+        )
+    elif health_status == "needs_attention":
+        ai_recommendation += (
+            "Focus on identifying clear winners and phasing out underperformers."
+        )
+    else:
+        ai_recommendation += (
+            "Urgent action needed. Prioritize menu restructuring and cost optimization."
+        )
+
+    return {
+        "overall_score": score,
+        "health_status": health_status,
+        "key_strengths": strengths,
+        "areas_for_improvement": improvements,
+        "immediate_actions": actions,
+        "revenue_opportunities": revenue_opps,
+        "competitive_position": "Analysis shows opportunities to differentiate through menu optimization and targeted marketing.",
+        "ai_recommendation": ai_recommendation,
     }

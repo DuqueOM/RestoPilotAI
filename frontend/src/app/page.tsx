@@ -1,20 +1,23 @@
 'use client'
 
 import AgentDashboard from '@/components/AgentDashboard'
+import AIChat from '@/components/AIChat'
 import AnalysisPanel from '@/components/AnalysisPanel'
 import BCGResultsPanel from '@/components/BCGResultsPanel'
 import CampaignCards from '@/components/CampaignCards'
 import CompetitorDashboard from '@/components/CompetitorDashboard'
+import FeedbackSummary from '@/components/FeedbackSummary'
 import FileUpload from '@/components/FileUpload'
+import LocationPicker from '@/components/LocationPicker'
 import SentimentDashboard from '@/components/SentimentDashboard'
 import ThoughtSignature from '@/components/ThoughtSignature'
 import { api } from '@/lib/api'
-import { BarChart3, Brain, ChefHat, Cpu, Megaphone, MessageSquare, Play, Sparkles, Target, TrendingUp, Upload } from 'lucide-react'
+import { BarChart3, Brain, ChefHat, ClipboardCheck, Cpu, Megaphone, MessageSquare, Play, Sparkles, Target, TrendingUp, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 type Step = 'upload' | 'analysis' | 'results'
-type ResultsTab = 'overview' | 'agents' | 'bcg' | 'competitors' | 'sentiment' | 'predictions' | 'campaigns'
+type ResultsTab = 'overview' | 'feedback' | 'agents' | 'bcg' | 'competitors' | 'sentiment' | 'predictions' | 'campaigns'
 
 export default function Home() {
   const router = useRouter()
@@ -114,6 +117,15 @@ export default function Home() {
               onComplete={() => setCurrentStep('analysis')}
               sessionId={sessionId}
             />
+
+            {/* Location Picker */}
+            {sessionId && (
+              <LocationPicker
+                onLocationSelect={(location, competitors) => {
+                  console.log('Location selected:', location, competitors);
+                }}
+              />
+            )}
             
             {/* Demo Button */}
             <div className="text-center">
@@ -165,6 +177,7 @@ export default function Home() {
             <div className="bg-white rounded-xl border border-gray-200 p-1 flex gap-1 overflow-x-auto">
               {[
                 { id: 'overview', label: 'Overview', icon: Sparkles },
+                { id: 'feedback', label: 'AI Feedback', icon: ClipboardCheck },
                 { id: 'agents', label: 'AI Agents', icon: Cpu },
                 { id: 'bcg', label: 'BCG Matrix', icon: BarChart3 },
                 { id: 'competitors', label: 'Competitors', icon: Target },
@@ -365,6 +378,11 @@ export default function Home() {
               </div>
             )}
 
+            {/* Feedback Tab */}
+            {resultsTab === 'feedback' && sessionId && (
+              <FeedbackSummary sessionId={sessionId} sessionData={sessionData} />
+            )}
+
             {/* Agents Tab */}
             {resultsTab === 'agents' && (
               <AgentDashboard />
@@ -507,6 +525,16 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* AI Chat - Floating on all pages */}
+      {sessionId && (
+        <AIChat 
+          sessionId={sessionId} 
+          context={resultsTab}
+          title="MenuPilot AI"
+          placeholder="Ask about your restaurant analysis..."
+        />
+      )}
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-auto">

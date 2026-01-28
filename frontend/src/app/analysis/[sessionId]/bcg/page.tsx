@@ -3,6 +3,7 @@
 import { api, BCGAnalysisResult, BCGItem } from '@/lib/api';
 import { useEffect, useState } from 'react';
 
+
 interface BCGPageProps {
   params: { sessionId: string };
 }
