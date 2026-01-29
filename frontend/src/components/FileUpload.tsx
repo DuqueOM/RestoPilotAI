@@ -1,7 +1,7 @@
 'use client'
 
 import axios from 'axios'
-import { CheckCircle, FileSpreadsheet, FileText, Image as ImageIcon, Loader2, Mic, MicOff, Pause, Play, Trash2, X } from 'lucide-react'
+import { AlertTriangle, CheckCircle, FileSpreadsheet, FileText, Image as ImageIcon, Info, Loader2, Mic, MicOff, Pause, Play, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
@@ -268,32 +268,92 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
       maxFiles: 1
     })
     const isLoading = uploadingTypes.has('sales')
+    const salesResult = uploadResults.sales
+    const warnings = salesResult?.warnings || []
+    const capabilities = salesResult?.data_capabilities || {}
 
     return (
-      <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-        isDragActive ? 'border-blue-500 bg-blue-50' : salesUploaded ? 'border-green-500 bg-green-50' : 'border-blue-300 hover:border-blue-400 bg-blue-50/30'
-      }`}>
-        <input {...getInputProps()} />
-        <div className="relative">
-          {isLoading ? (
-            <>
-              <Loader2 className="h-10 w-10 mx-auto text-blue-500 animate-spin" />
-              <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${uploadProgress.sales || 0}%` }} />
-              </div>
-              <p className="text-sm text-blue-600 mt-1">{uploadProgress.sales || 0}%</p>
-            </>
-          ) : salesUploaded ? (
-            <CheckCircle className="h-10 w-10 mx-auto text-green-500" />
-          ) : (
-            <FileSpreadsheet className="h-10 w-10 mx-auto text-blue-500" />
+      <div className="space-y-3">
+        <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+          isDragActive ? 'border-blue-500 bg-blue-50' : salesUploaded ? 'border-green-500 bg-green-50' : 'border-blue-300 hover:border-blue-400 bg-blue-50/30'
+        }`}>
+          <input {...getInputProps()} />
+          <div className="relative">
+            {isLoading ? (
+              <>
+                <Loader2 className="h-10 w-10 mx-auto text-blue-500 animate-spin" />
+                <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${uploadProgress.sales || 0}%` }} />
+                </div>
+                <p className="text-sm text-blue-600 mt-1">{uploadProgress.sales || 0}%</p>
+              </>
+            ) : salesUploaded ? (
+              <CheckCircle className="h-10 w-10 mx-auto text-green-500" />
+            ) : (
+              <FileSpreadsheet className="h-10 w-10 mx-auto text-blue-500" />
+            )}
+          </div>
+          <p className="mt-3 font-semibold text-sm">{salesUploaded ? 'Sales Data Loaded!' : 'Sales Data (Required)'}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {salesUploaded 
+              ? `${salesResult?.records_imported || 0} records • ${salesResult?.unique_items || 0} items • ${salesResult?.days_span || 0} days` 
+              : 'CSV: date, item_name, units_sold'}
+          </p>
+          {salesUploaded && salesResult?.date_range && (
+            <p className="text-xs text-gray-400 mt-1">
+              {salesResult.date_range.start} → {salesResult.date_range.end}
+            </p>
           )}
+          <span className="inline-block mt-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Required</span>
         </div>
-        <p className="mt-3 font-semibold text-sm">{salesUploaded ? 'Sales Data Loaded!' : 'Sales Data (Required)'}</p>
-        <p className="text-xs text-gray-500 mt-1">
-          {salesUploaded ? `${uploadResults.sales?.records_imported || 0} records` : 'CSV: date, item_name, units_sold'}
-        </p>
-        <span className="inline-block mt-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">Required</span>
+        
+        {/* Data Validation Feedback */}
+        {salesUploaded && (
+          <div className="space-y-2">
+            {/* Warnings */}
+            {warnings.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-amber-700 space-y-1">
+                    {warnings.map((w: string, i: number) => (
+                      <p key={i}>{w}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Data Capabilities */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-blue-700">
+                  <p className="font-medium mb-1">Data Capabilities Detected:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {capabilities.has_price && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">✓ Price</span>}
+                    {capabilities.has_cost && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">✓ Cost</span>}
+                    {capabilities.can_calculate_margin && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">✓ Margin Analysis</span>}
+                    {capabilities.has_category && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">✓ Categories</span>}
+                    {!capabilities.has_price && <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">No Price</span>}
+                    {!capabilities.has_cost && <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">No Cost</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Minimum Requirements Info */}
+            <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded-lg">
+              <p className="font-medium">📋 Minimum Requirements for Full Analysis:</p>
+              <ul className="mt-1 space-y-0.5 ml-4 list-disc">
+                <li><strong>date</strong>, <strong>item_name</strong>, <strong>units_sold</strong> (required)</li>
+                <li><strong>price</strong>, <strong>cost</strong> (for margin/profitability analysis)</li>
+                <li><strong>categoria</strong> (for category breakdown)</li>
+                <li>30+ days of data recommended for reliable BCG analysis</li>
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -407,11 +467,16 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
         </button>
       </div>
 
-      {/* Upload Panels - Order: CSV, PDF, Photos&Videos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Upload Panels - Sales takes full width on mobile, then 2-column layout */}
+      <div className="space-y-4">
+        {/* Sales CSV - Full width with validation info */}
         <SalesDropzone />
-        <MenuDropzone />
-        <MediaDropzone />
+        
+        {/* Optional uploads - Side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <MenuDropzone />
+          <MediaDropzone />
+        </div>
       </div>
 
       {/* Context Panels */}

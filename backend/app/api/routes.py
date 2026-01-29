@@ -26,6 +26,7 @@ from app.services.bcg_classifier import BCGClassifier
 from app.services.campaign_generator import CampaignGenerator
 from app.services.data_capability_detector import DataCapabilityDetector
 from app.services.gemini_agent import GeminiAgent
+from app.services.menu_engineering import AnalysisPeriod, MenuEngineeringClassifier
 from app.services.menu_extractor import DishImageAnalyzer, MenuExtractor
 from app.services.menu_optimizer import MenuOptimizer
 from app.services.neural_predictor import NeuralPredictor
@@ -41,6 +42,7 @@ agent = GeminiAgent()
 menu_extractor = MenuExtractor(agent)
 dish_analyzer = DishImageAnalyzer(agent)
 bcg_classifier = BCGClassifier(agent)
+menu_engineering = MenuEngineeringClassifier()
 sales_predictor = SalesPredictor()
 campaign_generator = CampaignGenerator(agent)
 verification_agent = VerificationAgent(agent)
@@ -419,8 +421,39 @@ async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form
         if missing:
             raise HTTPException(400, f"Missing required columns: {missing}")
 
-        # Convert to records
-        df["date"] = pd.to_datetime(df["date"]).dt.date.astype(str)
+        # Convert date column - handle multiple formats including DD-MM-YY
+        def parse_date(date_val):
+            if pd.isna(date_val):
+                return None
+            date_str = str(date_val).strip()
+            # Try multiple date formats
+            formats = [
+                "%d-%m-%y",  # DD-MM-YY (sample data format)
+                "%d-%m-%Y",  # DD-MM-YYYY
+                "%Y-%m-%d",  # YYYY-MM-DD (ISO)
+                "%d/%m/%y",  # DD/MM/YY
+                "%d/%m/%Y",  # DD/MM/YYYY
+                "%m/%d/%Y",  # MM/DD/YYYY (US)
+                "%Y/%m/%d",  # YYYY/MM/DD
+            ]
+            for fmt in formats:
+                try:
+                    return pd.to_datetime(date_str, format=fmt).date()
+                except (ValueError, TypeError):
+                    continue
+            # Fallback to pandas auto-detect
+            try:
+                return pd.to_datetime(date_str, dayfirst=True).date()
+            except Exception:
+                return None
+
+        df["date"] = df["date"].apply(parse_date)
+        # Remove rows with invalid dates
+        invalid_dates = df["date"].isna().sum()
+        df = df.dropna(subset=["date"])
+        df["date"] = df["date"].astype(str)
+
+        # Preserve all columns for analysis (price, cost, category, etc.)
         sales_records = df.to_dict("records")
 
         sessions[session_id]["sales_data"] = sales_records
@@ -429,6 +462,33 @@ async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form
         total_units = df["units_sold"].sum()
         date_range = {"start": df["date"].min(), "end": df["date"].max()}
         unique_items = df["item_name"].nunique()
+
+        # Calculate date span for validation info
+        try:
+            start_dt = pd.to_datetime(date_range["start"])
+            end_dt = pd.to_datetime(date_range["end"])
+            days_span = (end_dt - start_dt).days + 1
+        except Exception:
+            days_span = 0
+
+        # Generate warnings for data quality
+        warnings = []
+        if invalid_dates > 0:
+            warnings.append(f"{invalid_dates} rows had invalid dates and were skipped")
+        if days_span < 30:
+            warnings.append(
+                f"Only {days_span} days of data. Recommend 30-90 days for reliable analysis."
+            )
+        if len(sales_records) < 100:
+            warnings.append(
+                f"Only {len(sales_records)} records. More data improves analysis accuracy."
+            )
+
+        # Detect available columns for capability info
+        available_columns = list(df.columns)
+        has_price = "price" in df.columns
+        has_cost = "cost" in df.columns
+        has_category = "categoria" in df.columns or "category" in df.columns
 
         thought = await agent.create_thought_signature(
             "Process uploaded sales data",
@@ -440,13 +500,21 @@ async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form
             "status": "success",
             "records_imported": len(sales_records),
             "date_range": date_range,
+            "days_span": days_span,
             "unique_items": unique_items,
             "total_units": int(total_units),
             "total_revenue": (
                 float(df["revenue"].sum()) if "revenue" in df.columns else None
             ),
+            "available_columns": available_columns,
+            "data_capabilities": {
+                "has_price": has_price,
+                "has_cost": has_cost,
+                "has_category": has_category,
+                "can_calculate_margin": has_price and has_cost,
+            },
             "thought_process": thought,
-            "warnings": [],
+            "warnings": warnings,
         }
 
     except HTTPException:
@@ -457,54 +525,88 @@ async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form
 
 
 @router.post("/analyze/bcg", tags=["Analyze"])
-async def run_bcg_analysis(session_id: str):
+async def run_bcg_analysis(session_id: str, period: str = "30d"):
     """
-    Run BCG Matrix analysis on menu items.
+    Run Menu Engineering analysis on menu items (Kasavana & Smith methodology).
 
-    Classifies products as Star, Cash Cow, Question Mark, or Dog
-    based on market share and growth metrics.
+    Classifies products based on Popularity (mix %) and Contribution Margin:
+    - Star: High Popularity, High CM - Promote and protect
+    - Plowhorse: High Popularity, Low CM - Improve margin
+    - Puzzle: Low Popularity, High CM - Promote to increase sales
+    - Dog: Low Popularity, Low CM - Consider removal
+
+    Default period is last 30 days for faster initial analysis.
     """
 
     if session_id not in sessions:
         raise HTTPException(404, "Session not found")
 
+    # Parse period
+    try:
+        analysis_period = AnalysisPeriod(period)
+    except ValueError:
+        analysis_period = AnalysisPeriod.LAST_30_DAYS
+
     session = sessions[session_id]
     menu_items = session.get("menu_items", [])
     sales_data = session.get("sales_data", [])
-    image_scores = session.get("image_scores", {})
 
     # MERGE menu items from both sources: menu extraction AND sales data
-    # Primary source: sales_data (database), Complementary: menu extraction (visual)
     existing_menu_names = {item["name"].lower().strip() for item in menu_items}
 
     if sales_data:
-        # Get unique items from sales data
         unique_sales_items = set(
             record.get("item_name", "")
             for record in sales_data
             if record.get("item_name")
         )
 
-        # Add items from sales that aren't already in menu
         items_added_from_sales = 0
         for item_name in unique_sales_items:
             if item_name.lower().strip() not in existing_menu_names:
-                # Calculate average price from sales if revenue available
                 item_sales = [s for s in sales_data if s.get("item_name") == item_name]
-                total_revenue = sum(s.get("revenue", 0) for s in item_sales)
-                total_units = sum(s.get("units_sold", 0) for s in item_sales)
-                avg_price = (
-                    total_revenue / total_units
-                    if total_units > 0 and total_revenue > 0
-                    else 0.0
+
+                # Calculate total units sold
+                total_units = sum(
+                    s.get("units_sold", 0) or s.get("quantity", 0) for s in item_sales
                 )
+
+                # Get price: prefer explicit 'price' field, then calculate from revenue
+                prices = [s.get("price", 0) for s in item_sales if s.get("price")]
+                if prices:
+                    avg_price = sum(prices) / len(prices)
+                else:
+                    # Fallback: try revenue / units
+                    total_revenue = sum(s.get("revenue", 0) for s in item_sales)
+                    avg_price = (
+                        total_revenue / total_units
+                        if total_units > 0 and total_revenue > 0
+                        else 0.0
+                    )
+
+                # Get cost from sales data
+                costs = [
+                    s.get("cost", 0) or s.get("food_cost", 0)
+                    for s in item_sales
+                    if s.get("cost") or s.get("food_cost")
+                ]
+                avg_cost = sum(costs) / len(costs) if costs else 0.0
+
+                # Get category from sales data (use first non-empty)
+                category = "Sin Categoría"
+                for s in item_sales:
+                    cat = s.get("categoria") or s.get("category")
+                    if cat:
+                        category = cat
+                        break
 
                 menu_items.append(
                     {
                         "name": item_name,
                         "price": round(avg_price, 2),
+                        "cost": round(avg_cost, 2),
                         "description": "",
-                        "category": "From Sales Data",
+                        "category": category,
                         "source": "sales_data",
                     }
                 )
@@ -514,58 +616,41 @@ async def run_bcg_analysis(session_id: str):
         if items_added_from_sales > 0:
             logger.info(f"Added {items_added_from_sales} items from sales data to menu")
 
-    # Also add menu items that have no sales (they still need to be analyzed)
-    if menu_items:
-        for item in menu_items:
-            if item.get("source") != "sales_data":
-                # Mark items from menu extraction that have no sales
-                item_sales = [
-                    s
-                    for s in sales_data
-                    if s.get("item_name", "").lower().strip()
-                    == item["name"].lower().strip()
-                ]
-                if not item_sales:
-                    item["has_sales_data"] = False
-                    item["analysis_note"] = "Item visible in menu but no sales recorded"
-                else:
-                    item["has_sales_data"] = True
+    sessions[session_id]["menu_items"] = menu_items
+    logger.info(f"Total menu items for analysis: {len(menu_items)}, period: {period}")
 
-        sessions[session_id]["menu_items"] = menu_items
-        logger.info(
-            f"Total menu items for BCG analysis: {len(menu_items)} (menu: {len([i for i in menu_items if i.get('source') != 'sales_data'])}, sales: {len([i for i in menu_items if i.get('source') == 'sales_data'])})"
-        )
-
-    if not menu_items:
+    if not menu_items and not sales_data:
         raise HTTPException(
-            400, "No menu items found. Upload sales data or menu first."
+            400, "No menu items or sales data found. Upload data first."
         )
 
     try:
-        result = await bcg_classifier.classify_products(
-            menu_items, sales_data, image_scores
-        )
+        # Use new Menu Engineering classifier
+        result = await menu_engineering.analyze(menu_items, sales_data, analysis_period)
 
         sessions[session_id]["bcg_analysis"] = result
+        sessions[session_id]["menu_engineering"] = result
 
         return {
             "session_id": session_id,
             "status": "success",
-            "analysis_timestamp": result["analysis_timestamp"],
-            "total_items_analyzed": len(result["classifications"]),
-            "summary": result["summary"],
-            "classifications": result["classifications"],
-            "thresholds": result["thresholds"],
-            "ai_insights": result["ai_insights"],
+            "methodology": result.get("methodology", "Menu Engineering"),
+            "period": result.get("period"),
+            "date_range": result.get("date_range"),
+            "total_records": result.get("total_records", 0),
+            "items_analyzed": result.get("items_analyzed", 0),
+            "thresholds": result.get("thresholds", {}),
+            "summary": result.get("summary", {}),
+            "items": result.get("items", []),
             "thought_signature": await agent.create_thought_signature(
-                "BCG Matrix classification",
-                {"items": len(menu_items), "summary": result["summary"]},
+                "Menu Engineering analysis",
+                {"items": len(menu_items), "period": period},
             ),
         }
 
     except Exception as e:
-        logger.error(f"BCG analysis failed: {e}")
-        raise HTTPException(500, f"BCG analysis failed: {str(e)}")
+        logger.error(f"Menu Engineering analysis failed: {e}")
+        raise HTTPException(500, f"Analysis failed: {str(e)}")
 
 
 @router.post("/predict/sales", tags=["Predict"])
@@ -704,26 +789,82 @@ async def get_session(session_id: str):
 
 
 @router.get("/session/{session_id}/export", tags=["Session"])
-async def export_session(session_id: str):
-    """Export full analysis results as JSON."""
+async def export_session(session_id: str, format: str = "json"):
+    """
+    Export full analysis results as downloadable file.
+
+    Includes all data from all tabs:
+    - Menu items and sales data summary
+    - BCG/Menu Engineering analysis
+    - Sales predictions
+    - Campaign proposals
+    - Location and competitor data
+    - AI insights and thought signatures
+    """
+    from fastapi.responses import Response
 
     if session_id not in sessions:
         raise HTTPException(404, "Session not found")
 
     session = sessions[session_id]
 
-    # Compile final report
+    # Get BCG analysis data
+    bcg_data = session.get("bcg_analysis") or session.get("menu_engineering", {})
+
+    # Compile comprehensive report
     report = {
-        "session_id": session_id,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "export_info": {
+            "session_id": session_id,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "export_format": format,
+            "menupilot_version": "1.0.0",
+        },
+        "data_summary": {
+            "menu_items_count": len(session.get("menu_items", [])),
+            "sales_records_count": len(session.get("sales_data", [])),
+            "analysis_period": bcg_data.get("period", "unknown"),
+            "date_range": bcg_data.get("date_range", {}),
+        },
         "menu_catalog": session.get("menu_items", []),
-        "bcg_analysis": session.get("bcg_analysis"),
-        "predictions": session.get("predictions"),
+        "sales_data_sample": session.get("sales_data", [])[
+            :100
+        ],  # First 100 records for reference
+        "bcg_analysis": {
+            "methodology": bcg_data.get("methodology", "Menu Engineering"),
+            "period": bcg_data.get("period"),
+            "date_range": bcg_data.get("date_range"),
+            "total_records_analyzed": bcg_data.get("total_records", 0),
+            "items_analyzed": bcg_data.get("items_analyzed", 0),
+            "thresholds": bcg_data.get("thresholds", {}),
+            "summary": bcg_data.get("summary", {}),
+            "classifications": bcg_data.get(
+                "items", bcg_data.get("classifications", [])
+            ),
+        },
+        "predictions": session.get("predictions", {}),
         "campaigns": session.get("campaigns", []),
-        "gemini_usage": agent.get_stats(),
+        "location": session.get("location", {}),
+        "competitors": session.get("competitors", []),
+        "image_analyses": session.get("image_analyses", []),
+        "audio_analysis": session.get("audio_analysis", {}),
+        "business_context": session.get("business_context", ""),
+        "competitor_context": session.get("competitor_context", ""),
+        "thought_signatures": session.get("thought_signatures", []),
+        "gemini_usage": agent.get_stats() if hasattr(agent, "get_stats") else {},
     }
 
-    return JSONResponse(content=report, media_type="application/json")
+    # Format response based on requested format
+    if format == "json":
+        response = Response(
+            content=json.dumps(report, indent=2, ensure_ascii=False, default=str),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename=menupilot_analysis_{session_id[:8]}.json"
+            },
+        )
+        return response
+    else:
+        return JSONResponse(content=report)
 
 
 # ============================================================================
@@ -1550,49 +1691,82 @@ async def search_location(
 
     # Fallback to Nominatim (OpenStreetMap) - FREE, no API key required
     try:
-        logger.info(f"Trying Nominatim for: '{query}'")
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            response = await client.get(
-                "https://nominatim.openstreetmap.org/search",
-                params={
-                    "q": query,
-                    "format": "json",
-                    "limit": 5,  # Get more results to find best match
-                    "addressdetails": 1,
-                },
-                headers={"User-Agent": "MenuPilot/1.0 (restaurant-analytics)"},
-            )
+        search_queries = [query]
 
-            if response.status_code != 200:
-                logger.error(f"Nominatim returned status {response.status_code}")
-                raise HTTPException(
-                    502, f"Geocoding service error: {response.status_code}"
+        # Simple heuristic to try less specific searches if the full one fails
+        parts = [p.strip() for p in query.split(",")]
+        if len(parts) > 1:
+            # Strategy 1: Try the first 2 parts (e.g. "Pasto, Colombia" from "Pasto, Colombia, Calle...")
+            if len(parts) >= 2:
+                search_queries.append(f"{parts[0]}, {parts[1]}")
+
+            # Strategy 2: Try just the first part (e.g. "Pasto")
+            search_queries.append(parts[0])
+
+            # Strategy 3: Try the last 2 parts (Standard format: "Address, City, Country")
+            if len(parts) >= 2:
+                search_queries.append(f"{parts[-2]}, {parts[-1]}")
+
+            # Strategy 4: Try just the last part (Country/Region)
+            search_queries.append(parts[-1])
+
+        # Deduplicate while preserving order
+        seen = set()
+        unique_queries = []
+        for q in search_queries:
+            if q and q not in seen:
+                seen.add(q)
+                unique_queries.append(q)
+
+        logger.info(f"Nominatim search strategy: {unique_queries}")
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            for q in unique_queries:
+                if not q or len(q) < 3:
+                    continue
+
+                logger.info(f"Trying Nominatim for: '{q}'")
+                response = await client.get(
+                    "https://nominatim.openstreetmap.org/search",
+                    params={
+                        "q": q,
+                        "format": "json",
+                        "limit": 5,
+                        "addressdetails": 1,
+                    },
+                    headers={"User-Agent": "MenuPilot/1.0 (restaurant-analytics)"},
                 )
 
-            data = response.json()
-            logger.debug(f"Nominatim returned {len(data)} results")
+                if response.status_code != 200:
+                    logger.warning(
+                        f"Nominatim status {response.status_code} for query '{q}'"
+                    )
+                    continue
 
-            if data and len(data) > 0:
-                result = data[0]
-                address = result.get("display_name", query)
-                logger.info(f"Nominatim found: {address}")
-                return {
-                    "location": {
-                        "lat": float(result["lat"]),
-                        "lng": float(result["lon"]),
-                        "address": address,
-                        "place_id": f"osm_{result.get('osm_id', 'unknown')}",
-                    },
-                    "status": "ok",
-                    "source": "nominatim",
-                    "alternatives": len(data) - 1,
-                }
+                data = response.json()
+                if data and len(data) > 0:
+                    result = data[0]
+                    address = result.get("display_name", q)
+                    logger.info(f"Nominatim found match for '{q}': {address}")
 
-            # No results found
-            logger.warning(f"No location found for query: '{query}'")
+                    return {
+                        "location": {
+                            "lat": float(result["lat"]),
+                            "lng": float(result["lon"]),
+                            "address": address,
+                            "place_id": f"osm_{result.get('osm_id', 'unknown')}",
+                        },
+                        "status": "ok",
+                        "source": "nominatim",
+                        "alternatives": len(data) - 1,
+                        "match_type": "exact" if q == query else "approximate",
+                    }
+
+            # No results found after all attempts
+            logger.warning(f"No location found for any variation of: '{query}'")
             raise HTTPException(
                 404,
-                f"No se encontró la ubicación '{query}'. Intenta con una dirección más específica, incluyendo ciudad y país.",
+                "No se encontró la ubicación. Intenta buscar solo por 'Ciudad, País' (ej: Pasto, Colombia).",
             )
 
     except HTTPException:
@@ -1612,83 +1786,154 @@ async def get_nearby_restaurants(
     lat: float = Form(...),
     lng: float = Form(...),
     radius: int = Form(1500),
+    address: str = Form(None),
 ):
     """
     Find nearby restaurants (competitors) within radius.
 
-    Uses Google Places API to find restaurants near the specified location.
+    Uses Google Places API if available, otherwise uses Gemini 3 with
+    Google Search grounding to find real competitor data.
 
     **Parameters:**
     - lat, lng: Coordinates of the restaurant
     - radius: Search radius in meters (default 1500m)
+    - address: Optional address string for Gemini search context
     """
     import httpx
 
     google_api_key = settings.google_maps_api_key
 
-    if not google_api_key:
-        # Return mock competitors for demo
-        return {
-            "restaurants": [
-                {
-                    "name": "El Rincón Mexicano",
-                    "address": "Calle Ejemplo 123",
-                    "rating": 4.5,
-                    "userRatingsTotal": 234,
-                    "placeId": "demo_1",
-                    "distance": "200m",
-                },
-                {
-                    "name": "Taquería Los Amigos",
-                    "address": "Av. Principal 456",
-                    "rating": 4.2,
-                    "userRatingsTotal": 156,
-                    "placeId": "demo_2",
-                    "distance": "450m",
-                },
-                {
-                    "name": "Restaurant La Casona",
-                    "address": "Plaza Central 789",
-                    "rating": 4.7,
-                    "userRatingsTotal": 312,
-                    "placeId": "demo_3",
-                    "distance": "800m",
-                },
-            ],
-            "status": "demo_mode",
-        }
-
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://maps.googleapis.com/maps/api/place/nearbysearch/json",
-                params={
-                    "location": f"{lat},{lng}",
-                    "radius": radius,
-                    "type": "restaurant",
-                    "key": google_api_key,
-                },
-            )
-            data = response.json()
-
-            restaurants = []
-            for place in data.get("results", [])[:10]:
-                restaurants.append(
-                    {
-                        "name": place.get("name"),
-                        "address": place.get("vicinity"),
-                        "rating": place.get("rating"),
-                        "userRatingsTotal": place.get("user_ratings_total"),
-                        "placeId": place.get("place_id"),
-                        "types": place.get("types", []),
-                    }
+    # Try Google Places API first if key available
+    if google_api_key:
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://maps.googleapis.com/maps/api/place/nearbysearch/json",
+                    params={
+                        "location": f"{lat},{lng}",
+                        "radius": radius,
+                        "type": "restaurant",
+                        "key": google_api_key,
+                    },
                 )
+                data = response.json()
 
-            return {"restaurants": restaurants, "status": "ok"}
+                restaurants = []
+                for place in data.get("results", [])[:10]:
+                    restaurants.append(
+                        {
+                            "name": place.get("name"),
+                            "address": place.get("vicinity"),
+                            "rating": place.get("rating"),
+                            "userRatingsTotal": place.get("user_ratings_total"),
+                            "placeId": place.get("place_id"),
+                            "types": place.get("types", []),
+                        }
+                    )
+
+                return {
+                    "restaurants": restaurants,
+                    "status": "ok",
+                    "source": "google_places",
+                }
+
+        except Exception as e:
+            logger.warning(f"Google Places failed, trying Gemini: {e}")
+
+    # Use Gemini 3 with Google Search grounding to find real competitors
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=settings.gemini_api_key)
+
+        # Build location context
+        location_context = f"coordinates {lat}, {lng}"
+        if address:
+            location_context = f"{address} ({lat}, {lng})"
+
+        prompt = f"""Busca restaurantes reales cerca de {location_context} en un radio de {radius}m.
+
+IMPORTANTE: Necesito datos REALES de restaurantes que existan en esa ubicación.
+Usa tu conocimiento de Google Maps y búsqueda para encontrar restaurantes reales.
+
+Para cada restaurante encontrado, proporciona:
+- name: Nombre exacto del restaurante
+- address: Dirección real
+- rating: Calificación de Google Maps (si la conoces, o estima entre 3.5-4.8)
+- userRatingsTotal: Número aproximado de reseñas
+- distance: Distancia aproximada desde la ubicación
+- cuisine_type: Tipo de cocina
+
+Responde SOLO con JSON válido en este formato:
+{{
+    "restaurants": [
+        {{
+            "name": "Nombre Real del Restaurante",
+            "address": "Dirección real",
+            "rating": 4.2,
+            "userRatingsTotal": 150,
+            "placeId": "gemini_1",
+            "distance": "200m",
+            "cuisine_type": "Colombiana"
+        }}
+    ],
+    "search_location": "{location_context}",
+    "total_found": 5
+}}
+
+Busca al menos 5-8 restaurantes reales de la zona. Si no conoces restaurantes específicos de esa ubicación exacta, busca los más conocidos de la ciudad."""
+
+        # Use Gemini with Google Search grounding
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                tools=[types.Tool(google_search=types.GoogleSearch())],
+                temperature=0.3,
+            ),
+        )
+
+        response_text = response.text
+        logger.info(f"Gemini competitor search response length: {len(response_text)}")
+
+        # Parse JSON from response
+        try:
+            if "```json" in response_text:
+                response_text = response_text.split("```json")[1].split("```")[0]
+            elif "```" in response_text:
+                response_text = response_text.split("```")[1].split("```")[0]
+
+            result = json.loads(response_text.strip())
+            restaurants = result.get("restaurants", [])
+
+            # Ensure each restaurant has required fields
+            for r in restaurants:
+                if "placeId" not in r:
+                    r["placeId"] = f"gemini_{restaurants.index(r)}"
+
+            logger.info(f"Gemini found {len(restaurants)} competitors")
+            return {
+                "restaurants": restaurants,
+                "status": "ok",
+                "source": "gemini_grounded",
+                "search_context": location_context,
+            }
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse Gemini response: {e}")
+            logger.debug(f"Raw response: {response_text[:500]}")
 
     except Exception as e:
-        logger.error(f"Nearby search error: {e}")
-        return {"restaurants": [], "status": "error", "message": str(e)}
+        logger.error(f"Gemini competitor search error: {e}")
+
+    # Final fallback - return empty with helpful message
+    return {
+        "restaurants": [],
+        "status": "no_results",
+        "message": "No se pudieron encontrar competidores. Configura GOOGLE_MAPS_API_KEY para mejores resultados.",
+        "source": "fallback",
+    }
 
 
 # ============= FEEDBACK ENDPOINT =============

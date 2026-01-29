@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://claude.ai/chat/36512ea9-64c6-4d8a-8738-82c996f18f01
+HostUrl=https://claude.ai/api/organizations/c9655655-f3a0-43ca-8ad7-111d3f45db24/conversations/36512ea9-64c6-4d8a-8738-82c996f18f01/wiggle/download-file?path=%2Fmnt%2Fuser-data%2Foutputs%2Fventas_sinteticas_desglosado.csv

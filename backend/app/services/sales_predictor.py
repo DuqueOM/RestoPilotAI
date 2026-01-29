@@ -3,6 +3,7 @@ Sales Prediction Service - ML-based forecasting for menu items.
 Uses XGBoost for time-series forecasting.
 """
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -73,6 +74,14 @@ class SalesPredictor:
         """Train the prediction model on provided data."""
 
         logger.info(f"Training predictor with {len(sales_data)} records")
+        start_time = datetime.now()
+
+        # OPTIMIZATION: Limit training data to most recent 5000 records to prevent timeouts
+        if len(sales_data) > 5000:
+            logger.info("Sampling most recent 5000 records for training")
+            # Assuming sales_data might not be sorted, but usually comes from DB
+            # We'll just take the last 5000 if we assume append order, or random sample
+            sales_data = sales_data[-5000:]
 
         price_lookup = {item["name"]: item.get("price", 0) for item in menu_items}
         df = self._prepare_training_data(sales_data, price_lookup, image_scores)
@@ -88,16 +97,25 @@ class SalesPredictor:
             X, y, test_size=0.2, random_state=42
         )
 
+        # Optimize for speed: fewer estimators, lower depth
         self.model = xgb.XGBRegressor(
-            n_estimators=100,
-            max_depth=5,
+            n_estimators=50,  # Reduced from 100
+            max_depth=4,  # Reduced from 5
             learning_rate=0.1,
             objective="reg:squarederror",
             random_state=42,
+            n_jobs=-1,  # Use all cores
         )
-        self.model.fit(X_train, y_train)
 
-        y_pred = self.model.predict(X_test)
+        logger.info("Fitting XGBoost model...")
+        # Run blocking fit in a separate thread to avoid blocking the event loop
+        await asyncio.to_thread(self.model.fit, X_train, y_train)
+
+        duration = (datetime.now() - start_time).total_seconds()
+        logger.info(f"Model training completed in {duration:.2f}s")
+
+        # Run blocking predict in a separate thread
+        y_pred = await asyncio.to_thread(self.model.predict, X_test)
         self.model_metrics = {
             "mae": round(mean_absolute_error(y_test, y_pred), 2),
             "rmse": round(np.sqrt(mean_squared_error(y_test, y_pred)), 2),
@@ -141,13 +159,16 @@ class SalesPredictor:
                     pred_date, base_features, scenario, predictions
                 )
                 X = pd.DataFrame([features])[self.feature_columns].fillna(0)
-                pred = max(0, self.model.predict(X)[0])
+
+                # Run prediction in thread to avoid blocking
+                pred_array = await asyncio.to_thread(self.model.predict, X)
+                pred = float(max(0, pred_array[0]))
                 predictions.append(round(pred, 1))
 
             results[scenario_name] = {
                 "daily_predictions": predictions,
-                "total_units": round(sum(predictions)),
-                "avg_daily": round(sum(predictions) / horizon_days, 1),
+                "total_units": float(round(sum(predictions))),
+                "avg_daily": float(round(sum(predictions) / horizon_days, 1)),
             }
 
         return {
@@ -157,30 +178,74 @@ class SalesPredictor:
             "model_accuracy_mae": self.model_metrics.get("mae", 0),
         }
 
+    def _parse_date_flexible(self, date_val):
+        """Parse date from various formats including DD-MM-YY."""
+        if date_val is None:
+            return None
+        if hasattr(date_val, "date"):
+            return date_val.date()
+        if not isinstance(date_val, str):
+            date_val = str(date_val)
+
+        date_str = date_val.strip()
+
+        # Try multiple date formats
+        formats = [
+            "%Y-%m-%d",  # YYYY-MM-DD (ISO) - most common after conversion
+            "%d-%m-%y",  # DD-MM-YY (sample data format)
+            "%d-%m-%Y",  # DD-MM-YYYY
+            "%d/%m/%y",  # DD/MM/YY
+            "%d/%m/%Y",  # DD/MM/YYYY
+            "%m/%d/%Y",  # MM/DD/YYYY (US)
+            "%Y/%m/%d",  # YYYY/MM/DD
+        ]
+
+        for fmt in formats:
+            try:
+                return datetime.strptime(date_str, fmt).date()
+            except (ValueError, TypeError):
+                continue
+
+        # Try ISO format with timezone
+        try:
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00")).date()
+        except (ValueError, TypeError):
+            pass
+
+        return None
+
     def _prepare_training_data(self, sales_data, price_lookup, image_scores):
         """Prepare training DataFrame from sales records."""
         records = []
         for sale in sales_data:
-            item_name = sale.get("item_name")
-            sale_date = sale.get("sale_date")
+            item_name = sale.get("item_name") or sale.get("product_name")
+            # Support multiple date column names
+            sale_date = sale.get("sale_date") or sale.get("date") or sale.get("fecha")
             if not item_name or not sale_date:
                 continue
-            if isinstance(sale_date, str):
-                try:
-                    sale_date = datetime.fromisoformat(sale_date).date()
-                except ValueError:
-                    continue
+
+            sale_date = self._parse_date_flexible(sale_date)
+            if sale_date is None:
+                continue
+
+            # Get units sold - support both column names
+            units = int(sale.get("units_sold") or sale.get("quantity") or 1)
+
+            # Get price from sale record or lookup
+            price = float(sale.get("price") or price_lookup.get(item_name, 0) or 0)
 
             records.append(
                 {
                     "item_name": item_name,
                     "date": sale_date,
-                    "units_sold": sale.get("units_sold", 0),
+                    "units_sold": units,
                     "day_of_week": sale_date.weekday(),
                     "is_weekend": 1 if sale_date.weekday() >= 5 else 0,
-                    "price": price_lookup.get(item_name, 0),
-                    "promo_flag": 1 if sale.get("had_promotion") else 0,
-                    "promo_discount": sale.get("promotion_discount", 0) or 0,
+                    "price": price,
+                    "promo_flag": (
+                        1 if sale.get("had_promotion") or sale.get("es_festivo") else 0
+                    ),
+                    "promo_discount": float(sale.get("promotion_discount", 0) or 0),
                     "image_score": (image_scores or {}).get(item_name, 0.5),
                 }
             )
@@ -308,7 +373,11 @@ class SalesPredictor:
             s.get("name", f"scenario_{i}"): 0 for i, s in enumerate(scenarios)
         }
 
-        for item in items:
+        for i, item in enumerate(items):
+            # Yield to event loop every 5 items to keep server responsive
+            if i > 0 and i % 5 == 0:
+                await asyncio.sleep(0)
+
             base_features = {
                 "price": item.get("price", 15),
                 "image_score": item.get("image_score", 0.5),
@@ -320,19 +389,28 @@ class SalesPredictor:
                 item["name"], horizon_days, base_features, scenarios
             )
 
-            item_predictions.append(
-                {
-                    "item_name": item["name"],
-                    "predictions": prediction.get("predictions", {}),
-                }
-            )
+            # Build item prediction with all scenario totals for easier frontend use
+            item_pred = {
+                "name": item["name"],
+                "trend": "stable",  # Could be calculated from historical data
+                "seasonality": "normal",
+            }
 
+            # Add each scenario's total to the item prediction
             for scenario_name, data in prediction.get("predictions", {}).items():
+                item_pred[scenario_name] = {
+                    "total": data.get("total_units", 0),
+                    "daily": data.get("daily_predictions", []),
+                }
                 if scenario_name in scenario_totals:
                     scenario_totals[scenario_name] += data.get("total_units", 0)
+
+            item_predictions.append(item_pred)
 
         return {
             "item_predictions": item_predictions,
             "scenario_totals": scenario_totals,
             "horizon_days": horizon_days,
+            "model_info": {"primary": "XGBoost"},
+            "metrics": self.model_metrics,
         }

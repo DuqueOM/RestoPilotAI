@@ -179,10 +179,15 @@ class BCGClassifier:
                     "gross_profits": [],
                 }
 
-            units = record.get("units_sold", 0)
+            units = record.get("units_sold", 0) or record.get("quantity", 0) or 0
+            # Calculate revenue: prefer explicit revenue, otherwise price * units
+            unit_price = record.get("price", 0) or 0
             revenue = record.get("revenue", 0)
+            if not revenue and unit_price and units:
+                revenue = unit_price * units
+
             # Get cost from sales data if available
-            unit_cost = record.get("cost", record.get("unit_cost", 0))
+            unit_cost = record.get("cost", record.get("unit_cost", 0)) or 0
 
             sales_by_item[item_name]["units"].append(units)
             sales_by_item[item_name]["dates"].append(
@@ -194,9 +199,12 @@ class BCGClassifier:
             )
 
             # Calculate gross profit for this transaction
-            gross_profit = (
-                revenue - (unit_cost * units) if unit_cost else revenue * 0.65
-            )  # Assume 35% food cost default
+            if unit_cost and units:
+                gross_profit = revenue - (unit_cost * units)
+            elif revenue:
+                gross_profit = revenue * 0.65  # Assume 35% food cost default
+            else:
+                gross_profit = 0
             sales_by_item[item_name]["gross_profits"].append(gross_profit)
 
         # Calculate TOTAL GROSS PROFIT for the portfolio (key BCG metric)

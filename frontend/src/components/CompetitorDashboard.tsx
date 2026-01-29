@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface PriceGap {
   itemCategory: string;
@@ -70,6 +70,9 @@ export default function CompetitorDashboard({
     );
   }
 
+  // Check if we have basic competitor data from location search
+  const hasBasicCompetitors = insights.some((i: any) => i.competitorName || i.name);
+
   if (!analysis && insights.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg">
@@ -77,7 +80,60 @@ export default function CompetitorDashboard({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
         <h3 className="mt-2 text-sm font-medium text-gray-900">No competitor data</h3>
-        <p className="mt-1 text-sm text-gray-500">Add competitors to see competitive insights.</p>
+        <p className="mt-1 text-sm text-gray-500">Search for your restaurant location to discover nearby competitors.</p>
+      </div>
+    );
+  }
+
+  // Show basic competitor info from location search if no full analysis
+  if (!analysis && hasBasicCompetitors) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">🎯 Nearby Competitors</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              {insights.length} restaurants found near your location
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {insights.map((competitor: any, idx: number) => (
+            <div key={idx} className="bg-white rounded-lg shadow p-5 border border-gray-100 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <h4 className="text-lg font-semibold text-gray-900">{competitor.competitorName || competitor.name}</h4>
+                {(competitor.rating > 0) && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-yellow-50 rounded-full">
+                    <span className="text-yellow-500">★</span>
+                    <span className="font-medium text-sm">{competitor.rating}</span>
+                  </div>
+                )}
+              </div>
+              
+              {competitor.address && (
+                <p className="text-sm text-gray-500 mb-2">📍 {competitor.address}</p>
+              )}
+              
+              {competitor.distance && (
+                <p className="text-xs text-gray-400">🚶 {competitor.distance}</p>
+              )}
+
+              {competitor.cuisine_type && (
+                <span className="inline-block mt-2 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
+                  {competitor.cuisine_type}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-700">
+            <strong>💡 Tip:</strong> For detailed competitive analysis including pricing comparisons, 
+            product gaps, and strategic recommendations, provide competitor menu data or connect social media links.
+          </p>
+        </div>
       </div>
     );
   }

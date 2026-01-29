@@ -19,6 +19,79 @@ export interface MenuExtractionResult {
   raw_text?: string;
 }
 
+export interface MenuEngineeringItem {
+  name: string;
+  category: string;
+  units_sold: number;
+  price: number;
+  cost: number;
+  cm_unitario: number;
+  popularity_pct: number;
+  total_contribution: number;
+  margin_pct: number;
+  total_revenue: number;
+  category_label: string;
+  high_popularity: boolean;
+  high_cm: boolean;
+  strategy: {
+    action: string;
+    priority: string;
+    recommendations: string[];
+    pricing: string;
+    menu_position: string;
+    cm_gap?: number;
+  };
+}
+
+export interface MenuEngineeringThresholds {
+  popularity_threshold: number;
+  cm_threshold: number;
+  cm_average_simple: number;
+  expected_popularity: number;
+  n_items: number;
+  total_units: number;
+}
+
+export interface CategorySummary {
+  category: string;
+  label: string;
+  count: number;
+  pct_items: number;
+  total_revenue: number;
+  pct_revenue: number;
+  total_contribution: number;
+  pct_contribution: number;
+  units_sold: number;
+  pct_units: number;
+}
+
+export interface MenuEngineeringSummary {
+  total_items: number;
+  total_revenue: number;
+  total_contribution: number;
+  total_units: number;
+  avg_cm: number;
+  categories: CategorySummary[];
+  top_by_contribution: { name: string; contribution: number }[];
+  top_by_popularity: { name: string; popularity_pct: number }[];
+  attention_needed: number;
+  dogs_list: string[];
+}
+
+export interface BCGAnalysisResult {
+  session_id: string;
+  status: string;
+  methodology: string;
+  period: string;
+  date_range: { start: string | null; end: string | null };
+  total_records: number;
+  items_analyzed: number;
+  thresholds: MenuEngineeringThresholds;
+  summary: MenuEngineeringSummary;
+  items: MenuEngineeringItem[];
+}
+
+// Legacy types for backwards compatibility
 export interface BCGItem {
   name: string;
   price: number;
@@ -26,13 +99,6 @@ export interface BCGItem {
   growth: number;
   share: number;
   revenue?: number;
-}
-
-export interface BCGAnalysisResult {
-  session_id: string;
-  items: BCGItem[];
-  insights: Record<string, string>;
-  summary: string;
 }
 
 export interface SalesPrediction {

@@ -12,9 +12,21 @@ import LocationPicker from '@/components/LocationPicker'
 import SentimentDashboard from '@/components/SentimentDashboard'
 import ThoughtSignature from '@/components/ThoughtSignature'
 import { api } from '@/lib/api'
-import { BarChart3, Brain, ChefHat, ClipboardCheck, Cpu, Megaphone, MessageSquare, Play, Sparkles, Target, TrendingUp, Upload } from 'lucide-react'
+import axios from 'axios'
+import { BarChart3, Brain, Calendar, ChefHat, ClipboardCheck, Cpu, Download, Loader2, Megaphone, MessageSquare, Play, Sparkles, Target, TrendingUp, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+// Time period options for re-analysis
+const TIME_PERIODS = [
+  { id: '30d', label: 'Last 30 Days', description: 'Recommended for operational analysis' },
+  { id: '90d', label: 'Last 90 Days', description: 'Good for identifying trends' },
+  { id: '180d', label: 'Last 6 Months', description: 'Includes seasonal patterns' },
+  { id: '365d', label: 'Last Year', description: 'Full annual cycle' },
+  { id: 'all', label: 'All Data', description: 'Complete historical analysis' },
+]
 
 type Step = 'upload' | 'analysis' | 'results'
 type ResultsTab = 'overview' | 'feedback' | 'agents' | 'bcg' | 'competitors' | 'sentiment' | 'predictions' | 'campaigns'
@@ -28,6 +40,28 @@ export default function Home() {
   const [thoughtSignature, setThoughtSignature] = useState<any>(null)
   const [demoLoading, setDemoLoading] = useState(false)
   const [resultsTab, setResultsTab] = useState<ResultsTab>('overview')
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('30d')
+  const [reanalysisLoading, setReanalysisLoading] = useState(false)
+
+  // Re-run BCG analysis with a different time period
+  const rerunBCGAnalysis = async (period: string) => {
+    if (!sessionId) return
+    setReanalysisLoading(true)
+    setSelectedPeriod(period)
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/v1/analyze/bcg?session_id=${sessionId}&period=${period}`,
+        {},
+        { timeout: 0 }
+      )
+      setSessionData((prev: any) => ({ ...prev, bcg_analysis: res.data }))
+    } catch (err: any) {
+      console.error('Re-analysis failed:', err)
+      alert(`Re-analysis failed: ${err.response?.data?.detail || err.message}`)
+    } finally {
+      setReanalysisLoading(false)
+    }
+  }
 
   const handleLoadDemo = async () => {
     setDemoLoading(true)
@@ -123,6 +157,12 @@ export default function Home() {
               <LocationPicker
                 onLocationSelect={(location, competitors) => {
                   console.log('Location selected:', location, competitors);
+                  // Store location and competitors in session data
+                  setSessionData((prev: any) => ({
+                    ...prev,
+                    location: location,
+                    competitors: competitors,
+                  }));
                 }}
               />
             )}
@@ -173,31 +213,44 @@ export default function Home() {
 
         {currentStep === 'results' && sessionData && (
           <div className="space-y-6">
-            {/* Results Tabs */}
-            <div className="bg-white rounded-xl border border-gray-200 p-1 flex gap-1 overflow-x-auto">
-              {[
-                { id: 'overview', label: 'Overview', icon: Sparkles },
-                { id: 'feedback', label: 'AI Feedback', icon: ClipboardCheck },
-                { id: 'agents', label: 'AI Agents', icon: Cpu },
-                { id: 'bcg', label: 'BCG Matrix', icon: BarChart3 },
-                { id: 'competitors', label: 'Competitors', icon: Target },
-                { id: 'sentiment', label: 'Sentiment', icon: MessageSquare },
-                { id: 'predictions', label: 'Predictions', icon: TrendingUp },
-                { id: 'campaigns', label: 'Campaigns', icon: Megaphone },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setResultsTab(tab.id as ResultsTab)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                    resultsTab === tab.id
-                      ? 'bg-primary-500 text-white shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4" />
-                  {tab.label}
-                </button>
-              ))}
+            {/* Results Tabs + Export Button */}
+            <div className="flex items-center gap-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-1 flex gap-1 overflow-x-auto flex-1">
+                {[
+                  { id: 'overview', label: 'Overview', icon: Sparkles },
+                  { id: 'feedback', label: 'AI Feedback', icon: ClipboardCheck },
+                  { id: 'agents', label: 'AI Agents', icon: Cpu },
+                  { id: 'bcg', label: 'BCG Matrix', icon: BarChart3 },
+                  { id: 'competitors', label: 'Competitors', icon: Target },
+                  { id: 'sentiment', label: 'Sentiment', icon: MessageSquare },
+                  { id: 'predictions', label: 'Predictions', icon: TrendingUp },
+                  { id: 'campaigns', label: 'Campaigns', icon: Megaphone },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setResultsTab(tab.id as ResultsTab)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                      resultsTab === tab.id
+                        ? 'bg-primary-500 text-white shadow-sm'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <tab.icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Export Button */}
+              <a
+                href={`${API_URL}/api/v1/session/${sessionId}/export?format=json`}
+                download
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors text-sm font-medium whitespace-nowrap"
+                title="Download all analysis data as JSON"
+              >
+                <Download className="h-4 w-4" />
+                Export Results
+              </a>
             </div>
 
             {/* Overview Tab - Executive Dashboard */}
@@ -390,12 +443,86 @@ export default function Home() {
 
             {/* BCG Tab */}
             {resultsTab === 'bcg' && sessionData.bcg_analysis && (
-              <BCGResultsPanel data={sessionData.bcg_analysis} />
+              <div className="space-y-4">
+                {/* Time Period Selector */}
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary-500" />
+                      <h3 className="font-semibold text-gray-900">Analysis Period</h3>
+                    </div>
+                    {reanalysisLoading && (
+                      <div className="flex items-center gap-2 text-primary-600">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">Re-analyzing...</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Current Period Info */}
+                  {sessionData.bcg_analysis.date_range && (
+                    <div className="mb-3 p-2 bg-blue-50 rounded-lg text-sm text-blue-700">
+                      <span className="font-medium">Current data: </span>
+                      {sessionData.bcg_analysis.date_range.start} → {sessionData.bcg_analysis.date_range.end}
+                      {sessionData.bcg_analysis.total_records && (
+                        <span className="ml-2">({sessionData.bcg_analysis.total_records.toLocaleString()} records)</span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Period Buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {TIME_PERIODS.map((period) => (
+                      <button
+                        key={period.id}
+                        onClick={() => rerunBCGAnalysis(period.id)}
+                        disabled={reanalysisLoading}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          selectedPeriod === period.id
+                            ? 'bg-primary-500 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        <span className="flex items-center gap-1">
+                          {period.label}
+                          {selectedPeriod === period.id && reanalysisLoading && (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          )}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Period Description */}
+                  <p className="mt-2 text-xs text-gray-500">
+                    {TIME_PERIODS.find(p => p.id === selectedPeriod)?.description}
+                    {' • '}Menu Engineering recommends 30-90 days for operational decisions.
+                  </p>
+                </div>
+                
+                {/* BCG Results */}
+                <BCGResultsPanel data={sessionData.bcg_analysis} />
+              </div>
             )}
 
             {/* Competitors Tab */}
             {resultsTab === 'competitors' && (
-              <CompetitorDashboard />
+              <CompetitorDashboard 
+                analysis={sessionData?.competitorAnalysis}
+                insights={sessionData?.competitors?.map((c: any, idx: number) => ({
+                  competitorName: c.name,
+                  priceComparison: 'similar' as const,
+                  avgPriceDifference: 0,
+                  uniqueItems: [],
+                  recommendations: [],
+                  confidenceScore: 0.7,
+                  itemCount: 0,
+                  priceRange: { min: 0, max: 0 },
+                  rating: c.rating,
+                  address: c.address,
+                  distance: c.distance,
+                }))}
+              />
             )}
 
             {/* Sentiment Tab */}

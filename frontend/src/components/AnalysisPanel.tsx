@@ -16,11 +16,11 @@ interface AnalysisPanelProps {
 // Progress messages for each step
 const PROGRESS_MESSAGES: Record<string, string[]> = {
   bcg: [
-    'Analyzing product portfolio...',
-    'Calculating market share metrics...',
-    'Classifying products by BCG matrix...',
-    'Generating strategic recommendations...',
-    'Almost done, finalizing analysis...'
+    'Analizando portafolio de productos (últimos 30 días)...',
+    'Calculando popularidad y margen de contribución...',
+    'Clasificando productos (Estrellas, Caballos, Rompecabezas, Perros)...',
+    'Generando estrategias por categoría...',
+    'Finalizando análisis de Ingeniería de Menú...'
   ],
   predictions: [
     'Loading sales history...',
@@ -85,7 +85,7 @@ export default function AnalysisPanel({ sessionId, onComplete, isLoading, setIsL
       const res = await axios.post(
         `${API_URL}/api/v1/analyze/bcg?session_id=${sessionId}`,
         {},
-        { timeout: 300000 } // 5 minutes timeout
+        { timeout: 0 } // No timeout - allow analysis to complete
       )
       setResults((prev: any) => ({ ...prev, bcg_analysis: res.data }))
       setBcgDone(true)
@@ -116,7 +116,7 @@ export default function AnalysisPanel({ sessionId, onComplete, isLoading, setIsL
       const res = await axios.post(
         `${API_URL}/api/v1/predict/sales?session_id=${sessionId}&horizon_days=14`,
         [],
-        { timeout: 300000 } // 5 minutes timeout
+        { timeout: 0 } // No timeout - allow training to complete
       )
       setResults((prev: any) => ({ ...prev, predictions: res.data }))
       setPredictionsDone(true)

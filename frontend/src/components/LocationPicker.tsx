@@ -91,6 +91,7 @@ export default function LocationPicker({ onLocationSelect, initialLocation }: Lo
       formData.append('lat', location.lat.toString());
       formData.append('lng', location.lng.toString());
       formData.append('radius', '1500'); // 1.5km radius
+      formData.append('address', location.address || searchQuery); // Pass address for Gemini context
       
       const response = await fetch(`${API_BASE}/api/v1/location/nearby-restaurants`, {
         method: 'POST',
@@ -100,10 +101,16 @@ export default function LocationPicker({ onLocationSelect, initialLocation }: Lo
       if (!response.ok) throw new Error('Failed to load nearby places');
       
       const data = await response.json();
-      setNearbyCompetitors(data.restaurants || []);
+      const restaurants = data.restaurants || [];
+      setNearbyCompetitors(restaurants);
+      
+      // Show data source info
+      if (data.source) {
+        console.log(`Competitors data source: ${data.source}`);
+      }
       
       // Notify parent
-      onLocationSelect(location, data.restaurants || []);
+      onLocationSelect(location, restaurants);
     } catch (err) {
       console.error('Nearby search error:', err);
     } finally {

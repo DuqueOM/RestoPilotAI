@@ -1,32 +1,29 @@
 'use client'
 
-import { 
-  BarChart3, 
-  ChevronDown, 
-  ChevronRight, 
-  DollarSign,
-  HelpCircle, 
-  Milk, 
-  Star, 
-  Dog,
-  TrendingUp,
-  TrendingDown,
-  Target,
-  Percent
+import {
+    BarChart3,
+    ChevronDown,
+    ChevronRight,
+    Dog,
+    DollarSign,
+    HelpCircle,
+    Milk,
+    Percent,
+    Star,
+    Target
 } from 'lucide-react'
 import { useState } from 'react'
-import { 
-  ScatterChart, 
-  Scatter, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  Cell, 
-  ReferenceLine, 
-  Label,
-  Legend
+import {
+    CartesianGrid,
+    Cell,
+    Label,
+    ReferenceLine,
+    ResponsiveContainer,
+    Scatter,
+    ScatterChart,
+    Tooltip,
+    XAxis,
+    YAxis
 } from 'recharts'
 
 interface BCGClassification {
@@ -79,15 +76,14 @@ const BCG_CONFIG = {
     bgColor: 'bg-indigo-50',
     borderColor: 'border-indigo-200',
     label: 'Question Marks ❓',
-    description: 'Alto crecimiento, baja participación. ANALIZAR.'
   },
   dog: { 
     icon: Dog, 
     color: '#ef4444', 
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: 'Dogs 🐕',
-    description: 'Bajo crecimiento, baja participación. REVISAR.'
+    label: 'Dogs ',
+    description: 'Bajo crecimiento, baja participaci\u00F3n. REVISAR.'
   }
 }
 
@@ -103,28 +99,80 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
     setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }))
   }
 
-  // Group items by BCG class
-  const groupedItems = data.classifications.reduce((acc, item) => {
-    const bcgClass = item.bcg_class
-    if (!acc[bcgClass]) acc[bcgClass] = []
-    acc[bcgClass].push(item)
+  // Normalize data from backend (handles both legacy BCG and new Menu Engineering formats)
+  const rawItems = data.items || data.classifications || []
+  
+  const normalizedItems = rawItems.map((item: any) => {
+    // Map Menu Engineering categories to BCG equivalents for UI compatibility
+    let category = (item.category || item.bcg_class || '').toLowerCase()
+    if (category === 'plowhorse') category = 'cash_cow'
+    if (category === 'puzzle') category = 'question_mark'
+    
+    // Map metrics for chart (X=Popularity, Y=CM)
+    // If it's new format (Menu Engineering), use popularity_pct and cm_unitario
+    // If it's legacy format, use market_share and growth_rate
+    const x = item.popularity_pct !== undefined ? item.popularity_pct : (item.market_share || 0) * 100
+    const y = item.cm_unitario !== undefined ? item.cm_unitario : (item.growth_rate || 0) * 100
+    
+    return {
+      ...item,
+      name: item.name,
+      bcg_class: category,
+      bcg_label: item.category_label || item.bcg_label || category,
+      x,
+      y,
+      // Ensure metrics exist for display
+      price: item.price || 0,
+      margin: item.margin_pct ? item.margin_pct / 100 : item.margin || 0,
+      growth_rate: item.growth_rate || 0,
+      market_share: item.market_share || 0,
+      overall_score: item.overall_score || 0,
+      strategy: item.strategy
+    }
+  })
+
+  // Group items by normalized category
+  const groupedItems = normalizedItems.reduce((acc: any, item: any) => {
+    const category = item.bcg_class
+    if (!acc[category]) acc[category] = []
+    acc[category].push(item)
     return acc
-  }, {} as Record<string, BCGClassification[]>)
+  }, {} as Record<string, any[]>)
 
-  // Prepare chart data
-  const chartData = data.classifications.map(item => ({
-    ...item,
-    x: item.market_share * 100,
-    y: item.growth_rate * 100
-  }))
+  // Calculate summary counts if not present
+  const counts = data.summary?.counts || {
+    star: groupedItems['star']?.length || 0,
+    cash_cow: groupedItems['cash_cow']?.length || 0,
+    question_mark: groupedItems['question_mark']?.length || 0,
+    dog: groupedItems['dog']?.length || 0
+  }
 
-  const avgShare = chartData.reduce((sum, i) => sum + i.x, 0) / chartData.length || 50
-  const avgGrowth = chartData.reduce((sum, i) => sum + i.y, 0) / chartData.length || 0
+  // Calculate health score if not present (simple weighted average of good categories)
+  const calculateHealthScore = () => {
+    if (data.summary?.portfolio_health_score !== undefined) return data.summary.portfolio_health_score
+    
+    const total = normalizedItems.length
+    if (total === 0) return 0
+    
+    const stars = groupedItems['star']?.length || 0
+    const cows = groupedItems['cash_cow']?.length || 0
+    const puzzles = groupedItems['question_mark']?.length || 0
+    
+    // Stars & Cows are good (1.0), Puzzles okay (0.5), Dogs bad (0)
+    return ((stars + cows) * 1.0 + puzzles * 0.5) / total
+  }
+
+  const healthScore = calculateHealthScore()
+
+  // Calculate averages for reference lines
+  const avgX = normalizedItems.reduce((sum: number, i: any) => sum + i.x, 0) / (normalizedItems.length || 1)
+  const avgY = normalizedItems.reduce((sum: number, i: any) => sum + i.y, 0) / (normalizedItems.length || 1)
 
   // Get top item from each category
   const getTopItem = (category: string) => {
     const items = groupedItems[category] || []
-    return items.sort((a, b) => b.overall_score - a.overall_score)[0]
+    // Sort by contribution/score
+    return items.sort((a: any, b: any) => (b.total_contribution || b.overall_score) - (a.total_contribution || a.overall_score))[0]
   }
 
   return (
@@ -134,7 +182,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
         {(['star', 'cash_cow', 'question_mark', 'dog'] as const).map(category => {
           const config = BCG_CONFIG[category]
           const Icon = config.icon
-          const count = data.summary.counts[category] || 0
+          const count = counts[category] || 0
           const topItem = getTopItem(category)
           
           return (
@@ -171,7 +219,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-primary-500" />
-          Matriz BCG - Posicionamiento de Productos
+          Matriz de Ingeniería de Menú (Popularidad vs Rentabilidad)
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <ScatterChart margin={{ top: 20, right: 40, bottom: 40, left: 40 }}>
@@ -179,45 +227,44 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
             <XAxis 
               type="number" 
               dataKey="x" 
-              name="Participación en Profit" 
+              name="Popularidad" 
               unit="%" 
               domain={[0, 'auto']}
               tick={{ fontSize: 12 }}
             >
-              <Label value="Participación en Gross Profit (%)" offset={-10} position="insideBottom" style={{ fontSize: 12 }} />
+              <Label value="Popularidad (% Mix)" offset={-10} position="insideBottom" style={{ fontSize: 12 }} />
             </XAxis>
             <YAxis 
               type="number" 
               dataKey="y" 
-              name="Crecimiento" 
-              unit="%"
+              name="Rentabilidad" 
+              unit="$"
               tick={{ fontSize: 12 }}
             >
-              <Label value="Tasa de Crecimiento (%)" angle={-90} position="insideLeft" style={{ fontSize: 12 }} />
+              <Label value="Margen de Contribución ($)" angle={-90} position="insideLeft" style={{ fontSize: 12 }} />
             </YAxis>
-            <ReferenceLine x={avgShare} stroke="#9ca3af" strokeDasharray="5 5" />
-            <ReferenceLine y={avgGrowth} stroke="#9ca3af" strokeDasharray="5 5" />
+            <ReferenceLine x={avgX} stroke="#9ca3af" strokeDasharray="5 5" label="Avg Pop" />
+            <ReferenceLine y={avgY} stroke="#9ca3af" strokeDasharray="5 5" label="Avg CM" />
             <Tooltip
               content={({ payload }) => {
                 if (!payload || !payload[0]) return null
-                const item = payload[0].payload as BCGClassification & { x: number; y: number }
+                const item = payload[0].payload
                 return (
                   <div className="bg-white p-3 rounded-lg shadow-lg border text-sm">
                     <p className="font-semibold text-gray-900">{item.name}</p>
-                    <p className="text-gray-600">{item.bcg_label}</p>
+                    <p className="text-gray-600">{BCG_CONFIG[item.bcg_class as keyof typeof BCG_CONFIG]?.label || item.bcg_class}</p>
                     <div className="mt-2 space-y-1 text-xs">
-                      <p>Participación: {item.x.toFixed(1)}%</p>
-                      <p>Crecimiento: {item.y.toFixed(1)}%</p>
-                      {item.margin && <p>Margen: {(item.margin * 100).toFixed(0)}%</p>}
+                      <p>Popularidad: {item.x.toFixed(1)}%</p>
+                      <p>Margen Contrib.: ${item.y.toFixed(2)}</p>
+                      {item.margin && <p>Margen %: {(item.margin * 100).toFixed(0)}%</p>}
                       {item.price && <p>Precio: ${item.price.toFixed(2)}</p>}
-                      <p>Score: {(item.overall_score * 100).toFixed(0)}</p>
                     </div>
                   </div>
                 )
               }}
             />
-            <Scatter data={chartData} name="Productos">
-              {chartData.map((entry, idx) => (
+            <Scatter data={normalizedItems} name="Productos">
+              {normalizedItems.map((entry: any, idx: number) => (
                 <Cell 
                   key={idx} 
                   fill={BCG_CONFIG[entry.bcg_class as keyof typeof BCG_CONFIG]?.color || '#666'} 
@@ -242,7 +289,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
       <div className="space-y-3">
         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
           <Target className="h-5 w-5 text-primary-500" />
-          Productos por Categoría BCG
+          Productos por Categoría
         </h3>
         
         {(['star', 'cash_cow', 'question_mark', 'dog'] as const).map(category => {
@@ -278,7 +325,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
               {/* Expanded Content */}
               {isExpanded && (
                 <div className="px-4 pb-4 space-y-2">
-                  {items.sort((a, b) => b.overall_score - a.overall_score).map((item, idx) => (
+                  {items.sort((a: any, b: any) => (b.total_contribution || 0) - (a.total_contribution || 0)).map((item: any, idx: number) => (
                     <div 
                       key={idx} 
                       className="bg-white rounded-lg p-3 flex items-center justify-between"
@@ -305,23 +352,19 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                               {(item.margin * 100).toFixed(0)}% margen
                             </span>
                           )}
-                          {item.growth_rate !== undefined && (
-                            <span className={`flex items-center gap-1 ${item.growth_rate > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {item.growth_rate > 0 ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3" />
-                              )}
-                              {(item.growth_rate * 100).toFixed(0)}% crecimiento
+                          {item.total_contribution !== undefined && (
+                            <span className="flex items-center gap-1 text-primary-600">
+                              <DollarSign className="h-3 w-3" />
+                              ${item.total_contribution.toFixed(0)} Contrib. Total
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold" style={{ color: config.color }}>
-                          {(item.overall_score * 100).toFixed(0)}
+                          {item.x.toFixed(1)}%
                         </div>
-                        <div className="text-xs text-gray-400">Score</div>
+                        <div className="text-xs text-gray-400">Popularidad</div>
                       </div>
                     </div>
                   ))}
@@ -334,9 +377,16 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                       </p>
                       <p className="text-sm text-gray-600">
                         {typeof items[0].strategy === 'object' 
-                          ? items[0].strategy.summary 
+                          ? items[0].strategy.summary || items[0].strategy.action 
                           : items[0].strategy}
                       </p>
+                      {items[0].strategy.recommendations && (
+                        <ul className="mt-2 list-disc list-inside text-xs text-gray-600">
+                          {items[0].strategy.recommendations.slice(0, 3).map((rec: string, i: number) => (
+                            <li key={i}>{rec}</li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   )}
                 </div>
@@ -352,16 +402,16 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
           <div>
             <h3 className="font-semibold text-gray-900">Salud del Portafolio</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Score basado en balance de categorías BCG
+              Score basado en balance de categorías
             </p>
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold text-primary-600">
-              {(data.summary.portfolio_health_score * 100).toFixed(0)}%
+              {(healthScore * 100).toFixed(0)}%
             </div>
             <div className="text-sm text-gray-500">
-              {data.summary.portfolio_health_score >= 0.7 ? 'Saludable' : 
-               data.summary.portfolio_health_score >= 0.5 ? 'Moderado' : 'Necesita atención'}
+              {healthScore >= 0.7 ? 'Saludable' : 
+               healthScore >= 0.5 ? 'Moderado' : 'Necesita atención'}
             </div>
           </div>
         </div>
