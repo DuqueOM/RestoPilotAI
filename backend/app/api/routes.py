@@ -1513,21 +1513,25 @@ async def search_location(
     """
     import httpx
 
+    logger.info(f"Location search request: '{query}'")
+
     google_api_key = settings.google_maps_api_key
 
     # Try Google Maps first if API key available
     if google_api_key:
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.get(
                     "https://maps.googleapis.com/maps/api/geocode/json",
                     params={"address": query, "key": google_api_key},
                 )
                 data = response.json()
+                logger.debug(f"Google geocoding response status: {data.get('status')}")
 
                 if data.get("results"):
                     result = data["results"][0]
                     location = result["geometry"]["location"]
+                    logger.info(f"Google found location: {result['formatted_address']}")
 
                     return {
                         "location": {
@@ -1537,45 +1541,70 @@ async def search_location(
                             "place_id": result.get("place_id"),
                         },
                         "status": "ok",
+                        "source": "google",
                     }
+                else:
+                    logger.warning(f"Google returned no results for: {query}")
         except Exception as e:
             logger.warning(f"Google geocoding failed, trying Nominatim: {e}")
 
     # Fallback to Nominatim (OpenStreetMap) - FREE, no API key required
     try:
-        async with httpx.AsyncClient() as client:
+        logger.info(f"Trying Nominatim for: '{query}'")
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.get(
                 "https://nominatim.openstreetmap.org/search",
                 params={
                     "q": query,
                     "format": "json",
-                    "limit": 1,
+                    "limit": 5,  # Get more results to find best match
                     "addressdetails": 1,
                 },
-                headers={"User-Agent": "MenuPilot/1.0"},
-                timeout=10.0,
+                headers={"User-Agent": "MenuPilot/1.0 (restaurant-analytics)"},
             )
+
+            if response.status_code != 200:
+                logger.error(f"Nominatim returned status {response.status_code}")
+                raise HTTPException(
+                    502, f"Geocoding service error: {response.status_code}"
+                )
+
             data = response.json()
+            logger.debug(f"Nominatim returned {len(data)} results")
 
             if data and len(data) > 0:
                 result = data[0]
+                address = result.get("display_name", query)
+                logger.info(f"Nominatim found: {address}")
                 return {
                     "location": {
                         "lat": float(result["lat"]),
                         "lng": float(result["lon"]),
-                        "address": result.get("display_name", query),
+                        "address": address,
                         "place_id": f"osm_{result.get('osm_id', 'unknown')}",
                     },
                     "status": "ok",
+                    "source": "nominatim",
+                    "alternatives": len(data) - 1,
                 }
 
-            raise HTTPException(404, f"Location not found for: {query}")
+            # No results found
+            logger.warning(f"No location found for query: '{query}'")
+            raise HTTPException(
+                404,
+                f"No se encontró la ubicación '{query}'. Intenta con una dirección más específica, incluyendo ciudad y país.",
+            )
 
     except HTTPException:
         raise
+    except httpx.TimeoutException:
+        logger.error(f"Location search timeout for: {query}")
+        raise HTTPException(
+            504, "El servicio de geocodificación tardó demasiado. Intenta de nuevo."
+        )
     except Exception as e:
         logger.error(f"Location search error: {e}")
-        raise HTTPException(500, f"Location search failed: {str(e)}")
+        raise HTTPException(500, f"Error en búsqueda de ubicación: {str(e)}")
 
 
 @router.post("/location/nearby-restaurants", tags=["Location"])

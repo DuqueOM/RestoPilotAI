@@ -5,6 +5,7 @@ This module implements the agentic layer using Google Gemini 3 API with
 function calling capabilities for multi-step reasoning and verification.
 """
 
+import asyncio
 import base64
 import json
 from pathlib import Path
@@ -315,32 +316,105 @@ Be objective and constructive in your analysis."""
     ) -> Dict[str, Any]:
         """
         Generate BCG classification insights with strategic recommendations.
+        Optimized to limit data sent to Gemini and includes timeout handling.
         """
 
-        prompt = f"""You are a restaurant business analyst. Analyze these products using the BCG Matrix framework.
+        # OPTIMIZATION: Limit data sent to Gemini to prevent timeout
+        # Only send top 5 items per BCG category with essential fields
+        MAX_ITEMS_PER_CATEGORY = 5
 
-Product Data:
-{json.dumps(product_data, indent=2)}
+        def simplify_item(item: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "name": item.get("name", "Unknown"),
+                "bcg_class": item.get("bcg_class", "unknown"),
+                "price": item.get("price", 0),
+                "margin": round(item.get("margin", 0), 2),
+                "growth_rate": round(item.get("growth_rate", 0), 2),
+                "market_share": round(item.get("market_share", 0), 3),
+            }
 
-Sales Summary:
-{json.dumps(sales_summary, indent=2)}
+        # Group by BCG class and take top items
+        by_class = {"star": [], "cash_cow": [], "question_mark": [], "dog": []}
+        for item in product_data:
+            bcg_class = item.get("bcg_class", "dog")
+            if bcg_class in by_class:
+                by_class[bcg_class].append(simplify_item(item))
 
-For each product, provide:
-1. BCG Classification (star/cash_cow/question_mark/dog)
-2. Justification based on market share and growth
-3. Strategic recommendation
+        # Limit each category
+        limited_data = {k: v[:MAX_ITEMS_PER_CATEGORY] for k, v in by_class.items()}
 
-Also provide:
-- Overall portfolio health assessment
-- Rebalancing suggestions
-- Priority actions
+        # Simplified summary
+        simple_summary = {
+            "total_items": sales_summary.get("total_items", len(product_data)),
+            "stars_count": len(sales_summary.get("stars", [])),
+            "cash_cows_count": len(sales_summary.get("cash_cows", [])),
+            "question_marks_count": len(sales_summary.get("question_marks", [])),
+            "dogs_count": len(sales_summary.get("dogs", [])),
+        }
 
-Respond in structured JSON format."""
+        prompt = f"""You are a restaurant business analyst. Analyze this BCG Matrix portfolio summary.
 
-        response = await self._call_gemini(prompt)
-        self.call_count += 1
+Top Products by Category (sample of {MAX_ITEMS_PER_CATEGORY} per category):
+{json.dumps(limited_data, indent=2)}
 
-        return self._parse_bcg_response(response)
+Portfolio Summary:
+{json.dumps(simple_summary, indent=2)}
+
+Provide a BRIEF strategic analysis:
+1. Overall portfolio health (1-2 sentences)
+2. Top 3 priority actions
+3. Key recommendation
+
+Respond in JSON format:
+{{
+  "portfolio_health": "brief assessment",
+  "priority_actions": ["action1", "action2", "action3"],
+  "key_recommendation": "main strategic recommendation",
+  "stars_strategy": "brief strategy for stars",
+  "dogs_strategy": "brief strategy for dogs"
+}}"""
+
+        try:
+            # Add timeout to prevent hanging
+            response = await asyncio.wait_for(
+                asyncio.to_thread(self._call_gemini_sync, prompt),
+                timeout=60.0,  # 60 second timeout for insights
+            )
+            self.call_count += 1
+            return self._parse_bcg_response(response)
+        except asyncio.TimeoutError:
+            logger.warning("BCG insights generation timed out, using default insights")
+            return self._get_default_bcg_insights(simple_summary)
+        except Exception as e:
+            logger.error(f"BCG insights generation failed: {e}")
+            return self._get_default_bcg_insights(simple_summary)
+
+    def _call_gemini_sync(self, prompt: str) -> Any:
+        """Synchronous Gemini call for use with asyncio.to_thread."""
+        return self.client.models.generate_content(
+            model=self.MODEL_NAME,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.7,
+                max_output_tokens=2048,
+            ),
+        )
+
+    def _get_default_bcg_insights(self, summary: Dict[str, Any]) -> Dict[str, Any]:
+        """Return default insights when AI generation fails or times out."""
+        return {
+            "portfolio_health": "Portfolio analysis completed. Review individual product classifications for detailed strategies.",
+            "priority_actions": [
+                "Focus investment on Star products to maintain growth",
+                "Optimize Cash Cow products for maximum profit extraction",
+                "Evaluate Dogs for repositioning or removal",
+            ],
+            "key_recommendation": "Prioritize resources on high-performing products while reviewing underperformers.",
+            "stars_strategy": "Invest in visibility and promotion",
+            "dogs_strategy": "Consider menu optimization or price adjustments",
+            "generated": False,
+            "note": "Default insights - AI generation was skipped for faster processing",
+        }
 
     async def generate_campaigns(
         self,

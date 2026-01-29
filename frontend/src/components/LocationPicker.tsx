@@ -51,7 +51,12 @@ export default function LocationPicker({ onLocationSelect, initialLocation }: Lo
         body: formData
       });
       
-      if (!response.ok) throw new Error('Search failed');
+      if (!response.ok) {
+        // Try to get detailed error from backend
+        const errorData = await response.json().catch(() => null);
+        const errorMsg = errorData?.detail || `Search failed (${response.status})`;
+        throw new Error(errorMsg);
+      }
       
       const data = await response.json();
       
@@ -66,10 +71,13 @@ export default function LocationPicker({ onLocationSelect, initialLocation }: Lo
         
         // Load nearby competitors
         await loadNearbyCompetitors(loc);
+      } else {
+        throw new Error('No location found in response');
       }
     } catch (err) {
       console.error('Search error:', err);
-      setError('Could not find location. Try a more specific address.');
+      const errorMessage = err instanceof Error ? err.message : 'Search failed';
+      setError(`Could not find location: ${errorMessage}. Try a more specific address or different search terms.`);
     } finally {
       setIsSearching(false);
     }
