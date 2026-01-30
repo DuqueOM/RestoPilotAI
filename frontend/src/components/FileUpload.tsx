@@ -11,6 +11,7 @@ interface FileUploadProps {
   onSessionCreated: (id: string, data: any) => void
   onComplete: () => void
   sessionId: string | null
+  onValidationChange?: (isValid: boolean) => void
 }
 
 // Extract domain from URL for auto-label
@@ -60,7 +61,7 @@ const AudioPlayer = ({ blob, onDelete, index }: { blob: Blob; onDelete: () => vo
   )
 }
 
-export default function FileUpload({ onSessionCreated, onComplete, sessionId }: FileUploadProps) {
+export default function FileUpload({ onSessionCreated, onComplete, sessionId, onValidationChange }: FileUploadProps) {
   // Upload states - separate for each type to allow simultaneous uploads
   const [salesUploaded, setSalesUploaded] = useState(false)
   const [menuUploaded, setMenuUploaded] = useState(false)
@@ -257,6 +258,13 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
     }
   }
 
+  // Notify parent of validation status changes
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange(salesUploaded)
+    }
+  }, [salesUploaded, onValidationChange])
+
   // Dropzone components
   const SalesDropzone = () => {
     const onDrop = useCallback((files: File[]) => {
@@ -443,8 +451,6 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
     )
   }
 
-  const canProceed = salesUploaded
-
   return (
     <div className="space-y-6">
       <div className="text-center mb-4">
@@ -452,27 +458,12 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId }: 
         <p className="text-gray-600 mt-2">Sales data (CSV) is required. Other files enable advanced AI features.</p>
       </div>
 
-      {/* Continue Button - Always visible, disabled until CSV uploaded */}
-      <div className="text-center">
-        <button 
-          onClick={onComplete} 
-          disabled={!canProceed}
-          className={`px-8 py-3 text-lg font-semibold rounded-xl transition-all ${
-            canProceed 
-              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl' 
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          {canProceed ? 'Continue to Analysis →' : 'Upload Sales CSV to Continue'}
-        </button>
-      </div>
-
-      {/* Upload Panels - Sales takes full width on mobile, then 2-column layout */}
+      {/* Upload Panels */}
       <div className="space-y-4">
-        {/* Sales CSV - Full width with validation info */}
+        {/* Sales CSV */}
         <SalesDropzone />
         
-        {/* Optional uploads - Side by side */}
+        {/* Optional uploads */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <MenuDropzone />
           <MediaDropzone />

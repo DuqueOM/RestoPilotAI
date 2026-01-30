@@ -5,13 +5,13 @@ Coordinates the entire analysis pipeline with checkpoints, state management,
 and autonomous execution with transparent reasoning.
 """
 
-from dataclasses import dataclass, field
+import json
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
-
-from loguru import logger
 
 from app.services.bcg_classifier import BCGClassifier
 from app.services.campaign_generator import CampaignGenerator
@@ -19,10 +19,10 @@ from app.services.gemini_agent import GeminiAgent
 from app.services.menu_extractor import MenuExtractor
 from app.services.sales_predictor import SalesPredictor
 from app.services.verification_agent import ThinkingLevel, VerificationAgent
+from loguru import logger
 
 
-class PipelineStage(str, Enum):
-    """Stages of the analysis pipeline."""
+class PipelineStage(str, Enum):    """Stages of the analysis pipeline."""
 
     INITIALIZED = "initialized"
     DATA_INGESTION = "data_ingestion"
@@ -78,6 +78,9 @@ class AnalysisState:
     campaigns: List[Dict[str, Any]] = field(default_factory=list)
     verification_result: Optional[Dict[str, Any]] = None
 
+    thinking_level: ThinkingLevel = ThinkingLevel.STANDARD
+    auto_verify: bool = True
+
     started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
     total_thinking_time_ms: int = 0
@@ -105,6 +108,74 @@ class AnalysisOrchestrator:
         self.active_sessions: Dict[str, AnalysisState] = {}
         self.completed_sessions: Dict[str, AnalysisState] = {}
 
+        self.storage_dir = Path("data/orchestrator_sessions")
+        self.storage_dir.mkdir(parents=True, exist_ok=True)
+
+    def _save_session_to_disk(self, state: AnalysisState):
+        """Save session state to disk."""
+        try:
+            file_path = self.storage_dir / f"{state.session_id}.json"
+
+            # Helper to convert objects to JSON-serializable format
+            def json_default(obj):
+                if isinstance(obj, datetime):
+                    return obj.isoformat()
+                if isinstance(obj, Enum):
+                    return obj.value
+                raise TypeError(f"Type {type(obj)} not serializable")
+
+            with open(file_path, "w") as f:
+                json.dump(asdict(state), f, default=json_default, indent=2)
+        except Exception as e:
+            logger.error(f"Failed to save orchestrator session {state.session_id}: {e}")
+
+    def _load_session_from_disk(self, session_id: str) -> Optional[AnalysisState]:
+        """Load session state from disk."""
+        file_path = self.storage_dir / f"{session_id}.json"
+        if not file_path.exists():
+            return None
+
+        try:
+            with open(file_path, "r") as f:
+                data = json.load(f)
+
+            # Reconstruct datetime objects and Enums
+            data["current_stage"] = PipelineStage(data["current_stage"])
+            if "thinking_level" in data:
+                data["thinking_level"] = ThinkingLevel(data["thinking_level"])
+            
+            data["started_at"] = datetime.fromisoformat(data["started_at"])
+            if data.get("completed_at"):
+                data["completed_at"] = datetime.fromisoformat(data["completed_at"])
+
+            # Reconstruct checkpoints
+            checkpoints = []
+            for cp_data in data.get("checkpoints", []):
+                cp_data["stage"] = PipelineStage(cp_data["stage"])
+                cp_data["timestamp"] = datetime.fromisoformat(cp_data["timestamp"])
+                checkpoints.append(PipelineCheckpoint(**cp_data))
+            data["checkpoints"] = checkpoints
+
+            # Reconstruct thought traces
+            traces = []
+            for t_data in data.get("thought_traces", []):
+                t_data["timestamp"] = datetime.fromisoformat(t_data["timestamp"])
+                traces.append(ThoughtTrace(**t_data))
+            data["thought_traces"] = traces
+
+            state = AnalysisState(**data)
+
+            # Cache in memory depending on state
+            if state.current_stage in [PipelineStage.COMPLETED, PipelineStage.FAILED]:
+                self.completed_sessions[session_id] = state
+            else:
+                self.active_sessions[session_id] = state
+
+            return state
+        except Exception as e:
+            logger.error(f"Failed to load orchestrator session {session_id}: {e}")
+            return None
+
     async def create_session(self) -> str:
         """Create a new analysis session."""
         session_id = str(uuid4())
@@ -125,6 +196,8 @@ class AnalysisOrchestrator:
             confidence=1.0,
         )
 
+        self._save_session_to_disk(state)
+
         return session_id
 
     async def run_full_pipeline(
@@ -133,8 +206,8 @@ class AnalysisOrchestrator:
         menu_images: Optional[List[bytes]] = None,
         dish_images: Optional[List[bytes]] = None,
         sales_csv: Optional[str] = None,
-        thinking_level: ThinkingLevel = ThinkingLevel.STANDARD,
-        auto_verify: bool = True,
+        thinking_level: Optional[ThinkingLevel] = None,
+        auto_verify: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """
         Run the complete analysis pipeline autonomously.
@@ -150,9 +223,25 @@ class AnalysisOrchestrator:
         Returns:
             Complete analysis results with thought traces
         """
-        state = self.active_sessions.get(session_id)
+        state = self.active_sessions.get(session_id) or self._load_session_from_disk(
+            session_id
+        )
+
         if not state:
             return {"error": "Session not found"}
+
+        # Ensure it's in active_sessions if loaded from disk
+        if session_id not in self.active_sessions:
+            self.active_sessions[session_id] = state
+
+        # Update configuration if provided
+        if thinking_level:
+            state.thinking_level = thinking_level
+        if auto_verify is not None:
+            state.auto_verify = auto_verify
+        
+        # Save updated config
+        self._save_session_to_disk(state)
 
         try:
             if menu_images:
@@ -184,7 +273,7 @@ class AnalysisOrchestrator:
                     state,
                     PipelineStage.BCG_CLASSIFICATION,
                     self._run_bcg_classification,
-                    thinking_level,
+                    state.thinking_level,
                 )
 
                 await self._run_stage(
@@ -195,22 +284,25 @@ class AnalysisOrchestrator:
                     state,
                     PipelineStage.CAMPAIGN_GENERATION,
                     self._generate_campaigns,
-                    thinking_level,
+                    state.thinking_level,
                 )
 
-            if auto_verify and state.bcg_analysis:
+            if state.auto_verify and state.bcg_analysis:
                 await self._run_stage(
                     state,
                     PipelineStage.VERIFICATION,
                     self._verify_analysis,
-                    thinking_level,
+                    state.thinking_level,
                 )
 
             state.current_stage = PipelineStage.COMPLETED
             state.completed_at = datetime.now(timezone.utc)
 
             self.completed_sessions[session_id] = state
-            del self.active_sessions[session_id]
+            if session_id in self.active_sessions:
+                del self.active_sessions[session_id]
+
+            self._save_session_to_disk(state)
 
             return self._build_final_response(state)
 
@@ -218,6 +310,7 @@ class AnalysisOrchestrator:
             logger.error(f"Pipeline failed: {e}")
             state.current_stage = PipelineStage.FAILED
             self._save_checkpoint(state, success=False, error=str(e))
+            self._save_session_to_disk(state)
             return {"error": str(e), "last_checkpoint": state.current_stage.value}
 
     async def _run_stage(
@@ -539,6 +632,7 @@ class AnalysisOrchestrator:
             error=error,
         )
         state.checkpoints.append(checkpoint)
+        self._save_session_to_disk(state)
 
     def _build_final_response(self, state: AnalysisState) -> Dict[str, Any]:
         """Build the final response from the analysis state."""
@@ -587,9 +681,19 @@ class AnalysisOrchestrator:
 
     async def resume_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Resume a session from its last checkpoint."""
-        state = self.active_sessions.get(session_id)
+        state = self.active_sessions.get(session_id) or self._load_session_from_disk(
+            session_id
+        )
+
         if not state:
             return None
+
+        # Ensure it's in active_sessions if loaded from disk
+        if session_id not in self.active_sessions and state.current_stage not in [
+            PipelineStage.COMPLETED,
+            PipelineStage.FAILED,
+        ]:
+            self.active_sessions[session_id] = state
 
         return {
             "session_id": session_id,
@@ -603,6 +707,18 @@ class AnalysisOrchestrator:
         state = self.active_sessions.get(session_id) or self.completed_sessions.get(
             session_id
         )
+
+        if not state:
+            state = self._load_session_from_disk(session_id)
+            if state:
+                if state.current_stage in [
+                    PipelineStage.COMPLETED,
+                    PipelineStage.FAILED,
+                ]:
+                    self.completed_sessions[session_id] = state
+                else:
+                    self.active_sessions[session_id] = state
+
         if not state:
             return None
 

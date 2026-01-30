@@ -3,28 +3,29 @@
 import { useState } from 'react';
 
 interface PriceGap {
-  itemCategory: string;
-  ourItem: string;
-  ourPrice: number;
-  competitorName: string;
-  competitorItem: string;
-  competitorPrice: number;
-  priceDifference: number;
-  priceDifferencePercent: number;
+  item_category: string;
+  our_item: string;
+  our_price: number;
+  competitor_name: string;
+  competitor_item: string;
+  competitor_price: number;
+  price_difference: number;
+  price_difference_percent: number;
   recommendation: string;
   confidence: number;
 }
 
 interface CompetitorInsight {
-  competitorName: string;
-  priceComparison: 'higher' | 'lower' | 'similar';
-  avgPriceDifference: number;
-  uniqueItems: string[];
-  recommendations: string[];
-  confidenceScore: number;
-  itemCount: number;
-  priceRange: { min: number; max: number };
-  // Optional enriched fields
+  competitorName?: string;
+  name?: string;
+  priceComparison?: 'higher' | 'lower' | 'similar';
+  avgPriceDifference?: number;
+  uniqueItems?: string[];
+  recommendations?: string[];
+  confidenceScore?: number;
+  itemCount?: number;
+  priceRange?: { min: number; max: number };
+  // Enriched fields
   rating?: number;
   address?: string;
   distance?: string;
@@ -50,21 +51,30 @@ interface CompetitorInsight {
 }
 
 interface CompetitorAnalysis {
-  analysisId: string;
-  competitorsAnalyzed: string[];
-  marketPosition: string;
-  competitiveIntensity: string;
-  keyDifferentiators: string[];
-  competitiveGaps: string[];
-  pricePositioning: string;
-  priceGaps: PriceGap[];
-  pricingOpportunities: string[];
-  ourUniqueItems: string[];
-  competitorUniqueItems: Record<string, string[]>;
-  categoryGaps: Array<{ category: string; competitorsOffering: number; ourCount: number; opportunity: string }>;
-  strategicRecommendations: Array<{ priority: number; action: string; expectedImpact: string; timeframe: string }>;
-  competitiveThreats: Array<{ threat: string; severity: string; recommendedResponse: string }>;
-  confidence: number;
+  analysis_id: string;
+  competitors_analyzed: string[];
+  competitive_landscape: {
+    market_position: string;
+    competitive_intensity: string;
+    key_differentiators: string[];
+    competitive_gaps: string[];
+  };
+  price_analysis: {
+    price_positioning: string;
+    price_gaps: PriceGap[];
+    pricing_opportunities: string[];
+  };
+  product_analysis: {
+    our_unique_items: string[];
+    competitor_unique_items: Record<string, string[]>;
+    category_gaps: Array<{ category: string; competitors_offering: number; our_count: number; opportunity: string }>;
+    trending_items_missing: string[];
+  };
+  strategic_recommendations: Array<{ priority: number; action: string; expected_impact: string; timeframe: string }>;
+  competitive_threats: Array<{ threat: string; severity: string; recommended_response: string }>;
+  metadata: {
+    confidence: number;
+  };
 }
 
 interface CompetitorDashboardProps {
@@ -133,7 +143,7 @@ export default function CompetitorDashboard({
 
               <div className="flex items-start justify-between mb-3 pr-8">
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900">{competitor.competitorName || (competitor as any).name}</h4>
+                  <h4 className="text-lg font-semibold text-gray-900">{competitor.competitorName || competitor.name}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     {(competitor.rating && competitor.rating > 0) && (
                       <div className="flex items-center gap-1 px-1.5 py-0.5 bg-yellow-50 rounded text-xs border border-yellow-100">
@@ -256,7 +266,7 @@ export default function CompetitorDashboard({
     );
   }
 
-  const getPriceComparisonColor = (comparison: string) => {
+  const getPriceComparisonColor = (comparison?: string) => {
     switch (comparison) {
       case 'higher': return 'bg-red-100 text-red-800';
       case 'lower': return 'bg-green-100 text-green-800';
@@ -279,18 +289,18 @@ export default function CompetitorDashboard({
         <div>
           <h2 className="text-2xl font-bold text-gray-900">🎯 Competitor Intelligence</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Analyzing {analysis?.competitorsAnalyzed?.length || insights.length} competitors
+            Analyzing {analysis?.competitors_analyzed?.length || insights.length} competitors
           </p>
         </div>
-        {analysis && (
+        {analysis && analysis.metadata && (
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-500">Confidence:</span>
             <span className={`px-2 py-1 rounded-full text-sm font-medium ${
-              analysis.confidence >= 0.8 ? 'bg-green-100 text-green-800' :
-              analysis.confidence >= 0.6 ? 'bg-yellow-100 text-yellow-800' :
+              analysis.metadata.confidence >= 0.8 ? 'bg-green-100 text-green-800' :
+              analysis.metadata.confidence >= 0.6 ? 'bg-yellow-100 text-yellow-800' :
               'bg-red-100 text-red-800'
             }`}>
-              {Math.round(analysis.confidence * 100)}%
+              {Math.round(analysis.metadata.confidence * 100)}%
             </span>
           </div>
         )}
@@ -327,15 +337,15 @@ export default function CompetitorDashboard({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500">
               <h3 className="text-sm font-medium text-gray-500">Market Position</h3>
-              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.marketPosition}</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.competitive_landscape.market_position}</p>
             </div>
             <div className="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
               <h3 className="text-sm font-medium text-gray-500">Competitive Intensity</h3>
-              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.competitiveIntensity}</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.competitive_landscape.competitive_intensity}</p>
             </div>
             <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
               <h3 className="text-sm font-medium text-gray-500">Price Positioning</h3>
-              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.pricePositioning}</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.price_analysis.price_positioning}</p>
             </div>
           </div>
 
@@ -343,7 +353,7 @@ export default function CompetitorDashboard({
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">✨ Our Key Differentiators</h3>
             <div className="flex flex-wrap gap-2">
-              {analysis.keyDifferentiators?.map((diff, idx) => (
+              {analysis.competitive_landscape.key_differentiators?.map((diff, idx) => (
                 <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                   {diff}
                 </span>
@@ -352,11 +362,11 @@ export default function CompetitorDashboard({
           </div>
 
           {/* Competitive Gaps */}
-          {analysis.competitiveGaps?.length > 0 && (
+          {analysis.competitive_landscape.competitive_gaps?.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">⚠️ Areas to Improve</h3>
               <ul className="space-y-2">
-                {analysis.competitiveGaps.map((gap, idx) => (
+                {analysis.competitive_landscape.competitive_gaps.map((gap, idx) => (
                   <li key={idx} className="flex items-start">
                     <span className="flex-shrink-0 h-5 w-5 text-yellow-500">•</span>
                     <span className="ml-2 text-gray-700">{gap}</span>
@@ -371,31 +381,42 @@ export default function CompetitorDashboard({
             {insights.map((insight, idx) => (
               <div key={idx} className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-semibold text-gray-900">{insight.competitorName}</h4>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriceComparisonColor(insight.priceComparison)}`}>
-                    {insight.priceComparison === 'higher' ? '↑ More Expensive' :
-                     insight.priceComparison === 'lower' ? '↓ Cheaper' : '≈ Similar'}
-                  </span>
+                  <h4 className="text-lg font-semibold text-gray-900">{insight.competitorName || insight.name}</h4>
+                  {insight.priceComparison && (
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriceComparisonColor(insight.priceComparison)}`}>
+                      {insight.priceComparison === 'higher' ? '↑ More Expensive' :
+                       insight.priceComparison === 'lower' ? '↓ Cheaper' : '≈ Similar'}
+                    </span>
+                  )}
                 </div>
                 
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Items:</span>
-                    <span className="font-medium">{insight.itemCount}</span>
+                    <span className="font-medium">{insight.itemCount || insight.menu?.item_count || 0}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Price Range:</span>
-                    <span className="font-medium">${insight.priceRange.min} - ${insight.priceRange.max}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Avg Difference:</span>
-                    <span className={`font-medium ${insight.avgPriceDifference > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {insight.avgPriceDifference > 0 ? '+' : ''}{insight.avgPriceDifference.toFixed(1)}%
-                    </span>
-                  </div>
+                  {(insight.priceRange || insight.menu?.sources) && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Price Range:</span>
+                      <span className="font-medium">
+                        {insight.priceRange 
+                          ? `$${insight.priceRange.min} - $${insight.priceRange.max}`
+                          : 'N/A'
+                        }
+                      </span>
+                    </div>
+                  )}
+                  {insight.avgPriceDifference !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Avg Difference:</span>
+                      <span className={`font-medium ${insight.avgPriceDifference > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {insight.avgPriceDifference > 0 ? '+' : ''}{insight.avgPriceDifference.toFixed(1)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {insight.uniqueItems.length > 0 && (
+                {insight.uniqueItems && insight.uniqueItems.length > 0 && (
                   <div className="mt-4">
                     <p className="text-xs text-gray-500 mb-2">They offer (we don&apos;t):</p>
                     <div className="flex flex-wrap gap-1">
@@ -422,7 +443,7 @@ export default function CompetitorDashboard({
       {activeTab === 'pricing' && analysis && (
         <div className="space-y-6">
           {/* Price Gaps Table */}
-          {analysis.priceGaps?.length > 0 && (
+          {analysis.price_analysis.price_gaps?.length > 0 && (
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">💰 Price Gap Analysis</h3>
@@ -439,26 +460,26 @@ export default function CompetitorDashboard({
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {analysis.priceGaps.map((gap, idx) => (
+                    {analysis.price_analysis.price_gaps.map((gap, idx) => (
                       <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{gap.itemCategory}</div>
-                          <div className="text-xs text-gray-500">{gap.ourItem}</div>
+                          <div className="text-sm font-medium text-gray-900">{gap.item_category}</div>
+                          <div className="text-xs text-gray-500">{gap.our_item}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ${gap.ourPrice.toFixed(2)}
+                          ${gap.our_price.toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">${gap.competitorPrice.toFixed(2)}</div>
-                          <div className="text-xs text-gray-500">{gap.competitorName}</div>
+                          <div className="text-sm text-gray-900">${gap.competitor_price.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500">{gap.competitor_name}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded text-sm font-medium ${
-                            gap.priceDifferencePercent > 10 ? 'bg-red-100 text-red-800' :
-                            gap.priceDifferencePercent < -10 ? 'bg-green-100 text-green-800' :
+                            gap.price_difference_percent > 10 ? 'bg-red-100 text-red-800' :
+                            gap.price_difference_percent < -10 ? 'bg-green-100 text-green-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
-                            {gap.priceDifferencePercent > 0 ? '+' : ''}{gap.priceDifferencePercent.toFixed(1)}%
+                            {gap.price_difference_percent > 0 ? '+' : ''}{gap.price_difference_percent.toFixed(1)}%
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
@@ -473,11 +494,11 @@ export default function CompetitorDashboard({
           )}
 
           {/* Pricing Opportunities */}
-          {analysis.pricingOpportunities?.length > 0 && (
+          {analysis.price_analysis.pricing_opportunities?.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">💡 Pricing Opportunities</h3>
               <ul className="space-y-3">
-                {analysis.pricingOpportunities.map((opp, idx) => (
+                {analysis.price_analysis.pricing_opportunities.map((opp, idx) => (
                   <li key={idx} className="flex items-start p-3 bg-green-50 rounded-lg">
                     <span className="flex-shrink-0 text-green-500 mr-3">💵</span>
                     <span className="text-gray-700">{opp}</span>
@@ -493,11 +514,11 @@ export default function CompetitorDashboard({
       {activeTab === 'products' && analysis && (
         <div className="space-y-6">
           {/* Our Unique Items */}
-          {analysis.ourUniqueItems?.length > 0 && (
+          {analysis.product_analysis.our_unique_items?.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">🌟 Our Unique Offerings</h3>
               <div className="flex flex-wrap gap-2">
-                {analysis.ourUniqueItems.map((item, idx) => (
+                {analysis.product_analysis.our_unique_items.map((item, idx) => (
                   <span key={idx} className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium">
                     {item}
                   </span>
@@ -507,22 +528,22 @@ export default function CompetitorDashboard({
           )}
 
           {/* Category Gaps */}
-          {analysis.categoryGaps?.length > 0 && (
+          {analysis.product_analysis.category_gaps?.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">📊 Category Gap Analysis</h3>
               <div className="space-y-4">
-                {analysis.categoryGaps.map((gap, idx) => (
+                {analysis.product_analysis.category_gaps.map((gap, idx) => (
                   <div key={idx} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-gray-900">{gap.category}</span>
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        gap.ourCount === 0 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                        gap.our_count === 0 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {gap.ourCount === 0 ? 'Missing' : `${gap.ourCount} items`}
+                        {gap.our_count === 0 ? 'Missing' : `${gap.our_count} items`}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">
-                      {gap.competitorsOffering} competitor(s) offer this category
+                      {gap.competitors_offering} competitor(s) offer this category
                     </p>
                     <p className="text-sm text-indigo-600 mt-2">
                       💡 {gap.opportunity}
@@ -534,11 +555,11 @@ export default function CompetitorDashboard({
           )}
 
           {/* Competitor Unique Items */}
-          {Object.keys(analysis.competitorUniqueItems || {}).length > 0 && (
+          {Object.keys(analysis.product_analysis.competitor_unique_items || {}).length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">🔍 Competitor Exclusives</h3>
               <div className="space-y-4">
-                {Object.entries(analysis.competitorUniqueItems).map(([competitor, items]) => (
+                {Object.entries(analysis.product_analysis.competitor_unique_items).map(([competitor, items]) => (
                   <div key={competitor} className="border-l-4 border-orange-400 pl-4">
                     <h4 className="font-medium text-gray-900">{competitor}</h4>
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -565,11 +586,11 @@ export default function CompetitorDashboard({
       {activeTab === 'strategy' && analysis && (
         <div className="space-y-6">
           {/* Strategic Recommendations */}
-          {analysis.strategicRecommendations?.length > 0 && (
+          {analysis.strategic_recommendations?.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">🎯 Strategic Recommendations</h3>
               <div className="space-y-4">
-                {analysis.strategicRecommendations.map((rec, idx) => (
+                {analysis.strategic_recommendations.map((rec, idx) => (
                   <div key={idx} className={`border-l-4 pl-4 py-3 ${
                     rec.priority === 1 ? 'border-red-500 bg-red-50' :
                     rec.priority === 2 ? 'border-yellow-500 bg-yellow-50' :
@@ -586,7 +607,7 @@ export default function CompetitorDashboard({
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      <span className="font-medium">Expected Impact:</span> {rec.expectedImpact}
+                      <span className="font-medium">Expected Impact:</span> {rec.expected_impact}
                     </p>
                     <p className="text-sm text-gray-500">
                       <span className="font-medium">Timeframe:</span> {rec.timeframe}
@@ -598,18 +619,18 @@ export default function CompetitorDashboard({
           )}
 
           {/* Competitive Threats */}
-          {analysis.competitiveThreats?.length > 0 && (
+          {analysis.competitive_threats?.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">⚠️ Competitive Threats</h3>
               <div className="space-y-3">
-                {analysis.competitiveThreats.map((threat, idx) => (
+                {analysis.competitive_threats.map((threat, idx) => (
                   <div key={idx} className={`p-4 rounded-lg border ${getSeverityColor(threat.severity)}`}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium">{threat.threat}</span>
                       <span className="text-xs font-medium uppercase">{threat.severity}</span>
                     </div>
                     <p className="text-sm">
-                      <span className="font-medium">Response:</span> {threat.recommendedResponse}
+                      <span className="font-medium">Response:</span> {threat.recommended_response}
                     </p>
                   </div>
                 ))}

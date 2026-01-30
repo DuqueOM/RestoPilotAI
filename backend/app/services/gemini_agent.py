@@ -11,11 +11,10 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from app.config import get_settings
 from google import genai
 from google.genai import types
 from loguru import logger
-
-from app.config import get_settings
 
 
 class GeminiAgent:
@@ -296,19 +295,25 @@ Responde SOLO con el JSON válido.
     async def _call_gemini_with_pdf(self, prompt: str, pdf_path: str) -> Any:
         """Upload PDF to Gemini File API and generate content."""
         logger.info(f"Uploading PDF {pdf_path} to Gemini...")
-        file_ref = self.client.files.upload(path=pdf_path)
-        
+        # Fix: 'path' argument error. usage is client.files.upload(file=...) or positional
+        try:
+            file_ref = self.client.files.upload(file=pdf_path)
+        except TypeError:
+            # Fallback if 'file' keyword also fails (older versions might use different sig)
+            file_ref = self.client.files.upload(path=pdf_path)
+
         # Wait for processing
         import time
+
         while file_ref.state.name == "PROCESSING":
             await asyncio.sleep(1)
             file_ref = self.client.files.get(name=file_ref.name)
-            
+
         if file_ref.state.name == "FAILED":
             raise ValueError(f"PDF processing failed: {file_ref.state.name}")
-            
+
         logger.info(f"PDF processed. Generating analysis for {pdf_path}...")
-        
+
         response = self.client.models.generate_content(
             model=self.MODEL_NAME,
             contents=[
@@ -317,15 +322,14 @@ Responde SOLO con el JSON válido.
                         types.Part(text=prompt),
                         types.Part(
                             file_data=types.FileData(
-                                file_uri=file_ref.uri,
-                                mime_type="application/pdf"
+                                file_uri=file_ref.uri, mime_type="application/pdf"
                             )
                         ),
                     ]
                 )
             ],
             config=types.GenerateContentConfig(
-                temperature=0.2, # Low temp for accurate data extraction
+                temperature=0.2,  # Low temp for accurate data extraction
                 max_output_tokens=8192,
             ),
         )
@@ -759,6 +763,57 @@ Be critical and thorough."""
         )
         return response
 
+    async def identify_business_from_query(
+        self, query: str, location_hint: str = None
+    ) -> Dict[str, Any]:
+        """
+        Identify a real business using Gemini with Google Search Grounding.
+        Returns structured business data including estimated coordinates.
+        """
+        search_context = ""
+        if location_hint:
+            search_context = f" near {location_hint}"
+
+        prompt = f"""Identify the business matching query: '{query}'{search_context}.
+        Find its exact Name, Address, Rating, and approximate location.
+        
+        Respond in JSON:
+        {{
+            "candidates": [
+                {{
+                    "name": "Exact Business Name",
+                    "address": "Full Address",
+                    "lat": 1.23,
+                    "lng": -77.28,
+                    "rating": 4.5,
+                    "user_ratings_total": 100,
+                    "place_id": "gemini_inferred_id",
+                    "types": ["restaurant", "food"],
+                    "photos": []
+                }}
+            ]
+        }}
+        """
+
+        # Enable Google Search Grounding
+        tool_config = types.Tool(google_search=types.GoogleSearch())
+
+        try:
+            response = self.client.models.generate_content(
+                model=self.MODEL_NAME,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    tools=[tool_config],
+                    response_mime_type="application/json",
+                    temperature=0.3,
+                ),
+            )
+
+            return json.loads(response.text)
+        except Exception as e:
+            logger.error(f"Gemini business identification failed: {e}")
+            return {"candidates": []}
+
     def _parse_video_analysis(self, response: Any, path: str) -> Dict[str, Any]:
         """Parse video analysis response."""
         try:
@@ -770,21 +825,23 @@ Be critical and thorough."""
 
             result = json.loads(text.strip())
             result["video_path"] = path
-            
+
             # Normalize scores
             if "scores" in result:
                 scores = result["scores"]
                 # Map stop_scroll_power or craveability to attractiveness for general metrics
-                attractiveness = max(scores.get("stop_scroll_power", 0), scores.get("craveability", 0))
+                attractiveness = max(
+                    scores.get("stop_scroll_power", 0), scores.get("craveability", 0)
+                )
                 result["attractiveness_score"] = attractiveness / 100
-            
+
             # Backward compatibility fields
             if "feedback" in result:
                 result["improvement_suggestions"] = [
                     result["feedback"].get("worst_feature", ""),
-                    result["feedback"].get("editing_tip", "")
+                    result["feedback"].get("editing_tip", ""),
                 ]
-            
+
             return result
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             logger.error(f"Failed to parse video analysis: {e}")
@@ -845,17 +902,19 @@ Be critical and thorough."""
             text = response.text
             if "```json" in text:
                 text = text.split("```json")[1].split("```")[0]
-            
+
             # Normalize scores to 0-1 range if they are 0-100
             if "scores" in result:
                 scores = result["scores"]
                 result["attractiveness_score"] = scores.get("appetizing", 50) / 100
                 result["instagram_worthiness"] = scores.get("instagram", 50) / 100
-            
+
             # Map new structure to old keys for backward compatibility
             if "feedback" in result:
-                result["improvement_suggestions"] = result["feedback"].get("improvements", [])
-            
+                result["improvement_suggestions"] = result["feedback"].get(
+                    "improvements", []
+                )
+
             elif "```" in text:
                 text = text.split("```")[1].split("```")[0]
 
@@ -865,83 +924,6 @@ Be critical and thorough."""
                 "classifications": [],
                 "portfolio_health": "unknown",
                 "raw_response": response.text[:1000],
-            }
-
-    def _parse_campaigns_response(self, response: Any) -> List[Dict[str, Any]]:
-        """Parse campaign generation response."""
-        try:
-            text = response.text
-            if "```json" in text:
-                text = text.split("```json")[1].split("```")[0]
-            elif "```" in text:
-                text = text.split("```")[1].split("```")[0]
-
-            result = json.loads(text.strip())
-            if isinstance(result, list):
-                return result
-            elif "campaigns" in result:
-                return result["campaigns"]
-            return [result]
-        except (json.JSONDecodeError, KeyError, IndexError):
-            return [{"title": "Default Campaign", "raw_response": response.text[:1000]}]
-
-    def _parse_verification_response(self, response: Any) -> Dict[str, Any]:
-        """Parse verification response."""
-        try:
-            text = response.text
-            if "```json" in text:
-                text = text.split("```json")[1].split("```")[0]
-            elif "```" in text:
-                text = text.split("```")[1].split("```")[0]
-
-            return json.loads(text.strip())
-        except (json.JSONDecodeError, KeyError, IndexError):
-            return {
-                "verification_passed": True,
-                "checks_performed": ["basic_review"],
-                "issues_found": [],
-                "corrections_needed": [],
-                "confidence_after_verification": 0.7,
-            }
-
-    def get_stats(self) -> Dict[str, int]:
-        """Get agent usage statistics."""
-        return {"gemini_calls": self.call_count, "estimated_tokens": self.total_tokens}
-                text = text.split("```json")[1].split("```")[0]
-            elif "```" in text:
-                text = text.split("```")[1].split("```")[0]
-
-            result = json.loads(text.strip())
-            if isinstance(result, list):
-                return result
-            elif "campaigns" in result:
-                return result["campaigns"]
-            return [result]
-        except (json.JSONDecodeError, KeyError, IndexError):
-            return [{"title": "Default Campaign", "raw_response": response.text[:1000]}]
-
-    def _parse_verification_response(self, response: Any) -> Dict[str, Any]:
-        """Parse verification response."""
-        try:
-            text = response.text
-            if "```json" in text:
-                text = text.split("```json")[1].split("```")[0]
-            elif "```" in text:
-                text = text.split("```")[1].split("```")[0]
-
-            return json.loads(text.strip())
-        except (json.JSONDecodeError, KeyError, IndexError):
-            return {
-                "verification_passed": True,
-                "checks_performed": ["basic_review"],
-                "issues_found": [],
-                "corrections_needed": [],
-                "confidence_after_verification": 0.7,
-            }
-
-    def get_stats(self) -> Dict[str, int]:
-        """Get agent usage statistics."""
-        return {"gemini_calls": self.call_count, "estimated_tokens": self.total_tokens}
             }
 
     def _parse_campaigns_response(self, response: Any) -> List[Dict[str, Any]]:

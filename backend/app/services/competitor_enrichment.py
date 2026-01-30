@@ -18,9 +18,8 @@ from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 import httpx
-from loguru import logger
-
 from app.services.gemini_agent import GeminiAgent
+from loguru import logger
 
 
 @dataclass
@@ -217,8 +216,32 @@ class CompetitorEnrichmentService:
         maps_data = await self._get_place_details(place_id)
 
         if not maps_data:
-            logger.warning(f"Could not get place details for {place_id}")
-            return self._create_minimal_profile(competitor_id, basic_info or {})
+            if basic_info:
+                logger.info(
+                    f"Maps API data unavailable for {place_id}, using basic info for enrichment"
+                )
+                # Normalize basic_info to look like maps_data for downstream compatibility
+                maps_data = {
+                    "name": basic_info.get("name"),
+                    "formatted_address": basic_info.get("address"),
+                    "formatted_phone_number": basic_info.get("phone"),
+                    "website": basic_info.get("website"),
+                    "rating": basic_info.get("rating"),
+                    "user_ratings_total": basic_info.get("user_ratings_total"),
+                    "geometry": {
+                        "location": {
+                            "lat": basic_info.get("lat"),
+                            "lng": basic_info.get("lng"),
+                        }
+                    },
+                    "photos": basic_info.get("photos", []),
+                    "reviews": basic_info.get("reviews", []),
+                    "types": basic_info.get("types", []),
+                    "place_id": place_id,
+                }
+            else:
+                logger.warning(f"Could not get place details for {place_id}")
+                return self._create_minimal_profile(competitor_id, basic_info or {})
 
         # Step 2: Cross-reference con búsqueda web
         web_data = await self._cross_reference_web_search(

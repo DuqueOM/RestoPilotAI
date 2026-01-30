@@ -286,6 +286,21 @@ class MenuPilotAPI {
     });
   }
 
+  async resumeOrchestratorSession(
+    sessionId: string,
+    options?: { thinking_level?: string; auto_verify?: boolean }
+  ): Promise<{ status: string }> {
+    const formData = new FormData();
+    if (options?.thinking_level) formData.append('thinking_level', options.thinking_level);
+    if (options?.auto_verify !== undefined) formData.append('auto_verify', String(options.auto_verify));
+
+    return this.request<{ status: string }>(`/api/v1/orchestrator/resume/${sessionId}`, {
+      method: 'POST',
+      body: formData,
+      headers: {}, // FormData handles boundary
+    });
+  }
+
   async getAnalysisStatus(sessionId: string): Promise<{
     status: string;
     progress: number;

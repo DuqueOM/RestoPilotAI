@@ -129,6 +129,12 @@ export default function LocationPicker({ onLocationSelect, initialLocation, sess
         formData.append('place_id', candidate.placeId);
         formData.append('enrich_profile', 'true');
         
+        // Send details directly to support Gemini fallback/missing Maps Key
+        formData.append('name', candidate.name);
+        formData.append('address', candidate.address);
+        formData.append('lat', candidate.lat.toString());
+        formData.append('lng', candidate.lng.toString());
+        
         await fetch(`${API_BASE}/api/v1/location/set-business`, {
           method: 'POST',
           body: formData
@@ -156,6 +162,10 @@ export default function LocationPicker({ onLocationSelect, initialLocation, sess
       formData.append('address', location.address || searchQuery);
       formData.append('enrich', enrich.toString());
       
+      if (sessionId) {
+        formData.append('session_id', sessionId);
+      }
+      
       const response = await fetch(`${API_BASE}/api/v1/location/nearby-restaurants`, {
         method: 'POST',
         body: formData
@@ -178,7 +188,7 @@ export default function LocationPicker({ onLocationSelect, initialLocation, sess
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      searchLocation();
+      searchBusiness();
     }
   };
 

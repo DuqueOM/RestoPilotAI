@@ -16,15 +16,17 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
-from loguru import logger
-
 from app.config import get_settings
 from app.services.advanced_analytics import AdvancedAnalyticsService
 from app.services.bcg_classifier import BCGClassifier
 from app.services.campaign_generator import CampaignGenerator
+from app.services.competitor_intelligence import (
+    CompetitorIntelligenceService,
+    CompetitorSource,
+)
 from app.services.data_capability_detector import DataCapabilityDetector
+from app.services.gemini.multimodal_agent import MultimodalAgent
+from app.services.gemini.reasoning_agent import ReasoningAgent
 from app.services.gemini_agent import GeminiAgent
 from app.services.menu_engineering import AnalysisPeriod, MenuEngineeringClassifier
 from app.services.menu_extractor import DishImageAnalyzer, MenuExtractor
@@ -33,13 +35,25 @@ from app.services.neural_predictor import NeuralPredictor
 from app.services.orchestrator import AnalysisOrchestrator
 from app.services.period_calculator import PeriodCalculator
 from app.services.sales_predictor import SalesPredictor
+from app.services.sentiment_analyzer import (
+    ReviewData,
+    SentimentAnalyzer,
+    SentimentSource,
+)
 from app.services.verification_agent import ThinkingLevel, VerificationAgent
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import JSONResponse
+from loguru import logger
 
 router = APIRouter()
 settings = get_settings()
 
 # Initialize services
 agent = GeminiAgent()
+# Specialized agents
+multimodal_agent = MultimodalAgent()
+reasoning_agent = ReasoningAgent()
+
 menu_extractor = MenuExtractor(agent)
 dish_analyzer = DishImageAnalyzer(agent)
 bcg_classifier = BCGClassifier(agent)
@@ -52,9 +66,46 @@ orchestrator = AnalysisOrchestrator()
 data_capability_detector = DataCapabilityDetector()
 menu_optimizer = MenuOptimizer()
 advanced_analytics = AdvancedAnalyticsService()
+competitor_intelligence = CompetitorIntelligenceService(
+    multimodal_agent, reasoning_agent
+)
+sentiment_analyzer = SentimentAnalyzer(multimodal_agent, reasoning_agent)
 
-# In-memory session storage (use Redis/DB in production)
+# In-memory session storage with file persistence
 sessions = {}
+SESSIONS_DIR = Path("data/sessions")
+SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def load_session(session_id: str) -> Optional[Dict]:
+    """Get session from memory or load from disk."""
+    if session_id in sessions:
+        return sessions[session_id]
+
+    # Try loading from disk
+    session_file = SESSIONS_DIR / f"{session_id}.json"
+    if session_file.exists():
+        try:
+            with open(session_file, "r") as f:
+                data = json.load(f)
+                sessions[session_id] = data
+                return data
+        except Exception as e:
+            logger.error(f"Failed to load session {session_id}: {e}")
+            return None
+    return None
+
+
+def save_session(session_id: str):
+    """Save session to disk."""
+    if session_id in sessions:
+        try:
+            session_file = SESSIONS_DIR / f"{session_id}.json"
+            with open(session_file, "w") as f:
+                # Use default=str to handle datetime objects
+                json.dump(sessions[session_id], f, indent=2, default=str)
+        except Exception as e:
+            logger.error(f"Failed to save session {session_id}: {e}")
 
 
 @router.post("/ingest/menu", tags=["Ingest"])
@@ -65,18 +116,20 @@ async def ingest_menu_image(
 ):
     """
     Upload and process menu images/PDFs (supports multiple files).
-
-    Extracts menu items using OCR and Gemini multimodal analysis.
     """
 
     # Create or get session
     session_id = session_id or str(uuid.uuid4())
-    if session_id not in sessions:
-        sessions[session_id] = {
+    session = load_session(session_id)
+
+    if not session:
+        session = {
             "created_at": datetime.now(timezone.utc).isoformat(),
             "menu_items": [],
             "sales_data": [],
         }
+        sessions[session_id] = session
+        save_session(session_id)
 
     upload_dir = Path("data/uploads") / session_id
     upload_dir.mkdir(parents=True, exist_ok=True)
@@ -153,7 +206,8 @@ async def ingest_dish_images(
     Supports images (jpg, png, webp) and videos (mp4, webm, mov).
     """
 
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found. Upload menu first.")
 
     upload_dir = Path("data/uploads") / session_id / "dishes"
@@ -255,7 +309,8 @@ async def ingest_audio_context(
         session_id: Session identifier
         context_type: 'business' for company context, 'competitor' for competition context
     """
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found. Upload sales data first.")
 
     # Validate file type
@@ -280,6 +335,7 @@ async def ingest_audio_context(
         sessions[session_id]["audio_files"] = {"business": [], "competitor": []}
 
     sessions[session_id]["audio_files"][context_type].append(str(file_path))
+    save_session(session_id)
 
     logger.info(f"Audio uploaded for {context_type} context: {file.filename}")
 
@@ -325,7 +381,7 @@ Responde en JSON:
         client = genai.Client(api_key=settings.gemini_api_key)
 
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",  # Gemini 3 for hackathon
+            model="gemini-2.0-flash-exp",  # Using 2.0 Flash Exp for best audio
             contents=[
                 types.Content(
                     parts=[
@@ -375,6 +431,7 @@ Responde en JSON:
             + "\n\n[Audio Context]:\n"
             + audio_analysis.get("raw_context", "")
         )
+        save_session(session_id)
 
         return {
             "session_id": session_id,
@@ -409,14 +466,20 @@ async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form
     """
 
     # Create session if not exists (CSV can be uploaded first)
-    if not session_id or session_id not in sessions:
+    if not session_id:
         session_id = str(uuid.uuid4())
-        sessions[session_id] = {
-            "created_at": datetime.now().isoformat(),
+
+    session = load_session(session_id)
+    if not session:
+        session = {
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "menu_items": [],
             "sales_data": [],
         }
-        logger.info(f"Created new session from sales upload: {session_id}")
+        sessions[session_id] = session
+        save_session(session_id)
+
+    logger.info(f"Ingesting sales for session: {session_id}")
 
     ext = file.filename.split(".")[-1].lower() if file.filename else ""
     if ext not in ["csv", "xlsx"]:
@@ -495,6 +558,7 @@ async def ingest_sales_data(file: UploadFile = File(...), session_id: str = Form
         sales_records = df.to_dict("records")
 
         sessions[session_id]["sales_data"] = sales_records
+        save_session(session_id)
 
         # Calculate summary
         total_units = df["units_sold"].sum()
@@ -576,16 +640,9 @@ async def run_bcg_analysis(session_id: str, period: str = "30d"):
     Default period is last 30 days for faster initial analysis.
     """
 
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
-
-    # Parse period
-    try:
-        analysis_period = AnalysisPeriod(period)
-    except ValueError:
-        analysis_period = AnalysisPeriod.LAST_30_DAYS
-
-    session = sessions[session_id]
     menu_items = session.get("menu_items", [])
     sales_data = session.get("sales_data", [])
 
@@ -655,6 +712,7 @@ async def run_bcg_analysis(session_id: str, period: str = "30d"):
             logger.info(f"Added {items_added_from_sales} items from sales data to menu")
 
     sessions[session_id]["menu_items"] = menu_items
+    save_session(session_id)
     logger.info(f"Total menu items for analysis: {len(menu_items)}, period: {period}")
 
     if not menu_items and not sales_data:
@@ -668,6 +726,7 @@ async def run_bcg_analysis(session_id: str, period: str = "30d"):
 
         sessions[session_id]["bcg_analysis"] = result
         sessions[session_id]["menu_engineering"] = result
+        save_session(session_id)
 
         return {
             "session_id": session_id,
@@ -710,10 +769,10 @@ async def predict_sales(
         Predictions for each menu item under different scenarios
     """
 
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
 
-    session = sessions[session_id]
     menu_items = session.get("menu_items", [])
     all_sales_data = session.get("sales_data", [])
     image_scores = session.get("image_scores", {})
@@ -768,6 +827,7 @@ async def predict_sales(
             items_for_prediction, horizon_days, scenarios
         )
         sessions[session_id]["predictions"] = result
+        save_session(session_id)
 
         return {
             "session_id": session_id,
@@ -806,10 +866,10 @@ async def generate_campaigns(
     Ensures minimum of 3 campaigns are generated.
     """
 
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
 
-    session = sessions[session_id]
     bcg_analysis = session.get("bcg_analysis")
     menu_items = session.get("menu_items", [])
     predictions = session.get("predictions")
@@ -844,6 +904,7 @@ async def generate_campaigns(
         )
 
         sessions[session_id]["campaigns"] = result["campaigns"]
+        save_session(session_id)
 
         return {
             "session_id": session_id,
@@ -865,14 +926,204 @@ async def generate_campaigns(
         raise HTTPException(500, f"Campaign generation failed: {str(e)}")
 
 
+@router.post("/analyze/competitors", tags=["Analyze"])
+async def analyze_competitors(session_id: str):
+    """
+    Run comprehensive competitor analysis.
+
+    Uses enriched competitor profiles to generate:
+    - Market positioning
+    - Price gap analysis
+    - Product opportunities
+    - Strategic recommendations
+    """
+    session = load_session(session_id)
+    if not session:
+        raise HTTPException(404, "Session not found")
+
+    menu_items = session.get("menu_items", [])
+    categories = session.get("categories", [])
+
+    # Get enriched competitors from session
+    enriched_competitors = session.get("enriched_competitors", [])
+
+    # Also get basic competitors (fallback)
+    basic_competitors = session.get("competitors", [])
+
+    # If no enriched competitors, try to use business location to find some
+    if (
+        not enriched_competitors
+        and not basic_competitors
+        and session.get("business_location")
+    ):
+        # This would trigger an auto-discovery flow in a real scenario
+        # For now, we'll check if we have manually added competitor contexts
+        pass
+
+    if not enriched_competitors and not basic_competitors:
+        # Check if we have manually added competitor context from audio/text
+        if not session.get("competitor_context") and not session.get(
+            "audio_analysis", {}
+        ).get("competitor"):
+            # If completely empty, return a helpful empty state rather than error
+            return {
+                "session_id": session_id,
+                "status": "skipped",
+                "message": "No competitor data available. Add competitors in the Location tab.",
+                "competitor_analysis": None,
+            }
+
+    # Prepare our menu structure
+    our_menu = {"items": menu_items, "categories": categories}
+
+    # Convert session competitor data to Source objects
+    competitor_sources = []
+
+    # Priority to enriched competitors
+    for comp in enriched_competitors:
+        # Use the 'data' source type for already enriched profiles
+        competitor_sources.append(
+            CompetitorSource(
+                type="data",
+                value=comp,
+                name=comp.get("name", "Unknown Competitor"),
+                metadata=comp,
+            )
+        )
+
+    # Fallback to basic competitors if no enriched ones
+    if not competitor_sources and basic_competitors:
+        for comp in basic_competitors:
+            competitor_sources.append(
+                CompetitorSource(
+                    type="data",
+                    value=comp,
+                    name=comp.get("name", "Unknown Competitor"),
+                    metadata=comp,
+                )
+            )
+
+    try:
+        # Run analysis
+        result = await competitor_intelligence.analyze_competitors(
+            our_menu=our_menu,
+            competitor_sources=competitor_sources,
+            restaurant_name=session.get("business_location", {}).get(
+                "name", "Our Restaurant"
+            ),
+            thinking_level=ThinkingLevel.DEEP,
+        )
+
+        # Convert to dict for response
+        result_dict = result.to_dict()
+
+        sessions[session_id]["competitor_analysis"] = result_dict
+        save_session(session_id)
+
+        return {
+            "session_id": session_id,
+            "status": "success",
+            "competitor_analysis": result_dict,
+            "thought_signature": await agent.create_thought_signature(
+                "Competitor Analysis", {"competitors": len(competitor_sources)}
+            ),
+        }
+
+    except Exception as e:
+        logger.error(f"Competitor analysis failed: {e}")
+        raise HTTPException(500, f"Competitor analysis failed: {str(e)}")
+
+
+@router.post("/analyze/sentiment", tags=["Analyze"])
+async def analyze_sentiment(session_id: str):
+    """
+    Run multi-modal sentiment analysis.
+
+    Analyzes:
+    - Text reviews from various sources
+    - Customer photos for visual sentiment
+    - Social media feedback
+    """
+    session = load_session(session_id)
+    if not session:
+        raise HTTPException(404, "Session not found")
+
+    menu_items = [item["name"] for item in session.get("menu_items", [])]
+    bcg_data = session.get("bcg_analysis")
+
+    # Gather reviews from business profile
+    reviews = []
+    business_profile = session.get("business_profile_enriched", {})
+
+    # 1. Google Reviews
+    if business_profile.get("reviews"):
+        for r in business_profile.get("reviews", []):
+            reviews.append(
+                ReviewData(
+                    source=SentimentSource.GOOGLE,
+                    text=r.get("text", ""),
+                    rating=r.get("rating"),
+                    reviewer=r.get("author_name"),
+                    date=r.get("relative_time_description"),
+                )
+            )
+
+    # 2. Manual/Context reviews
+    # (Here we would add reviews parsed from text/audio context if implemented)
+
+    # Gather photos
+    photos = []
+    # (In a real scenario, we'd fetch photo bytes. For now, we rely on the pre-analyzed
+    # photo_analysis in the business profile if available, or skip this step if we don't have raw bytes)
+
+    if not reviews and not photos:
+        return {
+            "session_id": session_id,
+            "status": "skipped",
+            "message": "No reviews or photos available for sentiment analysis.",
+            "sentiment_analysis": None,
+        }
+
+    try:
+        # Run analysis
+        result = await sentiment_analyzer.analyze_customer_sentiment(
+            restaurant_id=session.get("business_location", {}).get(
+                "place_id", "unknown"
+            ),
+            reviews=reviews,
+            customer_photos=None,  # We pass None for raw photos as we might only have URLs/metadata
+            menu_items=menu_items,
+            bcg_data=bcg_data,
+            sources=[SentimentSource.GOOGLE],
+        )
+
+        # Convert to dict
+        result_dict = result.to_dict()
+
+        sessions[session_id]["sentiment_analysis"] = result_dict
+        save_session(session_id)
+
+        return {
+            "session_id": session_id,
+            "status": "success",
+            "sentiment_analysis": result_dict,
+            "thought_signature": await agent.create_thought_signature(
+                "Sentiment Analysis", {"reviews": len(reviews)}
+            ),
+        }
+
+    except Exception as e:
+        logger.error(f"Sentiment analysis failed: {e}")
+        raise HTTPException(500, f"Sentiment analysis failed: {str(e)}")
+
+
 @router.get("/session/{session_id}", tags=["Session"])
 async def get_session(session_id: str):
     """Get full session data including all analysis results."""
 
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
-
-    session = sessions[session_id]
 
     # Calculate available periods based on sales data
     sales_data = session.get("sales_data", [])
@@ -907,10 +1158,8 @@ async def export_session(session_id: str, format: str = "json"):
     """
     from fastapi.responses import Response
 
-    if session_id not in sessions:
+    if not load_session(session_id):
         raise HTTPException(404, "Session not found")
-
-    session = sessions[session_id]
 
     # Get BCG analysis data
     bcg_data = session.get("bcg_analysis") or session.get("menu_engineering", {})
@@ -1048,6 +1297,47 @@ async def get_orchestrator_status(session_id: str):
     return status
 
 
+@router.post("/orchestrator/resume/{session_id}", tags=["Orchestrator"])
+async def resume_orchestrator_session(
+    session_id: str,
+    thinking_level: Optional[str] = Form(None),
+    auto_verify: Optional[bool] = Form(None),
+):
+    """
+    Resume an existing orchestrator session.
+
+    Recovers state from disk if necessary and continues execution
+    of the analysis pipeline.
+    """
+    # Check if session exists first
+    status = await orchestrator.resume_session(session_id)
+    if not status:
+        raise HTTPException(404, "Session not found")
+
+    if not status["can_resume"]:
+        raise HTTPException(400, "Cannot resume session (likely failed state)")
+
+    # Parse thinking level if provided
+    level = None
+    if thinking_level:
+        try:
+            level = ThinkingLevel(thinking_level)
+        except ValueError:
+            pass  # Keep None to use stored value
+
+    try:
+        # Resume pipeline execution
+        result = await orchestrator.run_full_pipeline(
+            session_id=session_id,
+            thinking_level=level,
+            auto_verify=auto_verify,
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Failed to resume session {session_id}: {e}")
+        raise HTTPException(500, f"Resume failed: {str(e)}")
+
+
 @router.post("/verify/analysis", tags=["Verification"])
 async def verify_analysis(
     session_id: str,
@@ -1066,10 +1356,9 @@ async def verify_analysis(
     - Auto-improves if quality thresholds not met
     """
 
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
-
-    session = sessions[session_id]
 
     try:
         level = ThinkingLevel(thinking_level)
@@ -1096,6 +1385,7 @@ async def verify_analysis(
             "iterations": result.iterations_used,
             "improvements": result.improvements_made,
         }
+        save_session(session_id)
 
         return {
             "session_id": session_id,
@@ -1139,10 +1429,10 @@ async def predict_with_neural_network(
     - Ensemble predictions combining multiple architectures
     """
 
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
 
-    session = sessions[session_id]
     menu_items = session.get("menu_items", [])
     sales_data = session.get("sales_data", [])
     image_scores = session.get("image_scores", {})
@@ -1185,6 +1475,7 @@ async def predict_with_neural_network(
             predictions[item["name"]] = result
 
         sessions[session_id]["neural_predictions"] = predictions
+        save_session(session_id)
 
         return {
             "session_id": session_id,
@@ -1258,6 +1549,7 @@ async def get_demo_session():
         "thought_signature": demo_data.get("thought_signature"),
         "marathon_agent_context": demo_data.get("marathon_agent_context"),
     }
+    save_session("demo-session-001")
 
     # Return complete data including predictions
     # campaigns needs to be the full object with campaigns array for frontend
@@ -1311,6 +1603,7 @@ async def load_demo_into_session():
         "campaigns": demo_data["campaigns"]["campaigns"],
         "created_at": demo_data["created_at"],
     }
+    save_session(session_id)
 
     return {
         "session_id": session_id,
@@ -1339,10 +1632,10 @@ async def analyze_data_capabilities(
     - Data quality score
     - Recommendations to unlock more features
     """
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
 
-    session = sessions[session_id]
     sales_data = session.get("sales_data", [])
 
     if not sales_data:
@@ -1380,6 +1673,7 @@ async def analyze_data_capabilities(
             "category_col": report.column_mapping.category_col,
         },
     }
+    save_session(session_id)
 
     return {
         "session_id": session_id,
@@ -1411,10 +1705,10 @@ async def run_menu_optimization(
     **Requires:** Sales data with item_name and revenue columns.
     **Enhanced by:** Cost data for margin analysis.
     """
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
 
-    session = sessions[session_id]
     sales_data = session.get("sales_data", [])
     menu_items = session.get("menu_items", [])
     bcg_results = session.get("bcg_analysis", {})
@@ -1457,6 +1751,7 @@ async def run_menu_optimization(
             "items_to_remove": report.items_to_remove,
             "price_adjustments": report.price_adjustments,
         }
+        save_session(session_id)
 
         # Convert dataclass to dict for JSON response
         return {
@@ -1526,10 +1821,10 @@ async def run_advanced_analytics(
     - session_id: Session with uploaded data
     - capabilities: Optional comma-separated list of specific capabilities to run
     """
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
 
-    session = sessions[session_id]
     sales_data = session.get("sales_data", [])
 
     if not sales_data:
@@ -1581,6 +1876,7 @@ async def run_advanced_analytics(
             "capabilities_used": report.capabilities_used,
             "key_insights": report.key_insights,
         }
+        save_session(session_id)
 
         # Convert to JSON-serializable format
         return {
@@ -1685,10 +1981,9 @@ async def chat_with_ai(
     - message: User's question or request
     - context: Context hint (general, bcg, predictions, campaigns)
     """
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
-
-    session = sessions[session_id]
 
     # Build context from session data
     session_context = f"""
@@ -1892,6 +2187,7 @@ async def get_nearby_restaurants(
     radius: int = Form(1500),
     address: str = Form(None),
     enrich: bool = Form(False),  # Si True, enriquece perfiles completos
+    session_id: Optional[str] = Form(None),
 ):
     """
     Find nearby restaurants (competitors) within radius.
@@ -1910,10 +2206,13 @@ async def get_nearby_restaurants(
     - lat, lng: Coordinates of the restaurant
     - radius: Search radius in meters (default 1500m)
     - address: Optional address string for Gemini search context
+    - session_id: Optional session to store found competitors
     """
     import httpx
 
     google_api_key = settings.google_maps_api_key
+    found_restaurants = []
+    source_used = "unknown"
 
     # Try Google Places API first if key available
     if google_api_key:
@@ -1930,9 +2229,8 @@ async def get_nearby_restaurants(
                 )
                 data = response.json()
 
-                restaurants = []
                 for place in data.get("results", [])[:10]:
-                    restaurants.append(
+                    found_restaurants.append(
                         {
                             "name": place.get("name"),
                             "address": place.get("vicinity"),
@@ -1943,69 +2241,25 @@ async def get_nearby_restaurants(
                             "location": place.get("geometry", {}).get("location", {}),
                         }
                     )
-
-                # Si se solicita enriquecimiento, procesar perfiles completos
-                if enrich and restaurants:
-                    logger.info(f"Enriching {len(restaurants)} competitor profiles...")
-                    from app.services.competitor_enrichment import (
-                        CompetitorEnrichmentService,
-                    )
-
-                    enrichment_service = CompetitorEnrichmentService(
-                        google_maps_api_key=settings.google_maps_api_key,
-                        gemini_agent=agent,
-                    )
-
-                    enriched_profiles = []
-                    for restaurant in restaurants[
-                        :5
-                    ]:  # Limitar a 5 para no exceder tiempo
-                        try:
-                            profile = (
-                                await enrichment_service.enrich_competitor_profile(
-                                    place_id=restaurant["placeId"],
-                                    basic_info=restaurant,
-                                )
-                            )
-                            enriched_profiles.append(profile.to_dict())
-                        except Exception as e:
-                            logger.error(f"Failed to enrich {restaurant['name']}: {e}")
-                            enriched_profiles.append(
-                                {"error": str(e), "basic_info": restaurant}
-                            )
-
-                    await enrichment_service.close()
-
-                    return {
-                        "restaurants": enriched_profiles,
-                        "status": "ok",
-                        "source": "google_places_enriched",
-                        "enriched": True,
-                    }
-
-                return {
-                    "restaurants": restaurants,
-                    "status": "ok",
-                    "source": "google_places",
-                    "enriched": False,
-                }
+                source_used = "google_places"
 
         except Exception as e:
             logger.warning(f"Google Places failed, trying Gemini: {e}")
 
-    # Use Gemini 3 with Google Search grounding to find real competitors
-    try:
-        from google import genai
-        from google.genai import types
+    # Use Gemini 3 with Google Search grounding if Google Places failed or yielded no results
+    if not found_restaurants:
+        try:
+            from google import genai
+            from google.genai import types
 
-        client = genai.Client(api_key=settings.gemini_api_key)
+            client = genai.Client(api_key=settings.gemini_api_key)
 
-        # Build location context
-        location_context = f"coordinates {lat}, {lng}"
-        if address:
-            location_context = f"{address} ({lat}, {lng})"
+            # Build location context
+            location_context = f"coordinates {lat}, {lng}"
+            if address:
+                location_context = f"{address} ({lat}, {lng})"
 
-        prompt = f"""Busca restaurantes reales cerca de {location_context} en un radio de {radius}m.
+            prompt = f"""Busca restaurantes reales cerca de {location_context} en un radio de {radius}m.
 
 IMPORTANTE: Necesito datos REALES de restaurantes que existan en esa ubicación.
 Usa tu conocimiento de Google Maps y búsqueda para encontrar restaurantes reales.
@@ -2037,55 +2291,87 @@ Responde SOLO con JSON válido en este formato:
 
 Busca al menos 5-8 restaurantes reales de la zona. Si no conoces restaurantes específicos de esa ubicación exacta, busca los más conocidos de la ciudad."""
 
-        # Use Gemini with Google Search grounding
-        response = client.models.generate_content(
-            model=agent.MODEL_NAME,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                tools=[types.Tool(google_search=types.GoogleSearch())],
-                temperature=0.3,
-            ),
-        )
+            # Use Gemini with Google Search grounding
+            response = client.models.generate_content(
+                model=agent.MODEL_NAME,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    tools=[types.Tool(google_search=types.GoogleSearch())],
+                    temperature=0.3,
+                ),
+            )
 
-        response_text = response.text
-        logger.info(f"Gemini competitor search response length: {len(response_text)}")
+            response_text = response.text
 
-        # Parse JSON from response
-        try:
+            # Parse JSON from response
             if "```json" in response_text:
                 response_text = response_text.split("```json")[1].split("```")[0]
             elif "```" in response_text:
                 response_text = response_text.split("```")[1].split("```")[0]
 
             result = json.loads(response_text.strip())
-            restaurants = result.get("restaurants", [])
+            found_restaurants = result.get("restaurants", [])
 
             # Ensure each restaurant has required fields
-            for r in restaurants:
+            for r in found_restaurants:
                 if "placeId" not in r:
-                    r["placeId"] = f"gemini_{restaurants.index(r)}"
+                    r["placeId"] = f"gemini_{found_restaurants.index(r)}"
 
-            logger.info(f"Gemini found {len(restaurants)} competitors")
-            return {
-                "restaurants": restaurants,
-                "status": "ok",
-                "source": "gemini_grounded",
-                "search_context": location_context,
-            }
+            source_used = "gemini_grounded"
 
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse Gemini response: {e}")
-            logger.debug(f"Raw response: {response_text[:500]}")
+        except Exception as e:
+            logger.error(f"Gemini competitor search error: {e}")
 
-    except Exception as e:
-        logger.error(f"Gemini competitor search error: {e}")
+    # Save to session if session_id provided
+    if session_id:
+        session = load_session(session_id)
+        if session and found_restaurants:
+            sessions[session_id]["competitors"] = found_restaurants
+            save_session(session_id)
+            logger.info(
+                f"Saved {len(found_restaurants)} competitors to session {session_id}"
+            )
 
-    # Final fallback - return empty with helpful message
+    # Si se solicita enriquecimiento, procesar perfiles completos
+    if enrich and found_restaurants:
+        logger.info(f"Enriching {len(found_restaurants)} competitor profiles...")
+        from app.services.competitor_enrichment import CompetitorEnrichmentService
+
+        enrichment_service = CompetitorEnrichmentService(
+            google_maps_api_key=settings.google_maps_api_key,
+            gemini_agent=agent,
+        )
+
+        enriched_profiles = []
+        for restaurant in found_restaurants[:5]:  # Limitar a 5 para no exceder tiempo
+            try:
+                profile = await enrichment_service.enrich_competitor_profile(
+                    place_id=restaurant["placeId"],
+                    basic_info=restaurant,
+                )
+                enriched_profiles.append(profile.to_dict())
+            except Exception as e:
+                logger.error(f"Failed to enrich {restaurant['name']}: {e}")
+                enriched_profiles.append({"error": str(e), "basic_info": restaurant})
+
+        await enrichment_service.close()
+
+        # Save enriched to session
+        if session_id and session_id in sessions:
+            sessions[session_id]["enriched_competitors"] = enriched_profiles
+
+        return {
+            "restaurants": enriched_profiles,
+            "status": "ok",
+            "source": f"{source_used}_enriched",
+            "enriched": True,
+        }
+
     return {
-        "restaurants": [],
-        "status": "no_results",
-        "message": "No se pudieron encontrar competidores. Configura GOOGLE_MAPS_API_KEY para mejores resultados.",
-        "source": "fallback",
+        "restaurants": found_restaurants,
+        "status": "ok" if found_restaurants else "no_results",
+        "source": source_used,
+        "enriched": False,
     }
 
 
@@ -2121,10 +2407,13 @@ async def enrich_competitor_profile(
         await enrichment_service.close()
 
         # Guardar en sesión si se proporciona
-        if session_id and session_id in sessions:
-            if "enriched_competitors" not in sessions[session_id]:
-                sessions[session_id]["enriched_competitors"] = []
-            sessions[session_id]["enriched_competitors"].append(profile.to_dict())
+        if session_id:
+            session = load_session(session_id)
+            if session:
+                if "enriched_competitors" not in session:
+                    session["enriched_competitors"] = []
+                session["enriched_competitors"].append(profile.to_dict())
+                save_session(session_id)
 
         return {
             "status": "success",
@@ -2154,11 +2443,36 @@ async def identify_business(
 
     google_api_key = settings.google_maps_api_key
 
+    # Use Gemini 3 with Search Grounding if Maps API key is missing
     if not google_api_key:
-        raise HTTPException(
-            400,
-            "Google Maps API key not configured. Cannot identify business precisely.",
-        )
+        logger.info("Google Maps API key missing. Using Gemini 3 Search Grounding.")
+        try:
+            result = await agent.identify_business_from_query(
+                query, location_hint=f"{lat},{lng}" if lat and lng else None
+            )
+            candidates = result.get("candidates", [])
+
+            # Add photos placeholder if missing since Gemini might not return direct photo refs compatible with Maps API
+            for c in candidates:
+                if "photos" not in c:
+                    c["photos"] = []
+                if "place_id" in c and "placeId" not in c:
+                    c["placeId"] = c["place_id"]
+                if "user_ratings_total" in c and "userRatingsTotal" not in c:
+                    c["userRatingsTotal"] = c["user_ratings_total"]
+
+            return {
+                "status": "success",
+                "candidates": candidates,
+                "query": query,
+                "total_found": len(candidates),
+                "source": "gemini_grounding",
+            }
+        except Exception as e:
+            logger.error(f"Gemini fallback failed: {e}")
+            raise HTTPException(
+                500, f"Failed to identify business using Gemini: {str(e)}"
+            )
 
     try:
         async with httpx.AsyncClient() as client:
@@ -2229,90 +2543,111 @@ async def set_business_location(
     session_id: str = Form(...),
     place_id: str = Form(...),
     enrich_profile: bool = Form(True),
+    name: Optional[str] = Form(None),
+    address: Optional[str] = Form(None),
+    lat: Optional[float] = Form(None),
+    lng: Optional[float] = Form(None),
 ):
     """
     Establecer el negocio propio seleccionado y opcionalmente enriquecer su perfil.
 
-    Esto permite al usuario seleccionar su negocio del mapa y obtener
-    sus propios metadatos de Google Maps para comparación.
+    Supports direct data injection for Gemini-identified businesses when Maps API is unavailable.
     """
     from app.services.competitor_enrichment import CompetitorEnrichmentService
 
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
 
     try:
-        # Obtener detalles básicos
-        import httpx
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://maps.googleapis.com/maps/api/place/details/json",
-                params={
-                    "place_id": place_id,
-                    "fields": "name,formatted_address,geometry,rating,user_ratings_total,formatted_phone_number,website",
-                    "key": settings.google_maps_api_key,
-                },
-            )
-            data = response.json()
-
-            if data.get("status") != "OK":
-                raise HTTPException(
-                    400, f"Failed to get business details: {data.get('status')}"
-                )
-
-            result = data.get("result", {})
-            location = result.get("geometry", {}).get("location", {})
-
+        # Check if we have direct data provided (Gemini fallback mode)
+        if name and address and lat is not None and lng is not None:
             business_info = {
                 "place_id": place_id,
-                "name": result.get("name"),
-                "address": result.get("formatted_address"),
-                "lat": location.get("lat"),
-                "lng": location.get("lng"),
-                "rating": result.get("rating"),
-                "user_ratings_total": result.get("user_ratings_total"),
-                "phone": result.get("formatted_phone_number"),
-                "website": result.get("website"),
+                "name": name,
+                "address": address,
+                "lat": lat,
+                "lng": lng,
+                "rating": None,  # Can be passed if needed, but keeping simple for now
+                "user_ratings_total": None,
+                "phone": None,
+                "website": None,
             }
+        else:
+            # Traditional Google Maps API flow
+            import httpx
 
-            sessions[session_id]["business_location"] = business_info
-            sessions[session_id][
-                "location"
-            ] = business_info  # For backward compatibility with feedback generation
-
-            # Enriquecer perfil si se solicita
-            if enrich_profile:
-                logger.info(
-                    f"Enriching own business profile for {business_info['name']}"
+            if not settings.google_maps_api_key:
+                raise HTTPException(
+                    400, "Google Maps API key missing and no direct data provided."
                 )
 
-                enrichment_service = CompetitorEnrichmentService(
-                    google_maps_api_key=settings.google_maps_api_key,
-                    gemini_agent=agent,
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://maps.googleapis.com/maps/api/place/details/json",
+                    params={
+                        "place_id": place_id,
+                        "fields": "name,formatted_address,geometry,rating,user_ratings_total,formatted_phone_number,website",
+                        "key": settings.google_maps_api_key,
+                    },
                 )
+                data = response.json()
 
-                profile = await enrichment_service.enrich_competitor_profile(
-                    place_id=place_id,
-                    basic_info=business_info,
-                )
+                if data.get("status") != "OK":
+                    raise HTTPException(
+                        400, f"Failed to get business details: {data.get('status')}"
+                    )
 
-                await enrichment_service.close()
+                result = data.get("result", {})
+                location = result.get("geometry", {}).get("location", {})
 
-                sessions[session_id]["business_profile_enriched"] = profile.to_dict()
-
-                return {
-                    "status": "success",
-                    "business": business_info,
-                    "enriched_profile": profile.to_dict(),
-                    "message": "Negocio establecido y perfil enriquecido",
+                business_info = {
+                    "place_id": place_id,
+                    "name": result.get("name"),
+                    "address": result.get("formatted_address"),
+                    "lat": location.get("lat"),
+                    "lng": location.get("lng"),
+                    "rating": result.get("rating"),
+                    "user_ratings_total": result.get("user_ratings_total"),
+                    "phone": result.get("formatted_phone_number"),
+                    "website": result.get("website"),
                 }
+
+        sessions[session_id]["business_location"] = business_info
+        sessions[session_id]["location"] = business_info  # For backward compatibility
+        save_session(session_id)
+
+        # Enriquecer perfil si se solicita
+        if enrich_profile:
+            logger.info(f"Enriching own business profile for {business_info['name']}")
+
+            enrichment_service = CompetitorEnrichmentService(
+                google_maps_api_key=settings.google_maps_api_key or "",
+                gemini_agent=agent,
+            )
+
+            profile = await enrichment_service.enrich_competitor_profile(
+                place_id=place_id,
+                basic_info=business_info,
+            )
+
+            await enrichment_service.close()
+
+            sessions[session_id]["business_profile_enriched"] = profile.to_dict()
+            save_session(session_id)
 
             return {
                 "status": "success",
                 "business": business_info,
-                "message": "Negocio establecido",
+                "enriched_profile": profile.to_dict(),
+                "message": "Negocio establecido y perfil enriquecido",
             }
+
+        return {
+            "status": "success",
+            "business": business_info,
+            "message": "Negocio establecido",
+        }
 
     except HTTPException:
         raise
@@ -2338,10 +2673,9 @@ async def generate_feedback(
     - Revenue opportunities
     - Competitive positioning advice
     """
-    if session_id not in sessions:
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
-
-    session = sessions[session_id]
 
     # Gather all session data for analysis
     menu_items = session.get("menu_items", [])

@@ -1,21 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { 
-  Brain, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  CheckCircle, 
-  Lightbulb,
-  Target,
-  DollarSign,
-  Users,
-  Star,
-  ArrowRight,
-  Loader2,
-  RefreshCw
+import {
+    AlertTriangle,
+    ArrowRight,
+    Brain,
+    CheckCircle,
+    DollarSign,
+    Lightbulb,
+    Loader2,
+    RefreshCw,
+    Star,
+    Target,
+    TrendingDown,
+    TrendingUp,
+    Users
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface FeedbackSummaryProps {
   sessionId: string;
@@ -70,6 +70,30 @@ export default function FeedbackSummary({ sessionId, sessionData }: FeedbackSumm
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/session/${sessionId}/export?format=json`);
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `menupilot_report_${sessionId.substring(0, 8)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Download error:', err);
+      // Optional: show toast or alert
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   useEffect(() => {
@@ -195,13 +219,31 @@ export default function FeedbackSummary({ sessionId, sessionData }: FeedbackSumm
           </div>
         </div>
 
-        <button
-          onClick={generateFeedback}
-          className="mt-4 flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Refresh Analysis
-        </button>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            onClick={generateFeedback}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh Analysis
+          </button>
+          
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Export JSON
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            Print Report
+          </button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

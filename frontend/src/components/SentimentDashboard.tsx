@@ -1,33 +1,33 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface ItemSentiment {
-  itemName: string;
-  bcgCategory?: 'star' | 'cash_cow' | 'question_mark' | 'dog';
-  textSentiment: {
+  item_name: string;
+  bcg_category?: 'star' | 'cash_cow' | 'question_mark' | 'dog';
+  text_sentiment: {
     score: number;
-    mentionCount: number;
-    commonDescriptors: string[];
+    mention_count: number;
+    common_descriptors: string[];
   };
-  visualSentiment: {
-    appealScore?: number;
-    presentationScore?: number;
-    portionPerception?: 'very_small' | 'small' | 'adequate' | 'generous' | 'very_generous';
-    portionScore?: number;
-    photoCount: number;
+  visual_sentiment: {
+    appeal_score?: number;
+    presentation_score?: number;
+    portion_perception?: 'very_small' | 'small' | 'adequate' | 'generous' | 'very_generous';
+    portion_score?: number;
+    photo_count: number;
   };
-  overallSentiment: 'very_positive' | 'positive' | 'neutral' | 'negative' | 'very_negative';
-  actionableInsight: string;
+  overall_sentiment: 'very_positive' | 'positive' | 'neutral' | 'negative' | 'very_negative';
+  actionable_insight: string;
   priority: 'high' | 'medium' | 'low';
 }
 
 interface SentimentAnalysis {
-  analysisId: string;
+  analysis_id: string;
   overall: {
-    sentimentScore: number;
+    sentiment_score: number;
     nps?: number;
-    sentimentDistribution: {
+    sentiment_distribution: {
       very_positive: number;
       positive: number;
       neutral: number;
@@ -36,28 +36,28 @@ interface SentimentAnalysis {
     };
   };
   counts: {
-    reviewsAnalyzed: number;
-    photosAnalyzed: number;
-    sourcesUsed: string[];
+    reviews_analyzed: number;
+    photos_analyzed: number;
+    sources_used: string[];
   };
   themes: {
     praises: string[];
     complaints: string[];
   };
-  categorySentiments: {
+  category_sentiments: {
     service?: number;
-    foodQuality?: number;
+    food_quality?: number;
     ambiance?: number;
     value?: number;
   };
-  itemSentiments: ItemSentiment[];
+  item_sentiments: ItemSentiment[];
   recommendations: Array<{
     priority: string;
     type: string;
     items?: string[];
     issue: string;
     action: string;
-    expectedImpact: string;
+    expected_impact: string;
   }>;
 }
 
@@ -139,12 +139,12 @@ export default function SentimentDashboard({
     }
   };
 
-  const sortedItems = [...(analysis.itemSentiments || [])].sort((a, b) => {
+  const sortedItems = [...(analysis.item_sentiments || [])].sort((a, b) => {
     switch (sortBy) {
       case 'sentiment':
-        return b.textSentiment.score - a.textSentiment.score;
+        return b.text_sentiment.score - a.text_sentiment.score;
       case 'mentions':
-        return b.textSentiment.mentionCount - a.textSentiment.mentionCount;
+        return b.text_sentiment.mention_count - a.text_sentiment.mention_count;
       case 'priority':
         const priorityOrder = { high: 0, medium: 1, low: 2 };
         return priorityOrder[a.priority] - priorityOrder[b.priority];
@@ -155,7 +155,7 @@ export default function SentimentDashboard({
 
   const categoryLabels: Record<string, { label: string; emoji: string }> = {
     service: { label: 'Service', emoji: '👋' },
-    foodQuality: { label: 'Food Quality', emoji: '🍽️' },
+    food_quality: { label: 'Food Quality', emoji: '🍽️' },
     ambiance: { label: 'Ambiance', emoji: '✨' },
     value: { label: 'Value', emoji: '💰' },
   };
@@ -167,13 +167,13 @@ export default function SentimentDashboard({
         <div>
           <h2 className="text-2xl font-bold text-gray-900">💬 Customer Sentiment</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Based on {analysis.counts.reviewsAnalyzed} reviews and {analysis.counts.photosAnalyzed} photos
+            Based on {analysis.counts.reviews_analyzed} reviews and {analysis.counts.photos_analyzed} photos
           </p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="text-center">
-            <div className={`text-3xl font-bold ${analysis.overall.sentimentScore >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {analysis.overall.sentimentScore >= 0 ? '+' : ''}{(analysis.overall.sentimentScore * 100).toFixed(0)}
+            <div className={`text-3xl font-bold ${analysis.overall.sentiment_score >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {analysis.overall.sentiment_score >= 0 ? '+' : ''}{(analysis.overall.sentiment_score * 100).toFixed(0)}
             </div>
             <div className="text-xs text-gray-500">Sentiment Score</div>
           </div>
@@ -218,7 +218,7 @@ export default function SentimentDashboard({
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Sentiment Distribution</h3>
             <div className="flex items-center space-x-2">
-              {Object.entries(analysis.overall.sentimentDistribution).map(([key, value]) => (
+              {Object.entries(analysis.overall.sentiment_distribution).map(([key, value]) => (
                 <div key={key} className="flex-1">
                   <div 
                     className={`h-8 rounded ${
@@ -244,7 +244,7 @@ export default function SentimentDashboard({
 
           {/* Category Sentiments */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(analysis.categorySentiments).map(([key, value]) => {
+            {Object.entries(analysis.category_sentiments).map(([key, value]) => {
               if (value === null || value === undefined) return null;
               const info = categoryLabels[key];
               return (
@@ -308,7 +308,7 @@ export default function SentimentDashboard({
           {/* Sort Controls */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-500">
-              {analysis.itemSentiments.length} items analyzed
+              {analysis.item_sentiments.length} items analyzed
             </span>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">Sort by:</span>
@@ -327,13 +327,13 @@ export default function SentimentDashboard({
           {/* Item Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {sortedItems.map((item, idx) => {
-              const bcgBadge = getBcgBadge(item.bcgCategory);
+              const bcgBadge = getBcgBadge(item.bcg_category);
               return (
                 <div key={idx} className="bg-white rounded-lg shadow p-4 border-l-4 border-l-transparent hover:border-l-indigo-500 transition-colors">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h4 className="font-medium text-gray-900">{item.itemName}</h4>
+                      <h4 className="font-medium text-gray-900">{item.item_name}</h4>
                       <div className="flex items-center space-x-2 mt-1">
                         {bcgBadge && (
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${bcgBadge.color}`}>
@@ -341,11 +341,11 @@ export default function SentimentDashboard({
                           </span>
                         )}
                         <span className="text-xs text-gray-500">
-                          {item.textSentiment.mentionCount} mentions
+                          {item.text_sentiment.mention_count} mentions
                         </span>
                       </div>
                     </div>
-                    <span className="text-2xl">{getSentimentEmoji(item.overallSentiment)}</span>
+                    <span className="text-2xl">{getSentimentEmoji(item.overall_sentiment)}</span>
                   </div>
 
                   {/* Scores */}
@@ -356,32 +356,32 @@ export default function SentimentDashboard({
                       <div className="flex items-center mt-1">
                         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div 
-                            className={`h-full ${item.textSentiment.score >= 0 ? 'bg-green-500' : 'bg-red-400'}`}
+                            className={`h-full ${item.text_sentiment.score >= 0 ? 'bg-green-500' : 'bg-red-400'}`}
                             style={{ 
-                              width: `${Math.abs(item.textSentiment.score) * 100}%`,
-                              marginLeft: item.textSentiment.score < 0 ? 'auto' : 0
+                              width: `${Math.abs(item.text_sentiment.score) * 100}%`,
+                              marginLeft: item.text_sentiment.score < 0 ? 'auto' : 0
                             }}
                           />
                         </div>
-                        <span className={`ml-2 text-sm font-medium ${item.textSentiment.score >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {item.textSentiment.score >= 0 ? '+' : ''}{(item.textSentiment.score * 100).toFixed(0)}
+                        <span className={`ml-2 text-sm font-medium ${item.text_sentiment.score >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {item.text_sentiment.score >= 0 ? '+' : ''}{(item.text_sentiment.score * 100).toFixed(0)}
                         </span>
                       </div>
                     </div>
 
                     {/* Visual Appeal */}
-                    {item.visualSentiment.appealScore !== undefined && (
+                    {item.visual_sentiment.appeal_score !== undefined && (
                       <div>
                         <span className="text-xs text-gray-500">Photo Appeal</span>
                         <div className="flex items-center mt-1">
                           <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-indigo-500"
-                              style={{ width: `${item.visualSentiment.appealScore * 10}%` }}
+                              style={{ width: `${item.visual_sentiment.appeal_score * 10}%` }}
                             />
                           </div>
                           <span className="ml-2 text-sm font-medium text-indigo-600">
-                            {item.visualSentiment.appealScore.toFixed(1)}
+                            {item.visual_sentiment.appeal_score.toFixed(1)}
                           </span>
                         </div>
                       </div>
@@ -389,20 +389,20 @@ export default function SentimentDashboard({
                   </div>
 
                   {/* Portion Perception */}
-                  {item.visualSentiment.portionPerception && (
+                  {item.visual_sentiment.portion_perception && (
                     <div className="flex items-center space-x-2 mb-3">
                       <span className="text-xs text-gray-500">Portion:</span>
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getPortionColor(item.visualSentiment.portionPerception)}`}>
-                        {item.visualSentiment.portionPerception.replace('_', ' ')}
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getPortionColor(item.visual_sentiment.portion_perception)}`}>
+                        {item.visual_sentiment.portion_perception.replace('_', ' ')}
                       </span>
                     </div>
                   )}
 
                   {/* Descriptors */}
-                  {item.textSentiment.commonDescriptors.length > 0 && (
+                  {item.text_sentiment.common_descriptors.length > 0 && (
                     <div className="mb-3">
                       <div className="flex flex-wrap gap-1">
-                        {item.textSentiment.commonDescriptors.slice(0, 4).map((desc, i) => (
+                        {item.text_sentiment.common_descriptors.slice(0, 4).map((desc, i) => (
                           <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
                             {desc}
                           </span>
@@ -417,7 +417,7 @@ export default function SentimentDashboard({
                     item.priority === 'medium' ? 'bg-yellow-50 text-yellow-800' :
                     'bg-blue-50 text-blue-800'
                   }`}>
-                    {item.actionableInsight}
+                    {item.actionable_insight}
                   </div>
                 </div>
               );
@@ -462,7 +462,7 @@ export default function SentimentDashboard({
                   </p>
                   
                   <p className="text-sm text-green-600">
-                    <span className="font-medium">Expected Impact:</span> {rec.expectedImpact}
+                    <span className="font-medium">Expected Impact:</span> {rec.expected_impact}
                   </p>
                   
                   {rec.items && rec.items.length > 0 && (
