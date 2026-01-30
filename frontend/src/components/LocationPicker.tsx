@@ -272,7 +272,7 @@ export default function LocationPicker({ onLocationSelect, initialLocation, sess
                   onClick={() => selectCandidate(candidate)}
                   className="flex items-start gap-4 p-3 w-full text-left bg-white border border-gray-200 rounded-lg hover:border-emerald-500 hover:shadow-md transition-all group"
                 >
-                  {candidate.photos && candidate.photos.length > 0 ? (
+                  {candidate.photos && candidate.photos.length > 0 && process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
                     <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
                       <img 
                         src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=100&photo_reference=${candidate.photos[0]}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}

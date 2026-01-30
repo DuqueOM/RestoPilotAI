@@ -51,6 +51,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [thoughtSignature, setThoughtSignature] = useState<any>(null)
   const [demoLoading, setDemoLoading] = useState(false)
+  const [resumeId, setResumeId] = useState('')
+  const [resumeLoading, setResumeLoading] = useState(false)
+  const [showResumeInput, setShowResumeInput] = useState(false)
   const [resultsTab, setResultsTab] = useState<ResultsTab>('overview')
   const [selectedPeriod, setSelectedPeriod] = useState<string>('30d')
   const [reanalysisLoading, setReanalysisLoading] = useState(false)
@@ -107,6 +110,32 @@ export default function Home() {
       alert('Failed to load demo data. Make sure the backend is running.')
     } finally {
       setDemoLoading(false)
+    }
+  }
+
+  const handleResumeSession = async () => {
+    if (!resumeId.trim()) return
+    setResumeLoading(true)
+    try {
+      const data = await api.getSession(resumeId.trim())
+      setSessionId(data.session_id)
+      setSessionData(data)
+      
+      // Determine state based on loaded data
+      const hasAnalysis = data.bcg || data.bcg_analysis || data.predictions || data.competitors
+      if (hasAnalysis) {
+        setAnalysisStarted(true)
+        setAnalysisComplete(true)
+      } else if (data.session_id) {
+        setCanProceed(true)
+      }
+      
+      setShowResumeInput(false)
+    } catch (error) {
+      console.error('Failed to resume session:', error)
+      alert('Session not found or invalid.')
+    } finally {
+      setResumeLoading(false)
     }
   }
 
