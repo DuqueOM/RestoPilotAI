@@ -28,6 +28,14 @@ const TIME_PERIODS = [
   { id: 'all', label: 'All Data', description: 'Complete historical analysis' },
 ]
 
+// Filter periods based on available data
+function getAvailablePeriods(sessionData: any) {
+  const available = sessionData?.available_periods?.available_periods || [];
+  if (available.length === 0) return TIME_PERIODS;
+  
+  return TIME_PERIODS.filter(p => available.includes(p.id));
+}
+
 type Step = 'upload' | 'analysis' | 'results'
 type ResultsTab = 'overview' | 'feedback' | 'agents' | 'bcg' | 'competitors' | 'sentiment' | 'predictions' | 'campaigns'
 
@@ -261,13 +269,75 @@ export default function Home() {
                   <ThoughtSignature signature={thoughtSignature} />
                 )}
 
+                {/* Period Selector for Overview */}
+                {sessionData.bcg_analysis && getAvailablePeriods(sessionData).length > 1 && (
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-primary-500" />
+                        <h4 className="text-sm font-semibold text-gray-900">Analysis Period</h4>
+                      </div>
+                      {reanalysisLoading && (
+                        <span className="text-xs text-primary-600 flex items-center gap-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Updating...
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {getAvailablePeriods(sessionData).map((period) => (
+                        <button
+                          key={period.id}
+                          onClick={() => rerunBCGAnalysis(period.id)}
+                          disabled={reanalysisLoading}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                            selectedPeriod === period.id
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          } disabled:opacity-50`}
+                        >
+                          {period.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Executive Summary Header */}
                 <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-xl p-6 text-white">
                   <h2 className="text-xl font-bold mb-2">Executive Summary</h2>
-                  <p className="text-primary-100 text-sm">
+                  <p className="text-primary-100 text-sm mb-3">
                     Complete analysis of {sessionData.bcg_analysis?.summary?.total_items || 0} products • 
                     Portfolio Health: {((sessionData.bcg_analysis?.summary?.portfolio_health_score || 0) * 100).toFixed(0)}%
                   </p>
+                  {sessionData.bcg_analysis?.summary && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                      <div>
+                        <p className="text-primary-200">Total Revenue</p>
+                        <p className="font-semibold">
+                          ${(sessionData.bcg_analysis.summary.total_revenue || 0).toLocaleString('es-CO', {maximumFractionDigits: 0})}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-primary-200">Total Units</p>
+                        <p className="font-semibold">
+                          {(sessionData.bcg_analysis.summary.total_units || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-primary-200">Profit Margin</p>
+                        <p className="font-semibold">
+                          {(sessionData.bcg_analysis.summary.profit_margin_pct || 0).toFixed(1)}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-primary-200">Food Cost</p>
+                        <p className="font-semibold">
+                          {(sessionData.bcg_analysis.summary.food_cost_pct || 0).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Key Metrics Grid - Summary of ALL tabs */}
@@ -472,7 +542,7 @@ export default function Home() {
                   
                   {/* Period Buttons */}
                   <div className="flex flex-wrap gap-2">
-                    {TIME_PERIODS.map((period) => (
+                    {getAvailablePeriods(sessionData).map((period) => (
                       <button
                         key={period.id}
                         onClick={() => rerunBCGAnalysis(period.id)}

@@ -37,7 +37,7 @@ class MenuExtractor:
         Extract menu items from an image or PDF.
 
         Args:
-            image_path: Path to the menuor PDF file
+            image_path: Path to the menu or PDF file
             use_ocr: Whether to use local OCR as preprocessing
             business_context: Additional context about the business
 
@@ -47,11 +47,15 @@ class MenuExtractor:
 
         logger.info(f"Extracting menu from: {image_path}")
 
-        # Check if it's a PDF and convert to images
+        # Check if it's a PDF - process ALL pages for better extraction
         file_path = Path(image_path)
         if file_path.suffix.lower() == ".pdf":
-            logger.info("PDF detected, converting to images...")
-            image_path = await self._convert_pdf_to_image(image_path)
+            logger.info(
+                "PDF detected, processing all pages for comprehensive extraction..."
+            )
+            return await self.extract_from_pdf_all_pages(
+                image_path, use_ocr=use_ocr, business_context=business_context
+            )
 
         # Step 1: Local OCR preprocessing (optional)
         ocr_text = None
@@ -89,8 +93,8 @@ class MenuExtractor:
         """
         Convert PDF to images for processing.
 
-        Handles multi-page PDFs by converting all pages and returning
-        the first page path (other pages are processed separately).
+        Handles multi-page PDFs by converting all pages and extracting
+        text layers if available (for hybrid PDFs with selectable text).
 
         Returns path to the converted image (first page).
         """
@@ -101,10 +105,23 @@ class MenuExtractor:
             logger.info(f"PDF has {total_pages} pages, converting all...")
 
             output_paths = []
+            extracted_text = []
+
             for page_num in range(total_pages):
                 page = doc[page_num]
-                # Higher resolution for better OCR
-                pix = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5))
+
+                # Extract text layer if available (for selectable text PDFs)
+                page_text = page.get_text("text")
+                if page_text and len(page_text.strip()) > 100:
+                    logger.info(
+                        f"Page {page_num + 1} has selectable text ({len(page_text)} chars)"
+                    )
+                    extracted_text.append(page_text)
+
+                # Higher resolution for better OCR and image recognition
+                pix = page.get_pixmap(
+                    matrix=fitz.Matrix(3.0, 3.0)
+                )  # Increased from 2.5 to 3.0
 
                 # Save each page as PNG
                 output_path = pdf_path.replace(".pdf", f"_page{page_num + 1}.png")
@@ -116,10 +133,13 @@ class MenuExtractor:
 
             doc.close()
 
-            # Store all page paths for later processing
+            # Store all page paths and extracted text for later processing
             self._pdf_pages = output_paths
+            self._pdf_text_layers = extracted_text
 
-            logger.info(f"PDF converted successfully: {total_pages} pages")
+            logger.info(
+                f"PDF converted successfully: {total_pages} pages, {len(extracted_text)} pages with text layer"
+            )
             return output_paths[0]  # Return first page for immediate processing
 
         except Exception as e:
@@ -169,17 +189,46 @@ class MenuExtractor:
         total_confidence = 0
         warnings = []
 
-        # Process each page
+        # Process each page with enriched context
         pages_to_process = getattr(self, "_pdf_pages", [first_page])
+        text_layers = getattr(self, "_pdf_text_layers", [])
 
         for idx, page_path in enumerate(pages_to_process):
             logger.info(f"Processing page {idx + 1}/{len(pages_to_process)}")
 
             try:
-                # Extract from this page
-                page_result = await self.extract_from_image(
-                    page_path, use_ocr=use_ocr, business_context=business_context
+                # Enrich context with text layer if available
+                page_context = business_context or ""
+                if idx < len(text_layers) and text_layers[idx]:
+                    page_context += f"\n\nExtracted text from PDF (selectable text layer):\n{text_layers[idx][:3000]}"
+                    logger.info(
+                        f"Page {idx + 1}: Using {len(text_layers[idx])} chars of selectable text"
+                    )
+
+                # Extract from this page (single image, not recursive PDF call)
+                ocr_text = None
+                if use_ocr:
+                    ocr_text = self._run_local_ocr(page_path)
+                    logger.debug(
+                        f"OCR extracted {len(ocr_text) if ocr_text else 0} characters"
+                    )
+
+                context = page_context
+                if ocr_text:
+                    context += f"\n\nOCR Pre-extraction (may contain errors):\n{ocr_text[:2000]}"
+
+                gemini_result = await self.agent.extract_menu_from_image(
+                    page_path, additional_context=context if context else None
                 )
+
+                processed_items = self._post_process_items(
+                    gemini_result.get("items", [])
+                )
+                page_result = {
+                    "items": processed_items,
+                    "extraction_confidence": gemini_result.get("confidence", 0.7),
+                    "warnings": self._generate_warnings(processed_items, ocr_text),
+                }
 
                 # Merge items (avoid duplicates)
                 existing_names = {item["name"].lower() for item in all_items}
@@ -358,7 +407,7 @@ class MenuExtractor:
 
 
 class DishImageAnalyzer:
-    """Analyzes dish photographs for visual appeal metrics."""
+    """Analyzes dish photographs and videos for visual appeal metrics."""
 
     def __init__(self, agent: GeminiAgent):
         self.agent = agent
@@ -387,6 +436,30 @@ class DishImageAnalyzer:
         summary = self._calculate_summary(results)
 
         return {"analyses": results, "summary": summary, "image_count": len(results)}
+
+    async def analyze_videos(
+        self, video_paths: List[str], menu_items: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Analyze dish videos using Gemini's video understanding capabilities.
+
+        Args:
+            video_paths: List of paths to dish videos
+            menu_items: Optional list of item names to match
+
+        Returns:
+            Analysis results for each video
+        """
+        results = await self.agent.analyze_dish_videos(video_paths)
+
+        # Try to match with menu items if provided
+        if menu_items:
+            results = self._match_to_menu(results, menu_items)
+
+        # Calculate summary statistics
+        summary = self._calculate_summary(results)
+
+        return {"analyses": results, "summary": summary, "video_count": len(results)}
 
     def _match_to_menu(
         self, analyses: List[Dict[str, Any]], menu_items: List[str]

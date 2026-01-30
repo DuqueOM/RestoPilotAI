@@ -44,7 +44,8 @@ interface BCGClassification {
 
 interface BCGResultsPanelProps {
   data: {
-    classifications: BCGClassification[]
+    items?: any[]  // Menu Engineering format
+    classifications?: BCGClassification[]  // Legacy BCG format
     summary: {
       counts: Record<string, number>
       portfolio_health_score: number
@@ -76,6 +77,7 @@ const BCG_CONFIG = {
     bgColor: 'bg-indigo-50',
     borderColor: 'border-indigo-200',
     label: 'Question Marks ❓',
+    description: 'Alto crecimiento, baja participación. DECISIÓN ESTRATÉGICA.'
   },
   dog: { 
     icon: Dog, 
@@ -198,7 +200,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                 </div>
                 <span className="text-xs text-gray-500">{config.label.split(' ')[0]}</span>
               </div>
-              <p className="text-xs text-gray-600 mb-2">{config.description}</p>
+              <p className="text-xs text-gray-600 mb-2">{config.description || ''}</p>
               {topItem && (
                 <div className="mt-2 pt-2 border-t border-gray-200">
                   <p className="text-xs text-gray-500">Top:</p>

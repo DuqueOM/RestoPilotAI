@@ -746,7 +746,16 @@ class MenuEngineeringClassifier:
         classified_items: List[Dict[str, Any]],
         thresholds: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Generate analysis summary with category counts and totals."""
+        """
+        Generate comprehensive analysis summary.
+
+        Includes:
+        - Category counts and distributions
+        - Financial metrics (revenue, contribution, margins)
+        - Portfolio health score
+        - Top performers
+        - Items needing attention
+        """
 
         # Count by category
         category_counts = {cat.value: 0 for cat in MenuCategory}
@@ -757,6 +766,7 @@ class MenuEngineeringClassifier:
         total_revenue = 0.0
         total_contribution = 0.0
         total_units = 0
+        total_cost = 0.0
 
         for item in classified_items:
             cat = item["category"]
@@ -768,6 +778,7 @@ class MenuEngineeringClassifier:
             total_revenue += item["total_revenue"]
             total_contribution += item["total_contribution"]
             total_units += item["units_sold"]
+            total_cost += item["cost"] * item["units_sold"]
 
         # Calculate percentages
         categories_summary = []
@@ -822,14 +833,54 @@ class MenuEngineeringClassifier:
             if item["category"] == MenuCategory.DOG.value
         ]
 
+        # Calculate portfolio health score (0-1 scale)
+        # Based on BCG distribution: Stars and Plowhorses are good, Dogs are bad
+        # Puzzles are neutral (potential)
+        star_count = category_counts[MenuCategory.STAR.value]
+        plowhorse_count = category_counts[MenuCategory.PLOWHORSE.value]
+        puzzle_count = category_counts[MenuCategory.PUZZLE.value]
+        dog_count = category_counts[MenuCategory.DOG.value]
+
+        total_items = len(classified_items)
+        if total_items > 0:
+            # Weighted score: Stars (1.0), Plowhorses (0.8), Puzzles (0.5), Dogs (0.0)
+            portfolio_health_score = (
+                (star_count * 1.0)
+                + (plowhorse_count * 0.8)
+                + (puzzle_count * 0.5)
+                + (dog_count * 0.0)
+            ) / total_items
+        else:
+            portfolio_health_score = 0.0
+
+        # Financial metrics
+        avg_revenue_per_item = total_revenue / total_items if total_items > 0 else 0
+        profit_margin_pct = (
+            (total_contribution / total_revenue * 100) if total_revenue > 0 else 0
+        )
+        food_cost_pct = (total_cost / total_revenue * 100) if total_revenue > 0 else 0
+
         return {
             "total_items": len(classified_items),
             "total_revenue": round(total_revenue, 2),
             "total_contribution": round(total_contribution, 2),
+            "total_cost": round(total_cost, 2),
             "total_units": total_units,
             "avg_cm": (
                 round(total_contribution / total_units, 2) if total_units > 0 else 0
             ),
+            "avg_revenue_per_item": round(avg_revenue_per_item, 2),
+            "profit_margin_pct": round(profit_margin_pct, 1),
+            "food_cost_pct": round(food_cost_pct, 1),
+            "portfolio_health_score": round(portfolio_health_score, 2),
+            "counts": {
+                "star": star_count,
+                "cash_cow": plowhorse_count,  # Frontend uses cash_cow
+                "plowhorse": plowhorse_count,
+                "question_mark": puzzle_count,  # Frontend uses question_mark
+                "puzzle": puzzle_count,
+                "dog": dog_count,
+            },
             "categories": categories_summary,
             "top_by_contribution": [
                 {"name": item["name"], "contribution": item["total_contribution"]}

@@ -48,8 +48,8 @@ const AudioPlayer = ({ blob, onDelete, index }: { blob: Blob; onDelete: () => vo
 
   return (
     <div className="flex items-center gap-2 bg-white rounded-lg px-2 py-1 border">
-      <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} />
-      <button onClick={togglePlay} className="p-1 hover:bg-gray-100 rounded">
+      {audioUrl && <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} />}
+      <button onClick={togglePlay} className="p-1 hover:bg-gray-100 rounded" disabled={!audioUrl}>
         {isPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
       </button>
       <span className="text-xs text-gray-600">Recording {index + 1}</span>

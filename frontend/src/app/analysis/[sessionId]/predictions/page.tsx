@@ -8,28 +8,74 @@ interface PredictionsPageProps {
   params: Promise<{ sessionId: string }>;
 }
 
+const ALL_PERIODS = [
+  { value: '30d', label: '30 días' },
+  { value: '90d', label: '3 meses' },
+  { value: '180d', label: '6 meses' },
+  { value: '365d', label: '1 año' },
+  { value: 'all', label: 'Todo' },
+];
+
+function getAvailablePeriods(sessionData: any) {
+  const available = sessionData?.available_periods?.available_periods || [];
+  if (available.length === 0) return ALL_PERIODS;
+  
+  return ALL_PERIODS.filter(p => available.includes(p.value));
+}
+
 export default function PredictionsPage({ params }: PredictionsPageProps) {
   const { sessionId } = use(params);
   const [data, setData] = useState<PredictionResult | null>(null);
+  const [sessionData, setSessionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('all');
+  const [retrainingLoading, setRetrainingLoading] = useState(false);
+
+  const fetchPredictions = async () => {
+    try {
+      const session = sessionId === 'demo-session-001'
+        ? await api.getDemoSession()
+        : await api.getSession(sessionId);
+      setSessionData(session);
+      if (session.predictions) {
+        setData(session.predictions);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load predictions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const retrainWithPeriod = async (period: string) => {
+    setRetrainingLoading(true);
+    setSelectedPeriod(period);
+    setError(null);
+    
+    try {
+      // Call predictions API with period parameter
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(
+        `${API_URL}/api/v1/predict/sales?session_id=${sessionId}&period=${period}`,
+        { method: 'POST' }
+      );
+      
+      if (!response.ok) throw new Error('Failed to retrain predictions');
+      
+      const result = await response.json();
+      setData(result);
+      
+      // Update session data
+      await fetchPredictions();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to retrain model');
+    } finally {
+      setRetrainingLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPredictions = async () => {
-      try {
-        const session = sessionId === 'demo-session-001'
-          ? await api.getDemoSession()
-          : await api.getSession(sessionId);
-        if (session.predictions) {
-          setData(session.predictions);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load predictions');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPredictions();
   }, [sessionId]);
 
@@ -56,14 +102,52 @@ export default function PredictionsPage({ params }: PredictionsPageProps) {
     );
   }
 
+  const availablePeriods = sessionData ? getAvailablePeriods(sessionData) : [];
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold">Sales Predictions</h2>
-        <span className="text-sm text-gray-500">
-          {data.predictions.length} days forecasted
-        </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-bold">Sales Predictions</h2>
+          <span className="text-sm text-gray-500">
+            {data.predictions.length} days forecasted
+          </span>
+        </div>
+        
+        {/* Period Selector */}
+        {availablePeriods.length > 1 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Training period:</span>
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              {availablePeriods.map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => retrainWithPeriod(p.value)}
+                  disabled={retrainingLoading}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                    selectedPeriod === p.value
+                      ? 'bg-white text-blue-600 shadow-sm font-medium'
+                      : 'text-gray-600 hover:text-gray-900'
+                  } disabled:opacity-50`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            {retrainingLoading && (
+              <span className="text-xs text-blue-600">Re-training...</span>
+            )}
+          </div>
+        )}
       </div>
+      
+      {/* Info about period-based training */}
+      {availablePeriods.length > 0 && (
+        <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200 text-sm text-blue-800">
+          <strong>💡 Pro tip:</strong> Training with more data (longer periods) typically improves prediction accuracy. 
+          Current training data: {selectedPeriod === 'all' ? 'All available data' : availablePeriods.find(p => p.value === selectedPeriod)?.label}
+        </div>
+      )}
 
       {/* Metrics Cards */}
       {data.metrics && (

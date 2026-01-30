@@ -247,31 +247,75 @@ Respond in this exact JSON format:
         image_data = Path(image_path).read_bytes()
         image_base64 = base64.b64encode(image_data).decode()
 
-        prompt = """Analyze this restaurant menu image and extract ALL menu items you can see.
+        prompt = """Eres un experto en análisis de menús de restaurantes con capacidades de visión avanzadas. Tu tarea es extraer EXHAUSTIVAMENTE cada producto del menú.
 
-IMPORTANT: You MUST respond with valid JSON in this exact format:
+🎯 OBJETIVO CRÍTICO: Extraer TODOS los productos, incluyendo:
+- Productos con texto seleccionable
+- Productos en imágenes/fotografías
+- Productos en secciones con diseños complejos
+- Productos en tablas, columnas, o formatos irregulares
+- Variantes, tamaños, y opciones (ej: cervezas de diferentes marcas, tequilas, vinos)
+
+📋 INSTRUCCIONES DETALLADAS:
+
+1. **ANÁLISIS EXHAUSTIVO**: Examina cada píxel de la imagen. NO te detengas hasta haber revisado:
+   - Encabezados y títulos de secciones
+   - Texto en columnas múltiples
+   - Texto en orientaciones diferentes
+   - Texto sobre imágenes o fondos decorativos
+   - Texto pequeño o en fuentes decorativas
+   - Listas, tablas, y menús desplegables
+
+2. **CATEGORIZACIÓN INTELIGENTE**: Identifica automáticamente las categorías:
+   - Bebidas: Cócteles, Licores (Tequila, Vodka, Ron, Ginebra, Whisky), Vinos, Cervezas, Bebidas Frías/Sin Alcohol
+   - Comida: Entradas, Platos Fuertes, Carnes, Mariscos, Pastas, Hamburguesas, Ensaladas, Postres
+   - Usa las categorías que veas en el menú, no inventes nuevas
+
+3. **EXTRACCIÓN DE PRECIOS**: 
+   - Busca precios en CUALQUIER formato: $150, 150.00, $150 MXN, etc.
+   - Si un producto tiene múltiples precios (ej: tamaños), crea un item separado para cada uno
+   - Si NO encuentras precio, usa null pero incluye el producto
+
+4. **DESCRIPCIONES E IMÁGENES**:
+   - Extrae descripciones completas si están disponibles
+   - Si ves una IMAGEN del platillo en el menú, anota que tiene imagen visual
+   - Describe brevemente lo que se ve en la imagen si hay una
+
+5. **VALIDACIÓN**: Antes de responder, verifica:
+   - ¿Revisé TODAS las esquinas de la imagen?
+   - ¿Incluí productos en texto pequeño o difícil de leer?
+   - ¿Capturé todas las variantes (ej: todas las marcas de cerveza listadas)?
+   - ¿El total de productos parece razonable para el tamaño del menú?
+
+FORMATO DE RESPUESTA (JSON válido):
 {
   "items": [
     {
-      "name": "Item name exactly as written",
-      "price": 12000,
-      "description": "Item description if available",
-      "category": "category name"
+      "name": "Nombre exacto del producto",
+      "price": 150.00,
+      "description": "Descripción completa si está disponible",
+      "category": "Categoría identificada",
+      "has_image": true,
+      "image_description": "Descripción de la imagen del producto si hay una",
+      "variant": "Información de variante (tamaño, marca, etc.)",
+      "confidence": 0.95
     }
   ],
-  "confidence": 0.85
+  "confidence": 0.90,
+  "total_items_found": 178,
+  "categories_found": ["Cócteles", "Licores", "Comida"],
+  "extraction_notes": "Notas sobre dificultades o particularidades del menú"
 }
 
-For each item, identify:
-- Name (exactly as written on the menu)
-- Price (as a number, remove currency symbols)
-- Description (if available, otherwise use empty string)
-- Category (appetizers, mains, desserts, drinks, etc.)
+⚠️ IMPORTANTE:
+- Si el menú tiene ~100-200 productos, tu respuesta debe tener ~100-200 items
+- NO resumas ni omitas productos
+- NO uses "..." para indicar más productos
+- Extrae CADA PRODUCTO INDIVIDUAL
+- Mantén los nombres originales en español
+- Si tienes dudas sobre un texto, inclúyelo con confidence más baja
 
-Extract EVERY visible item on the menu. If you see text but it's unclear, make your best interpretation.
-If the menu is in Spanish, keep the original Spanish names.
-
-Return ONLY the JSON, no other text."""
+Responde SOLO con el JSON, sin texto adicional antes o después."""
 
         if additional_context:
             prompt += f"\n\nAdditional context: {additional_context}"
@@ -292,17 +336,62 @@ Return ONLY the JSON, no other text."""
             image_data = Path(path).read_bytes()
             image_base64 = base64.b64encode(image_data).decode()
 
-            prompt = """Analyze this dish photograph for a restaurant optimization system.
+            prompt = """Eres un experto en gastronomía y fotografía de alimentos. Analiza esta imagen de platillo/producto para un sistema de optimización de restaurantes.
 
-Evaluate:
-1. Visual attractiveness (0-1 score)
-2. Presentation quality (poor/average/good/excellent)
-3. Color appeal and contrast
-4. Portion size perception
-5. Instagram/social media worthiness (0-1 score)
-6. Specific suggestions for improvement
+🎯 ANÁLISIS EXHAUSTIVO REQUERIDO:
 
-Be objective and constructive in your analysis."""
+1. **IDENTIFICACIÓN DEL PLATILLO**:
+   - ¿Qué platillo/producto es? (nombre probable)
+   - ¿Qué ingredientes visuales puedes identificar?
+   - ¿Es una fotografía del menú o una foto real del platillo?
+   
+2. **EVALUACIÓN VISUAL** (puntuación 0-1):
+   - Atractivo visual general
+   - Calidad de presentación (emplatado)
+   - Apetitosidad (¿provoca ganas de comerlo?)
+   - Iluminación y fotografía
+   
+3. **ANÁLISIS DE COLOR Y TEXTURA**:
+   - Colores predominantes y contraste
+   - Variedad de colores (platos multicolor > monocromáticos)
+   - Texturas visibles (crujiente, cremoso, jugoso, etc.)
+   
+4. **PERCEPCIÓN DE PORCIÓN**:
+   - Tamaño aparente (muy pequeño/pequeño/adecuado/generoso/muy generoso)
+   - Relación precio-valor visual
+   
+5. **POTENCIAL EN REDES SOCIALES**:
+   - Instagram worthiness (0-1 score)
+   - ¿Es "fotogénico" para compartir?
+   - Factores que lo hacen compartible
+   
+6. **SUGERENCIAS ESPECÍFICAS DE MEJORA**:
+   - Mejoras en presentación
+   - Mejoras en fotografía/iluminación
+   - Elementos adicionales que podría tener
+   - Comparación con estándares de la categoría
+
+Responde en JSON:
+{
+  "dish_name": "Nombre identificado del platillo",
+  "dish_type": "Tipo de platillo (entrada, fuerte, postre, bebida)",
+  "identified_ingredients": ["ingrediente1", "ingrediente2"],
+  "is_menu_photo": true/false,
+  "attractiveness_score": 0.85,
+  "presentation_quality": "excellent",
+  "appetizing_score": 0.90,
+  "color_appeal": "Alta variedad de colores con buen contraste",
+  "texture_notes": "Textura crujiente visible en...",
+  "portion_perception": "generous",
+  "portion_score": 0.8,
+  "instagram_worthiness": 0.88,
+  "shareability_factors": ["Factor 1", "Factor 2"],
+  "improvement_suggestions": ["Sugerencia específica 1", "Sugerencia 2"],
+  "photography_quality": "Iluminación natural, enfoque correcto",
+  "overall_notes": "Análisis general del platillo"
+}
+
+Sé objetivo, detallado y constructivo."""
 
             response = await self._call_gemini_with_image(prompt, image_base64)
             self.call_count += 1
@@ -565,8 +654,8 @@ Be critical and thorough."""
                 )
             ],
             config=types.GenerateContentConfig(
-                temperature=0.5,
-                max_output_tokens=4096,
+                temperature=0.3,  # Lower temperature for more precise extraction
+                max_output_tokens=8192,  # Increased from 4096 to handle 178+ products
             ),
         )
         return response

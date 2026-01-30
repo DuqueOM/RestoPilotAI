@@ -61,10 +61,38 @@ export default function OverviewPage({ params }: OverviewPageProps) {
       {/* Executive Summary Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white">
         <h2 className="text-xl font-bold mb-2">Executive Summary</h2>
-        <p className="text-blue-100 text-sm">
+        <p className="text-blue-100 text-sm mb-3">
           Complete analysis of {bcgData?.summary?.total_items || session?.menu?.items?.length || 0} products • 
           Portfolio Health: {((bcgData?.summary?.portfolio_health_score || 0) * 100).toFixed(0)}%
         </p>
+        {bcgData?.summary && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div>
+              <p className="text-blue-200">Total Revenue</p>
+              <p className="font-semibold">
+                ${(bcgData.summary.total_revenue || 0).toLocaleString('es-CO', {maximumFractionDigits: 0})}
+              </p>
+            </div>
+            <div>
+              <p className="text-blue-200">Total Units</p>
+              <p className="font-semibold">
+                {(bcgData.summary.total_units || 0).toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-blue-200">Profit Margin</p>
+              <p className="font-semibold">
+                {(bcgData.summary.profit_margin_pct || 0).toFixed(1)}%
+              </p>
+            </div>
+            <div>
+              <p className="text-blue-200">Food Cost</p>
+              <p className="font-semibold">
+                {(bcgData.summary.food_cost_pct || 0).toFixed(1)}%
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Key Metrics Grid */}

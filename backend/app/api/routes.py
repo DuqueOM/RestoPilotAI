@@ -13,7 +13,7 @@ import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import pandas as pd
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -146,9 +146,10 @@ async def ingest_dish_images(
     files: List[UploadFile] = File(...), session_id: str = Form(...)
 ):
     """
-    Upload and analyze dish photographs.
+    Upload and analyze dish photographs and videos.
 
-    Evaluates visual appeal and attractiveness of each dish.
+    Evaluates visual appeal, attractiveness, and composition of each dish.
+    Supports images (jpg, png, webp) and videos (mp4, webm, mov).
     """
 
     if session_id not in sessions:
@@ -157,42 +158,78 @@ async def ingest_dish_images(
     upload_dir = Path("data/uploads") / session_id / "dishes"
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    saved_paths = []
+    saved_image_paths = []
+    saved_video_paths = []
+
+    # Extended media types
+    allowed_images = settings.allowed_image_ext_list
+    allowed_videos = ["mp4", "webm", "mov", "avi", "mkv"]
+
     for file in files:
         ext = file.filename.split(".")[-1].lower() if file.filename else ""
-        if ext not in settings.allowed_image_ext_list:
-            continue
 
         file_path = upload_dir / file.filename
         with open(file_path, "wb") as f:
             shutil.copyfileobj(file.file, f)
-        saved_paths.append(str(file_path))
 
-    if not saved_paths:
-        raise HTTPException(400, "No valid images uploaded")
+        if ext in allowed_images:
+            saved_image_paths.append(str(file_path))
+            logger.info(f"Saved image: {file.filename}")
+        elif ext in allowed_videos:
+            saved_video_paths.append(str(file_path))
+            logger.info(f"Saved video: {file.filename}")
 
-    # Analyze dishes
+    if not saved_image_paths and not saved_video_paths:
+        raise HTTPException(400, "No valid images or videos uploaded")
+
+    # Analyze dishes (images and videos)
     try:
         menu_item_names = [
             item["name"] for item in sessions[session_id].get("menu_items", [])
         ]
-        result = await dish_analyzer.analyze_images(saved_paths, menu_item_names)
 
-        # Store image scores
-        sessions[session_id]["image_analyses"] = result["analyses"]
+        all_analyses = []
+
+        # Analyze images
+        if saved_image_paths:
+            logger.info(
+                f"Analyzing {len(saved_image_paths)} images with Gemini Vision..."
+            )
+            image_result = await dish_analyzer.analyze_images(
+                saved_image_paths, menu_item_names
+            )
+            all_analyses.extend(image_result["analyses"])
+
+        # Analyze videos (extract frames and analyze)
+        if saved_video_paths:
+            logger.info(
+                f"Analyzing {len(saved_video_paths)} videos with Gemini Vision..."
+            )
+            video_result = await dish_analyzer.analyze_videos(
+                saved_video_paths, menu_item_names
+            )
+            all_analyses.extend(video_result.get("analyses", []))
+
+        # Calculate combined summary
+        combined_summary = dish_analyzer._calculate_summary(all_analyses)
+
+        # Store analyses
+        sessions[session_id]["image_analyses"] = all_analyses
         sessions[session_id]["image_scores"] = {
             a.get("matched_menu_item", a.get("dish_name", f"dish_{i}")): a.get(
                 "attractiveness_score", 0.5
             )
-            for i, a in enumerate(result["analyses"])
+            for i, a in enumerate(all_analyses)
         }
 
         return {
             "session_id": session_id,
             "status": "success",
-            "images_analyzed": result["image_count"],
-            "summary": result["summary"],
-            "analyses": result["analyses"],
+            "images_analyzed": len(saved_image_paths),
+            "videos_analyzed": len(saved_video_paths),
+            "total_media_analyzed": len(all_analyses),
+            "summary": combined_summary,
+            "analyses": all_analyses,
         }
 
     except Exception as e:
@@ -650,15 +687,26 @@ async def run_bcg_analysis(session_id: str, period: str = "30d"):
 
     except Exception as e:
         logger.error(f"Menu Engineering analysis failed: {e}")
-        raise HTTPException(500, f"Analysis failed: {str(e)}")
 
 
 @router.post("/predict/sales", tags=["Predict"])
 async def predict_sales(
-    session_id: str, horizon_days: int = 14, scenarios: Optional[List[dict]] = None
+    session_id: str,
+    horizon_days: int = 14,
+    scenarios: Optional[List[Dict]] = None,
+    period: str = "all",
 ):
     """
-    Predict sales for menu items under different scenarios.
+    Generate sales predictions using ML model (XGBoost).
+
+    Args:
+        session_id: Session ID with menu items and sales data
+        horizon_days: Number of days to forecast (default: 14)
+        scenarios: List of prediction scenarios (baseline, promotion, etc.)
+        period: Analysis period for training data (30d, 90d, 180d, 365d, all)
+
+    Returns:
+        Predictions for each menu item under different scenarios
     """
 
     if session_id not in sessions:
@@ -666,8 +714,20 @@ async def predict_sales(
 
     session = sessions[session_id]
     menu_items = session.get("menu_items", [])
-    sales_data = session.get("sales_data", [])
+    all_sales_data = session.get("sales_data", [])
     image_scores = session.get("image_scores", {})
+
+    # Filter sales data by period for training
+    try:
+        analysis_period = AnalysisPeriod(period)
+    except ValueError:
+        analysis_period = AnalysisPeriod.ALL_TIME
+
+    from app.services.menu_engineering import filter_sales_by_period
+
+    sales_data, start_date, end_date = filter_sales_by_period(
+        all_sales_data, analysis_period
+    )
 
     if not menu_items:
         raise HTTPException(400, "No menu items found")
@@ -734,7 +794,15 @@ async def generate_campaigns(
     channels: Optional[List[str]] = None,
 ):
     """
-    Generate marketing campaign proposals based on analysis.
+    Generate AI-powered marketing campaign proposals with full context.
+
+    Uses comprehensive analysis including:
+    - BCG classification and menu engineering insights
+    - Sales predictions and trend analysis
+    - Business and competitor audio context
+    - Historical performance data
+
+    Ensures minimum of 3 campaigns are generated.
     """
 
     if session_id not in sessions:
@@ -743,13 +811,35 @@ async def generate_campaigns(
     session = sessions[session_id]
     bcg_analysis = session.get("bcg_analysis")
     menu_items = session.get("menu_items", [])
+    predictions = session.get("predictions")
+    audio_analysis = session.get("audio_analysis", {})
+    business_context = session.get("business_context", "")
+    competitor_context = session.get("competitor_context", "")
 
     if not bcg_analysis:
         raise HTTPException(400, "Run BCG analysis first")
 
+    # Ensure minimum 3 campaigns
+    num_campaigns = max(3, num_campaigns)
+
+    # Build enriched context with all available data
+    enriched_analysis = {
+        **bcg_analysis,
+        "predictions_available": predictions is not None,
+        "prediction_summary": (
+            predictions.get("scenario_totals") if predictions else None
+        ),
+        "business_context": business_context,
+        "competitor_context": competitor_context,
+        "audio_insights": {
+            "business": audio_analysis.get("business", []),
+            "competitor": audio_analysis.get("competitor", []),
+        },
+    }
+
     try:
         result = await campaign_generator.generate_campaigns(
-            bcg_analysis, menu_items, num_campaigns, duration_days, channels
+            enriched_analysis, menu_items, num_campaigns, duration_days, channels
         )
 
         sessions[session_id]["campaigns"] = result["campaigns"]
@@ -760,6 +850,13 @@ async def generate_campaigns(
             "campaigns_generated": len(result["campaigns"]),
             "campaigns": result["campaigns"],
             "thought_signature": result["thought_signature"],
+            "context_used": {
+                "bcg": True,
+                "predictions": predictions is not None,
+                "audio": len(audio_analysis) > 0,
+                "business_context": bool(business_context),
+                "competitor_context": bool(competitor_context),
+            },
         }
 
     except Exception as e:
@@ -776,14 +873,20 @@ async def get_session(session_id: str):
 
     session = sessions[session_id]
 
+    # Calculate available periods based on sales data
+    sales_data = session.get("sales_data", [])
+    period_calc = PeriodCalculator()
+    available_periods_info = period_calc.calculate_available_periods(sales_data)
+
     return {
         "session_id": session_id,
         "created_at": session.get("created_at"),
         "menu_items_count": len(session.get("menu_items", [])),
-        "sales_records_count": len(session.get("sales_data", [])),
+        "sales_records_count": len(sales_data),
         "has_bcg_analysis": "bcg_analysis" in session,
         "has_predictions": "predictions" in session,
         "campaigns_count": len(session.get("campaigns", [])),
+        "available_periods": available_periods_info,
         "data": session,
     }
 

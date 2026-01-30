@@ -8,13 +8,20 @@ interface BCGPageProps {
   params: Promise<{ sessionId: string }>;
 }
 
-const PERIODS = [
+const ALL_PERIODS = [
   { value: '30d', label: '30 días' },
   { value: '90d', label: '3 meses' },
   { value: '180d', label: '6 meses' },
   { value: '365d', label: '1 año' },
   { value: 'all', label: 'Todo' },
 ];
+
+function getAvailablePeriods(sessionData: any) {
+  const available = sessionData?.available_periods?.available_periods || [];
+  if (available.length === 0) return ALL_PERIODS;
+  
+  return ALL_PERIODS.filter(p => available.includes(p.value));
+}
 
 const CATEGORY_CONFIG: Record<string, { bg: string; text: string; border: string; icon: string; label: string; desc: string }> = {
   star: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-400', icon: '⭐', label: 'Estrellas', desc: 'Alta popularidad + Alto margen. Proteger y promocionar.' },
@@ -26,6 +33,7 @@ const CATEGORY_CONFIG: Record<string, { bg: string; text: string; border: string
 export default function BCGPage({ params }: BCGPageProps) {
   const { sessionId } = use(params);
   const [data, setData] = useState<BCGAnalysisResult | null>(null);
+  const [sessionData, setSessionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadingPeriod, setLoadingPeriod] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +45,7 @@ export default function BCGPage({ params }: BCGPageProps) {
       const session = sessionId === 'demo-session-001'
         ? await api.getDemoSession()
         : await api.getSession(sessionId);
+      setSessionData(session);
       if (session.bcg) {
         setData(session.bcg);
       }
@@ -104,7 +113,7 @@ export default function BCGPage({ params }: BCGPageProps) {
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Período:</span>
           <div className="flex bg-gray-100 rounded-lg p-1">
-            {PERIODS.map((p) => (
+            {getAvailablePeriods(sessionData).map((p) => (
               <button
                 key={p.value}
                 onClick={() => handlePeriodChange(p.value)}
