@@ -13,7 +13,7 @@ import SentimentDashboard from '@/components/SentimentDashboard'
 import ThoughtSignature from '@/components/ThoughtSignature'
 import { api } from '@/lib/api'
 import axios from 'axios'
-import { ArrowDown, BarChart3, Brain, Calendar, ChefHat, ClipboardCheck, Cpu, Download, Loader2, Megaphone, MessageSquare, Play, RefreshCw, Sparkles, Target, TrendingUp } from 'lucide-react'
+import { ArrowDown, ArrowRight, BarChart3, Brain, Calendar, ChefHat, ClipboardCheck, Cpu, Download, Loader2, Megaphone, MessageSquare, Play, RefreshCw, Sparkles, Target, TrendingUp, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
@@ -177,6 +177,45 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+               {/* Resume Session */}
+              {!sessionId && (
+                <div className="flex items-center">
+                  {showResumeInput ? (
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 animate-in fade-in slide-in-from-right-4">
+                      <input 
+                        type="text" 
+                        value={resumeId}
+                        onChange={(e) => setResumeId(e.target.value)}
+                        placeholder="Session ID..."
+                        className="bg-transparent border-none text-sm w-32 focus:ring-0 px-2"
+                        onKeyPress={(e) => e.key === 'Enter' && handleResumeSession()}
+                      />
+                      <button 
+                        onClick={handleResumeSession}
+                        disabled={resumeLoading}
+                        className="p-1 bg-white rounded-md shadow-sm text-primary-600 hover:text-primary-700"
+                      >
+                        {resumeLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                      </button>
+                      <button 
+                        onClick={() => setShowResumeInput(false)}
+                        className="p-1 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowResumeInput(true)}
+                      className="hidden md:flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors mr-4"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Resume Session
+                    </button>
+                  )}
+                </div>
+              )}
+
                {/* Demo Button - Moved to Header for cleanliness */}
               {!sessionId && (
                 <button
