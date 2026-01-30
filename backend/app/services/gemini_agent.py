@@ -33,7 +33,8 @@ class GeminiAgent:
 
     def __init__(self):
         settings = get_settings()
-        self.client = genai.Client(api_key=settings.gemini_api_key)
+        self.api_key = settings.gemini_api_key
+        self.client = genai.Client(api_key=self.api_key)
         self.call_count = 0
         self.total_tokens = 0
 
@@ -236,6 +237,100 @@ Respond in this exact JSON format:
                 "confidence": 0.7,
             }
 
+    async def extract_menu_from_pdf(
+        self, pdf_path: str, additional_context: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Extract menu items from a PDF file using Gemini Native Document Processing.
+        """
+        prompt = """Eres un sistema de inteligencia artificial AVANZADO especializado en digitalización de menús de restaurantes.
+Estás procesando un ARCHIVO PDF COMPLETO que puede contener múltiples páginas, texto seleccionable, imágenes escaneadas y diseños mixtos.
+
+🚨 **MODO DE EXTRACCIÓN TOTAL ACTIVADO** 🚨
+Tu objetivo es extraer CADA producto vendible de TODO el documento.
+
+CONTEXTO: El documento puede ser extenso (ej: 178+ productos). NO debes detenerte. NO debes resumir.
+
+🔍 **INSTRUCCIONES PARA DOCUMENTOS PDF**:
+1.  **Continuidad**: Lee el documento de principio a fin. Mantén el contexto de categorías que cruzan páginas.
+2.  **Multimodalidad**: El PDF puede tener páginas que son solo imágenes. LEELAS VISUALMENTE. Puede tener páginas de texto. LEELAS TEXTUALMENTE.
+3.  **Variantes y Opciones**: Desglosa todas las variantes (ej: "Sabores: Fresa, Vainilla, Chocolate" -> 3 items).
+
+🛠 **REGLAS DE EXTRACCIÓN (Mismas reglas estrictas)**:
+*   **Nombre**: Nombre completo y exacto.
+*   **Precio**: Extrae el precio. Si hay lista (Botella/Copa), crea items separados.
+*   **Categoría**: Respeta la estructura del menú.
+*   **Descripción**: Texto descriptivo asociado.
+*   **Análisis Visual**: Si hay fotos de platos en el PDF, indica `has_image: true` y descríbelos.
+
+FORMATO DE RESPUESTA (JSON):
+{
+  "items": [
+    {
+      "name": "Nombre Producto",
+      "price": 100.00,
+      "description": "Descripción",
+      "category": "Categoría",
+      "has_image": false,
+      "confidence": 0.95
+    }
+  ],
+  "confidence": 0.95,
+  "total_items_found": 150,
+  "pages_analyzed": "all"
+}
+
+Responde SOLO con el JSON válido.
+"""
+        if additional_context:
+            prompt += f"\n\nCONTEXTO ADICIONAL: {additional_context}"
+
+        try:
+            response = await self._call_gemini_with_pdf(prompt, pdf_path)
+            self.call_count += 1
+            return self._parse_extraction_response(response)
+        except Exception as e:
+            logger.error(f"Native PDF extraction failed: {e}")
+            return {"items": [], "confidence": 0.0, "error": str(e)}
+
+    async def _call_gemini_with_pdf(self, prompt: str, pdf_path: str) -> Any:
+        """Upload PDF to Gemini File API and generate content."""
+        logger.info(f"Uploading PDF {pdf_path} to Gemini...")
+        file_ref = self.client.files.upload(path=pdf_path)
+        
+        # Wait for processing
+        import time
+        while file_ref.state.name == "PROCESSING":
+            await asyncio.sleep(1)
+            file_ref = self.client.files.get(name=file_ref.name)
+            
+        if file_ref.state.name == "FAILED":
+            raise ValueError(f"PDF processing failed: {file_ref.state.name}")
+            
+        logger.info(f"PDF processed. Generating analysis for {pdf_path}...")
+        
+        response = self.client.models.generate_content(
+            model=self.MODEL_NAME,
+            contents=[
+                types.Content(
+                    parts=[
+                        types.Part(text=prompt),
+                        types.Part(
+                            file_data=types.FileData(
+                                file_uri=file_ref.uri,
+                                mime_type="application/pdf"
+                            )
+                        ),
+                    ]
+                )
+            ],
+            config=types.GenerateContentConfig(
+                temperature=0.2, # Low temp for accurate data extraction
+                max_output_tokens=8192,
+            ),
+        )
+        return response
+
     async def extract_menu_from_image(
         self, image_path: str, additional_context: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -247,78 +342,59 @@ Respond in this exact JSON format:
         image_data = Path(image_path).read_bytes()
         image_base64 = base64.b64encode(image_data).decode()
 
-        prompt = """Eres un experto en análisis de menús de restaurantes con capacidades de visión avanzadas. Tu tarea es extraer EXHAUSTIVAMENTE cada producto del menú.
+        prompt = """Eres un sistema de inteligencia artificial AVANZADO especializado en digitalización de menús complejos.
+Tu misión es realizar una EXTRACCIÓN TOTAL Y PROFUNDA de cada elemento vendible visible en esta imagen del menú.
 
-🎯 OBJETIVO CRÍTICO: Extraer TODOS los productos, incluyendo:
-- Productos con texto seleccionable
-- Productos en imágenes/fotografías
-- Productos en secciones con diseños complejos
-- Productos en tablas, columnas, o formatos irregulares
-- Variantes, tamaños, y opciones (ej: cervezas de diferentes marcas, tequilas, vinos)
+🚨 **MODO DE EXTRACCIÓN EXHAUSTIVA ACTIVADO** 🚨
+NO RESUMAS. NO AGRUPES. NO OMITAS NADA.
 
-📋 INSTRUCCIONES DETALLADAS:
+CONTEXTO: Estás procesando menús densos (ej: listas de licores con 50+ items, menús de platos fuertes con 100+ items).
+Tu trabajo es listar CADA UNO de ellos individualmente.
 
-1. **ANÁLISIS EXHAUSTIVO**: Examina cada píxel de la imagen. NO te detengas hasta haber revisado:
-   - Encabezados y títulos de secciones
-   - Texto en columnas múltiples
-   - Texto en orientaciones diferentes
-   - Texto sobre imágenes o fondos decorativos
-   - Texto pequeño o en fuentes decorativas
-   - Listas, tablas, y menús desplegables
+� **INSTRUCCIONES DE VISIÓN Y LECTURA:**
+1.  **Escaneo Estructural**: Analiza columnas, tablas, notas al pie, cajas laterales y texto superpuesto en imágenes.
+2.  **Manejo de Variantes**: Si ves "Cervezas: Corona, Modelo, Victoria... $50", DEBES crear 3 items separados (Cerveza Corona, Cerveza Modelo, Cerveza Victoria), todos con precio 50.
+3.  **Licores y Botellas**: Si hay una lista de tequilas/whiskies, extrae CADA MARCA y TIPO como un item individual.
+4.  **Items Visuales**: Si hay una FOTO de un platillo sin nombre claro pero con precio, descríbelo como "Platillo en foto (descripción)" e indica `has_image: true`.
 
-2. **CATEGORIZACIÓN INTELIGENTE**: Identifica automáticamente las categorías:
-   - Bebidas: Cócteles, Licores (Tequila, Vodka, Ron, Ginebra, Whisky), Vinos, Cervezas, Bebidas Frías/Sin Alcohol
-   - Comida: Entradas, Platos Fuertes, Carnes, Mariscos, Pastas, Hamburguesas, Ensaladas, Postres
-   - Usa las categorías que veas en el menú, no inventes nuevas
+🛠 **REGLAS DE EXTRACCIÓN:**
+*   **Nombre**: Nombre completo tal cual aparece.
+*   **Precio**: Si hay varios precios (Copa/Botella), crea DOS items o aclara en la descripción. Si no hay precio explícito pero se infiere por el encabezado (ej: "Todo a $100"), úsalo. Si no hay precio, usa `null`.
+*   **Descripción**: Todo el texto descriptivo bajo el nombre.
+*   **Categoría**: Usa la jerarquía del menú (ej: "Coctelería", "Licores > Tequila", "Fuertes > Carnes").
+*   **Análisis Visual**: Si el item tiene una FOTO al lado, analiza la foto y llena `image_description` con detalles visuales (colores, presentación, ingredientes visibles).
 
-3. **EXTRACCIÓN DE PRECIOS**: 
-   - Busca precios en CUALQUIER formato: $150, 150.00, $150 MXN, etc.
-   - Si un producto tiene múltiples precios (ej: tamaños), crea un item separado para cada uno
-   - Si NO encuentras precio, usa null pero incluye el producto
+🔢 **VERIFICACIÓN DE CANTIDAD**:
+Si ves una lista de 20 tequilas, espero 20 objetos en el JSON.
+Si ves una página llena de texto, espero 40-50 items.
+Es mejor extraer de más y luego filtrar, que omitir.
 
-4. **DESCRIPCIONES E IMÁGENES**:
-   - Extrae descripciones completas si están disponibles
-   - Si ves una IMAGEN del platillo en el menú, anota que tiene imagen visual
-   - Describe brevemente lo que se ve en la imagen si hay una
-
-5. **VALIDACIÓN**: Antes de responder, verifica:
-   - ¿Revisé TODAS las esquinas de la imagen?
-   - ¿Incluí productos en texto pequeño o difícil de leer?
-   - ¿Capturé todas las variantes (ej: todas las marcas de cerveza listadas)?
-   - ¿El total de productos parece razonable para el tamaño del menú?
-
-FORMATO DE RESPUESTA (JSON válido):
+FORMATO DE RESPUESTA (JSON):
 {
   "items": [
     {
-      "name": "Nombre exacto del producto",
-      "price": 150.00,
-      "description": "Descripción completa si está disponible",
-      "category": "Categoría identificada",
+      "name": "Nombre Producto",
+      "price": 100.00,
+      "description": "Descripción detallada",
+      "category": "Categoría exacta",
       "has_image": true,
-      "image_description": "Descripción de la imagen del producto si hay una",
-      "variant": "Información de variante (tamaño, marca, etc.)",
-      "confidence": 0.95
+      "image_description": "Plato servido en loza negra, salsa roja brillante, decorado con cilantro...",
+      "dietary_notes": ["sin gluten", "picante"],
+      "confidence": 0.98
     }
   ],
-  "confidence": 0.90,
-  "total_items_found": 178,
-  "categories_found": ["Cócteles", "Licores", "Comida"],
-  "extraction_notes": "Notas sobre dificultades o particularidades del menú"
+  "layout_analysis": {
+     "has_images": true,
+     "complexity": "high/medium/low",
+     "notes": "Menú con lista densa de licores en columna derecha"
+  }
 }
 
-⚠️ IMPORTANTE:
-- Si el menú tiene ~100-200 productos, tu respuesta debe tener ~100-200 items
-- NO resumas ni omitas productos
-- NO uses "..." para indicar más productos
-- Extrae CADA PRODUCTO INDIVIDUAL
-- Mantén los nombres originales en español
-- Si tienes dudas sobre un texto, inclúyelo con confidence más baja
-
-Responde SOLO con el JSON, sin texto adicional antes o después."""
+Responde SOLO con el JSON válido.
+"""
 
         if additional_context:
-            prompt += f"\n\nAdditional context: {additional_context}"
+            prompt += f"\n\nCONTEXTO ADICIONAL (Texto extraído por OCR/PDF): {additional_context}"
 
         response = await self._call_gemini_with_image(prompt, image_base64)
         self.call_count += 1
@@ -336,62 +412,66 @@ Responde SOLO con el JSON, sin texto adicional antes o después."""
             image_data = Path(path).read_bytes()
             image_base64 = base64.b64encode(image_data).decode()
 
-            prompt = """Eres un experto en gastronomía y fotografía de alimentos. Analiza esta imagen de platillo/producto para un sistema de optimización de restaurantes.
+            prompt = """ACTÚA COMO UN CRÍTICO GASTRONÓMICO Y EXPERTO EN FOOD STYLING DE CLASE MUNDIAL.
+Analiza esta imagen con profundidad extrema para un reporte de inteligencia competitiva.
 
-🎯 ANÁLISIS EXHAUSTIVO REQUERIDO:
+🎯 **TU MISIÓN**: Deconstruir visualmente el platillo para entender su propuesta de valor, calidad y atractivo.
 
-1. **IDENTIFICACIÓN DEL PLATILLO**:
-   - ¿Qué platillo/producto es? (nombre probable)
-   - ¿Qué ingredientes visuales puedes identificar?
-   - ¿Es una fotografía del menú o una foto real del platillo?
-   
-2. **EVALUACIÓN VISUAL** (puntuación 0-1):
-   - Atractivo visual general
-   - Calidad de presentación (emplatado)
-   - Apetitosidad (¿provoca ganas de comerlo?)
-   - Iluminación y fotografía
-   
-3. **ANÁLISIS DE COLOR Y TEXTURA**:
-   - Colores predominantes y contraste
-   - Variedad de colores (platos multicolor > monocromáticos)
-   - Texturas visibles (crujiente, cremoso, jugoso, etc.)
-   
-4. **PERCEPCIÓN DE PORCIÓN**:
-   - Tamaño aparente (muy pequeño/pequeño/adecuado/generoso/muy generoso)
-   - Relación precio-valor visual
-   
-5. **POTENCIAL EN REDES SOCIALES**:
-   - Instagram worthiness (0-1 score)
-   - ¿Es "fotogénico" para compartir?
-   - Factores que lo hacen compartible
-   
-6. **SUGERENCIAS ESPECÍFICAS DE MEJORA**:
-   - Mejoras en presentación
-   - Mejoras en fotografía/iluminación
-   - Elementos adicionales que podría tener
-   - Comparación con estándares de la categoría
+1.  **IDENTIFICACIÓN FORENSE**:
+    *   Nombre probable del platillo.
+    *   Ingredientes detectables (salsas, guarniciones, proteínas, decoraciones).
+    *   Técnica de cocción visible (frito, asado, crudo, sellado).
 
-Responde en JSON:
+2.  **ANÁLISIS SENSORIAL VISUAL**:
+    *   **Paleta de Color**: ¿Es vibrante? ¿Monocromático? ¿Apagado? (Describe los colores clave).
+    *   **Texturas**: Describe lo que se "siente" al verla (crujiente, sedoso, jugoso, seco, grasoso).
+    *   **Temperatura Visual**: ¿Se ve caliente (vapor, brillo) o frío?
+
+3.  **EVALUACIÓN DE PRESENTACIÓN (Food Styling)**:
+    *   **Composición**: Caótica vs. Estructurada. Altura del platillo. Uso del espacio negativo en el plato.
+    *   **Vajilla**: ¿Moderna, rústica, barata, elegante? ¿Ayuda o perjudica?
+    *   **Cuidado al detalle**: Limpieza de bordes, colocación de guarniciones.
+
+4.  **PSYCHOLOGY & MARKETING (La "Tercera Casilla")**:
+    *   **"Craveability" (Apetitosidad)**: Score 0-100. ¿Hace salivar? ¿Por qué?
+    *   **Instagram-worthiness**: Score 0-100. ¿La gente compartiría esto?
+    *   **Percepción de Valor**: ¿Se ve caro/premium o barato/abundante?
+
+5.  **FEEDBACK CONSTRUCTIVO DIRECTO**:
+    *   3 puntos fuertes.
+    *   3 áreas críticas de mejora (iluminación, emplatado, ingredientes).
+
+RESPUESTA JSON:
 {
-  "dish_name": "Nombre identificado del platillo",
-  "dish_type": "Tipo de platillo (entrada, fuerte, postre, bebida)",
-  "identified_ingredients": ["ingrediente1", "ingrediente2"],
-  "is_menu_photo": true/false,
-  "attractiveness_score": 0.85,
-  "presentation_quality": "excellent",
-  "appetizing_score": 0.90,
-  "color_appeal": "Alta variedad de colores con buen contraste",
-  "texture_notes": "Textura crujiente visible en...",
-  "portion_perception": "generous",
-  "portion_score": 0.8,
-  "instagram_worthiness": 0.88,
-  "shareability_factors": ["Factor 1", "Factor 2"],
-  "improvement_suggestions": ["Sugerencia específica 1", "Sugerencia 2"],
-  "photography_quality": "Iluminación natural, enfoque correcto",
-  "overall_notes": "Análisis general del platillo"
+  "dish_name": "Nombre inferido",
+  "dish_category": "Entrada/Fuerte/Postre/Bebida",
+  "visual_elements": {
+    "ingredients": ["lista", "detallada"],
+    "colors": "Descripción paleta",
+    "textures": "Descripción texturas"
+  },
+  "presentation_analysis": {
+    "style": "Rústico/Minimalista/Caótico/etc",
+    "plating_quality": "High/Medium/Low",
+    "crockery_comment": "Comentario sobre el plato/vajilla"
+  },
+  "scores": {
+    "appetizing": 95,
+    "instagram": 88,
+    "composition": 90,
+    "lighting": 85
+  },
+  "marketing_insight": {
+    "perceived_value": "High/Medium/Low",
+    "target_audience": "Descripción probable del cliente objetivo"
+  },
+  "feedback": {
+    "strengths": ["...", "...", "..."],
+    "improvements": ["...", "...", "..."]
+  },
+  "overall_summary": "Párrafo denso con el análisis final estilo crítico gastronómico."
 }
-
-Sé objetivo, detallado y constructivo."""
+"""
 
             response = await self._call_gemini_with_image(prompt, image_base64)
             self.call_count += 1
@@ -679,6 +759,41 @@ Be critical and thorough."""
         )
         return response
 
+    def _parse_video_analysis(self, response: Any, path: str) -> Dict[str, Any]:
+        """Parse video analysis response."""
+        try:
+            text = response.text
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0]
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0]
+
+            result = json.loads(text.strip())
+            result["video_path"] = path
+            
+            # Normalize scores
+            if "scores" in result:
+                scores = result["scores"]
+                # Map stop_scroll_power or craveability to attractiveness for general metrics
+                attractiveness = max(scores.get("stop_scroll_power", 0), scores.get("craveability", 0))
+                result["attractiveness_score"] = attractiveness / 100
+            
+            # Backward compatibility fields
+            if "feedback" in result:
+                result["improvement_suggestions"] = [
+                    result["feedback"].get("worst_feature", ""),
+                    result["feedback"].get("editing_tip", "")
+                ]
+            
+            return result
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            logger.error(f"Failed to parse video analysis: {e}")
+            return {
+                "video_path": path,
+                "attractiveness_score": 0.5,
+                "raw_response": response.text[:500],
+            }
+
     def _parse_extraction_response(self, response: Any) -> Dict[str, Any]:
         """Parse menu extraction response."""
         try:
@@ -730,6 +845,17 @@ Be critical and thorough."""
             text = response.text
             if "```json" in text:
                 text = text.split("```json")[1].split("```")[0]
+            
+            # Normalize scores to 0-1 range if they are 0-100
+            if "scores" in result:
+                scores = result["scores"]
+                result["attractiveness_score"] = scores.get("appetizing", 50) / 100
+                result["instagram_worthiness"] = scores.get("instagram", 50) / 100
+            
+            # Map new structure to old keys for backward compatibility
+            if "feedback" in result:
+                result["improvement_suggestions"] = result["feedback"].get("improvements", [])
+            
             elif "```" in text:
                 text = text.split("```")[1].split("```")[0]
 
@@ -739,6 +865,83 @@ Be critical and thorough."""
                 "classifications": [],
                 "portfolio_health": "unknown",
                 "raw_response": response.text[:1000],
+            }
+
+    def _parse_campaigns_response(self, response: Any) -> List[Dict[str, Any]]:
+        """Parse campaign generation response."""
+        try:
+            text = response.text
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0]
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0]
+
+            result = json.loads(text.strip())
+            if isinstance(result, list):
+                return result
+            elif "campaigns" in result:
+                return result["campaigns"]
+            return [result]
+        except (json.JSONDecodeError, KeyError, IndexError):
+            return [{"title": "Default Campaign", "raw_response": response.text[:1000]}]
+
+    def _parse_verification_response(self, response: Any) -> Dict[str, Any]:
+        """Parse verification response."""
+        try:
+            text = response.text
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0]
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0]
+
+            return json.loads(text.strip())
+        except (json.JSONDecodeError, KeyError, IndexError):
+            return {
+                "verification_passed": True,
+                "checks_performed": ["basic_review"],
+                "issues_found": [],
+                "corrections_needed": [],
+                "confidence_after_verification": 0.7,
+            }
+
+    def get_stats(self) -> Dict[str, int]:
+        """Get agent usage statistics."""
+        return {"gemini_calls": self.call_count, "estimated_tokens": self.total_tokens}
+                text = text.split("```json")[1].split("```")[0]
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0]
+
+            result = json.loads(text.strip())
+            if isinstance(result, list):
+                return result
+            elif "campaigns" in result:
+                return result["campaigns"]
+            return [result]
+        except (json.JSONDecodeError, KeyError, IndexError):
+            return [{"title": "Default Campaign", "raw_response": response.text[:1000]}]
+
+    def _parse_verification_response(self, response: Any) -> Dict[str, Any]:
+        """Parse verification response."""
+        try:
+            text = response.text
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0]
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0]
+
+            return json.loads(text.strip())
+        except (json.JSONDecodeError, KeyError, IndexError):
+            return {
+                "verification_passed": True,
+                "checks_performed": ["basic_review"],
+                "issues_found": [],
+                "corrections_needed": [],
+                "confidence_after_verification": 0.7,
+            }
+
+    def get_stats(self) -> Dict[str, int]:
+        """Get agent usage statistics."""
+        return {"gemini_calls": self.call_count, "estimated_tokens": self.total_tokens}
             }
 
     def _parse_campaigns_response(self, response: Any) -> List[Dict[str, Any]]:

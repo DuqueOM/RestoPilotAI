@@ -24,6 +24,29 @@ interface CompetitorInsight {
   confidenceScore: number;
   itemCount: number;
   priceRange: { min: number; max: number };
+  // Optional enriched fields
+  rating?: number;
+  address?: string;
+  distance?: string;
+  cuisine_type?: string;
+  social_media?: Array<{ platform: string; url: string; handle?: string }>;
+  menu?: { item_count: number; sources: string[] };
+  competitive_intelligence?: {
+    cuisine_types?: string[];
+    specialties?: string[];
+    brand_positioning?: string;
+    target_audience?: string;
+  };
+  photo_analysis?: {
+    ambiance?: string;
+    visual_quality_score?: number;
+    presentation_style?: string;
+    price_perception?: string;
+  };
+  metadata?: {
+    confidence_score: number;
+    data_sources: string[];
+  };
 }
 
 interface CompetitorAnalysis {
@@ -99,29 +122,124 @@ export default function CompetitorDashboard({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {insights.map((competitor: any, idx: number) => (
-            <div key={idx} className="bg-white rounded-lg shadow p-5 border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <h4 className="text-lg font-semibold text-gray-900">{competitor.competitorName || competitor.name}</h4>
-                {(competitor.rating > 0) && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-yellow-50 rounded-full">
-                    <span className="text-yellow-500">★</span>
-                    <span className="font-medium text-sm">{competitor.rating}</span>
+          {insights.map((competitor, idx) => (
+            <div key={idx} className="bg-white rounded-lg shadow p-5 border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden">
+              {/* Confidence Badge */}
+              {competitor.metadata?.confidence_score && (
+                 <div className="absolute top-0 right-0 px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-bl-lg border-l border-b border-emerald-100">
+                   {Math.round(competitor.metadata.confidence_score * 100)}% Match
+                 </div>
+              )}
+
+              <div className="flex items-start justify-between mb-3 pr-8">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">{competitor.competitorName || (competitor as any).name}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    {(competitor.rating && competitor.rating > 0) && (
+                      <div className="flex items-center gap-1 px-1.5 py-0.5 bg-yellow-50 rounded text-xs border border-yellow-100">
+                        <span className="text-yellow-500">★</span>
+                        <span className="font-medium">{competitor.rating}</span>
+                      </div>
+                    )}
+                    {competitor.competitive_intelligence?.cuisine_types?.map((type, i) => (
+                      <span key={i} className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {type}
+                      </span>
+                    ))}
                   </div>
-                )}
+                </div>
               </div>
               
               {competitor.address && (
-                <p className="text-sm text-gray-500 mb-2">📍 {competitor.address}</p>
+                <p className="text-sm text-gray-500 mb-2 flex items-start gap-1">
+                  <span className="flex-shrink-0">📍</span> 
+                  <span className="line-clamp-1">{competitor.address}</span>
+                </p>
               )}
               
-              {competitor.distance && (
-                <p className="text-xs text-gray-400">🚶 {competitor.distance}</p>
+              {/* Enriched Data Grid */}
+              <div className="grid grid-cols-2 gap-3 mt-4 mb-4">
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">Menu Analysis</p>
+                  <p className="font-semibold text-gray-900 flex items-center gap-1">
+                    🍽️ {competitor.menu?.item_count || competitor.itemCount || 0} items
+                  </p>
+                  {competitor.menu?.sources && (
+                    <p className="text-[10px] text-gray-400 mt-1 truncate">
+                      Src: {competitor.menu.sources.join(', ')}
+                    </p>
+                  )}
+                </div>
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">Social Media</p>
+                  <div className="flex gap-2 mt-1">
+                    {competitor.social_media && competitor.social_media.length > 0 ? (
+                      competitor.social_media.map((sm, i) => (
+                        <a 
+                          key={i} 
+                          href={sm.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-gray-400 hover:text-emerald-600 transition-colors"
+                          title={`${sm.platform}: ${sm.handle || 'Link'}`}
+                        >
+                          {sm.platform === 'facebook' && '📘'}
+                          {sm.platform === 'instagram' && '📸'}
+                          {sm.platform === 'tiktok' && '🎵'}
+                          {sm.platform === 'whatsapp_business' && '💬'}
+                          {sm.platform === 'twitter' && '🐦'}
+                        </a>
+                      ))
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">None found</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Positioning / Intelligence */}
+              {competitor.competitive_intelligence?.brand_positioning && (
+                <div className="mb-3">
+                  <p className="text-xs text-gray-500 mb-0.5">Brand Positioning</p>
+                  <p className="text-sm text-gray-700 italic">
+                    "{competitor.competitive_intelligence.brand_positioning}"
+                  </p>
+                </div>
               )}
 
-              {competitor.cuisine_type && (
+              {/* Visual Intelligence */}
+              {competitor.photo_analysis && (
+                <div className="mb-3 p-2 bg-purple-50 rounded-lg border border-purple-100">
+                  <p className="text-xs text-purple-700 font-semibold mb-1 flex justify-between">
+                    <span>Visual Intelligence</span>
+                    {competitor.photo_analysis.visual_quality_score && (
+                      <span>{Math.round(competitor.photo_analysis.visual_quality_score * 10)}/10 Score</span>
+                    )}
+                  </p>
+                  <div className="space-y-1">
+                    {competitor.photo_analysis.ambiance && (
+                      <p className="text-xs text-gray-600">
+                        <span className="font-medium">Ambiance:</span> {competitor.photo_analysis.ambiance}
+                      </p>
+                    )}
+                    {competitor.photo_analysis.presentation_style && (
+                      <p className="text-xs text-gray-600">
+                        <span className="font-medium">Style:</span> {competitor.photo_analysis.presentation_style}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {competitor.distance && (
+                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                  🚶 {competitor.distance} away
+                </p>
+              )}
+
+              {(competitor as any).cuisine_type && !competitor.competitive_intelligence && (
                 <span className="inline-block mt-2 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
-                  {competitor.cuisine_type}
+                  {(competitor as any).cuisine_type}
                 </span>
               )}
             </div>

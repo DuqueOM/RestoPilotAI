@@ -12,6 +12,11 @@ Includes core services and enhanced agentic capabilities:
 from app.services.bcg_classifier import BCGClassifier
 from app.services.campaign_generator import CampaignGenerator
 
+from app.services.competitor_enrichment import (
+    CompetitorEnrichmentService,
+    CompetitorProfile,
+)
+
 # New WOW factor services
 from app.services.competitor_intelligence import (
     CompetitiveAnalysisResult,
@@ -46,6 +51,9 @@ __all__ = [
     "ThinkingLevel",
     "NeuralPredictor",
     "AnalysisOrchestrator",
+    # Competitor Enrichment
+    "CompetitorEnrichmentService",
+    "CompetitorProfile",
     # Competitor Intelligence
     "CompetitorIntelligenceService",
     "CompetitorSource",

@@ -8,11 +8,10 @@ from typing import Any, Dict, List, Optional
 
 import fitz  # PyMuPDF
 import pytesseract
+from app.services.gemini_agent import GeminiAgent
 from loguru import logger
 from pdf2image import convert_from_path
 from PIL import Image
-
-from app.services.gemini_agent import GeminiAgent
 
 
 class MenuExtractor:
@@ -174,12 +173,64 @@ class MenuExtractor:
         business_context: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Extract menu items from ALL pages of a PDF.
-
-        This is useful for multi-page menus where different sections
-        are on different pages.
+        Extract menu items from a PDF using Gemini Native PDF support.
         """
-        logger.info(f"Extracting menu from all pages of PDF: {pdf_path}")
+        logger.info(
+            f"Extracting menu from PDF using Native Gemini File API: {pdf_path}"
+        )
+
+        try:
+            # 1. Try Native PDF Extraction (Best for mixed content and context)
+            gemini_result = await self.agent.extract_menu_from_pdf(
+                pdf_path, additional_context=business_context
+            )
+
+            items = gemini_result.get("items", [])
+
+            if items and len(items) > 5:
+                logger.info(
+                    f"Native PDF extraction successful. Found {len(items)} items."
+                )
+
+                # Post-process items
+                processed_items = self._post_process_items(items)
+                categories = self._extract_categories(processed_items)
+
+                return {
+                    "items": processed_items,
+                    "categories": categories,
+                    "item_count": len(processed_items),
+                    "extraction_confidence": gemini_result.get("confidence", 0.9),
+                    "method": "native_pdf",
+                    "warnings": self._generate_warnings(processed_items, None),
+                }
+            else:
+                logger.warning(
+                    "Native PDF extraction found few items. Falling back to page-by-image extraction."
+                )
+
+        except Exception as e:
+            logger.error(
+                f"Native PDF extraction failed: {e}. Falling back to image extraction."
+            )
+
+        # Fallback: Convert to images and process page by page (Legacy method)
+        return await self._extract_from_pdf_images_fallback(
+            pdf_path, use_ocr, business_context
+        )
+
+    async def _extract_from_pdf_images_fallback(
+        self,
+        pdf_path: str,
+        use_ocr: bool = True,
+        business_context: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Fallback: Extract menu items from ALL pages of a PDF by converting to images.
+        """
+        logger.info(
+            f"Fallback: Extracting menu from all pages of PDF as images: {pdf_path}"
+        )
 
         # Convert PDF to images
         first_page = await self._convert_pdf_to_image(pdf_path)
@@ -201,17 +252,12 @@ class MenuExtractor:
                 page_context = business_context or ""
                 if idx < len(text_layers) and text_layers[idx]:
                     page_context += f"\n\nExtracted text from PDF (selectable text layer):\n{text_layers[idx][:3000]}"
-                    logger.info(
-                        f"Page {idx + 1}: Using {len(text_layers[idx])} chars of selectable text"
-                    )
+                    # ... (rest of the logic remains similar but compacted)
 
-                # Extract from this page (single image, not recursive PDF call)
+                # Extract from this page
                 ocr_text = None
                 if use_ocr:
                     ocr_text = self._run_local_ocr(page_path)
-                    logger.debug(
-                        f"OCR extracted {len(ocr_text) if ocr_text else 0} characters"
-                    )
 
                 context = page_context
                 if ocr_text:
@@ -226,6 +272,9 @@ class MenuExtractor:
                 )
                 page_result = {
                     "items": processed_items,
+                    "categories": self._extract_categories(
+                        processed_items
+                    ),  # Helper returns list of dicts
                     "extraction_confidence": gemini_result.get("confidence", 0.7),
                     "warnings": self._generate_warnings(processed_items, ocr_text),
                 }
@@ -237,13 +286,14 @@ class MenuExtractor:
                         all_items.append(item)
                         existing_names.add(item["name"].lower())
 
-                # Merge categories
+                # Merge categories logic...
+                # Simpler merge for fallback
                 for cat in page_result.get("categories", []):
+                    # Assuming cat is a dict from _extract_categories
                     cat_name = cat["name"]
                     if cat_name not in all_categories:
                         all_categories[cat_name] = cat
                     else:
-                        # Merge items lists
                         all_categories[cat_name]["items"].extend(cat.get("items", []))
 
                 total_confidence += page_result.get("extraction_confidence", 0.7)

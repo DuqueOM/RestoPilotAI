@@ -31,6 +31,7 @@ from app.services.menu_extractor import DishImageAnalyzer, MenuExtractor
 from app.services.menu_optimizer import MenuOptimizer
 from app.services.neural_predictor import NeuralPredictor
 from app.services.orchestrator import AnalysisOrchestrator
+from app.services.period_calculator import PeriodCalculator
 from app.services.sales_predictor import SalesPredictor
 from app.services.verification_agent import ThinkingLevel, VerificationAgent
 
@@ -1890,12 +1891,20 @@ async def get_nearby_restaurants(
     lng: float = Form(...),
     radius: int = Form(1500),
     address: str = Form(None),
+    enrich: bool = Form(False),  # Si True, enriquece perfiles completos
 ):
     """
     Find nearby restaurants (competitors) within radius.
 
     Uses Google Places API if available, otherwise uses Gemini 3 with
     Google Search grounding to find real competitor data.
+
+    If enrich=True, returns fully enriched competitor profiles with:
+    - Complete Google Maps metadata
+    - Social media profiles
+    - Menu extraction
+    - Reviews analysis
+    - Photos analysis
 
     **Parameters:**
     - lat, lng: Coordinates of the restaurant
@@ -1931,13 +1940,54 @@ async def get_nearby_restaurants(
                             "userRatingsTotal": place.get("user_ratings_total"),
                             "placeId": place.get("place_id"),
                             "types": place.get("types", []),
+                            "location": place.get("geometry", {}).get("location", {}),
                         }
                     )
+
+                # Si se solicita enriquecimiento, procesar perfiles completos
+                if enrich and restaurants:
+                    logger.info(f"Enriching {len(restaurants)} competitor profiles...")
+                    from app.services.competitor_enrichment import (
+                        CompetitorEnrichmentService,
+                    )
+
+                    enrichment_service = CompetitorEnrichmentService(
+                        google_maps_api_key=settings.google_maps_api_key,
+                        gemini_agent=agent,
+                    )
+
+                    enriched_profiles = []
+                    for restaurant in restaurants[
+                        :5
+                    ]:  # Limitar a 5 para no exceder tiempo
+                        try:
+                            profile = (
+                                await enrichment_service.enrich_competitor_profile(
+                                    place_id=restaurant["placeId"],
+                                    basic_info=restaurant,
+                                )
+                            )
+                            enriched_profiles.append(profile.to_dict())
+                        except Exception as e:
+                            logger.error(f"Failed to enrich {restaurant['name']}: {e}")
+                            enriched_profiles.append(
+                                {"error": str(e), "basic_info": restaurant}
+                            )
+
+                    await enrichment_service.close()
+
+                    return {
+                        "restaurants": enriched_profiles,
+                        "status": "ok",
+                        "source": "google_places_enriched",
+                        "enriched": True,
+                    }
 
                 return {
                     "restaurants": restaurants,
                     "status": "ok",
                     "source": "google_places",
+                    "enriched": False,
                 }
 
         except Exception as e:
@@ -1989,7 +2039,7 @@ Busca al menos 5-8 restaurantes reales de la zona. Si no conoces restaurantes es
 
         # Use Gemini with Google Search grounding
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=agent.MODEL_NAME,
             contents=prompt,
             config=types.GenerateContentConfig(
                 tools=[types.Tool(google_search=types.GoogleSearch())],
@@ -2039,6 +2089,238 @@ Busca al menos 5-8 restaurantes reales de la zona. Si no conoces restaurantes es
     }
 
 
+@router.post("/location/enrich-competitor", tags=["Location"])
+async def enrich_competitor_profile(
+    place_id: str = Form(...),
+    session_id: Optional[str] = Form(None),
+):
+    """
+    Enriquecer perfil completo de un competidor específico.
+
+    Extrae:
+    - Metadatos completos de Google Maps (detalles, reseñas, fotos)
+    - Perfiles de redes sociales con cross-referencing
+    - WhatsApp Business si está disponible
+    - Menú consolidado de todas las fuentes
+    - Análisis multimodal de fotos y contenido
+    """
+    from app.services.competitor_enrichment import CompetitorEnrichmentService
+
+    try:
+        enrichment_service = CompetitorEnrichmentService(
+            google_maps_api_key=settings.google_maps_api_key,
+            gemini_agent=agent,
+        )
+
+        logger.info(f"Enriching competitor profile for place_id: {place_id}")
+
+        profile = await enrichment_service.enrich_competitor_profile(
+            place_id=place_id,
+        )
+
+        await enrichment_service.close()
+
+        # Guardar en sesión si se proporciona
+        if session_id and session_id in sessions:
+            if "enriched_competitors" not in sessions[session_id]:
+                sessions[session_id]["enriched_competitors"] = []
+            sessions[session_id]["enriched_competitors"].append(profile.to_dict())
+
+        return {
+            "status": "success",
+            "profile": profile.to_dict(),
+            "data_sources": profile.data_sources,
+            "confidence_score": profile.confidence_score,
+        }
+
+    except Exception as e:
+        logger.error(f"Competitor enrichment failed: {e}")
+        raise HTTPException(500, f"Failed to enrich competitor profile: {str(e)}")
+
+
+@router.post("/location/identify-business", tags=["Location"])
+async def identify_business(
+    query: str = Form(...),
+    lat: Optional[float] = Form(None),
+    lng: Optional[float] = Form(None),
+):
+    """
+    Identificar un negocio específico en Google Maps con precisión.
+
+    Busca el negocio por nombre y ubicación, y devuelve candidatos
+    para que el usuario pueda seleccionar el correcto.
+    """
+    import httpx
+
+    google_api_key = settings.google_maps_api_key
+
+    if not google_api_key:
+        raise HTTPException(
+            400,
+            "Google Maps API key not configured. Cannot identify business precisely.",
+        )
+
+    try:
+        async with httpx.AsyncClient() as client:
+            # Usar Text Search para encontrar el negocio específico
+            search_params = {
+                "query": query,
+                "key": google_api_key,
+                "language": "es",
+            }
+
+            # Si hay coordenadas, bias hacia esa ubicación
+            if lat and lng:
+                search_params["location"] = f"{lat},{lng}"
+                search_params["radius"] = 500  # 500m radius
+
+            response = await client.get(
+                "https://maps.googleapis.com/maps/api/place/textsearch/json",
+                params=search_params,
+            )
+
+            data = response.json()
+
+            if data.get("status") != "OK":
+                logger.warning(f"Business identification failed: {data.get('status')}")
+                return {
+                    "status": "no_results",
+                    "candidates": [],
+                    "message": "No se encontraron resultados. Intenta con un nombre más específico.",
+                }
+
+            # Retornar los candidatos encontrados
+            candidates = []
+            for place in data.get("results", [])[:5]:
+                location = place.get("geometry", {}).get("location", {})
+                candidates.append(
+                    {
+                        "name": place.get("name"),
+                        "address": place.get("formatted_address"),
+                        "placeId": place.get("place_id"),
+                        "lat": location.get("lat"),
+                        "lng": location.get("lng"),
+                        "rating": place.get("rating"),
+                        "userRatingsTotal": place.get("user_ratings_total"),
+                        "types": place.get("types", []),
+                        "photos": [
+                            p.get("photo_reference")
+                            for p in place.get("photos", [])[:3]
+                        ],
+                    }
+                )
+
+            logger.info(f"Found {len(candidates)} candidates for '{query}'")
+
+            return {
+                "status": "success",
+                "candidates": candidates,
+                "query": query,
+                "total_found": len(candidates),
+            }
+
+    except Exception as e:
+        logger.error(f"Business identification error: {e}")
+        raise HTTPException(500, f"Failed to identify business: {str(e)}")
+
+
+@router.post("/location/set-business", tags=["Location"])
+async def set_business_location(
+    session_id: str = Form(...),
+    place_id: str = Form(...),
+    enrich_profile: bool = Form(True),
+):
+    """
+    Establecer el negocio propio seleccionado y opcionalmente enriquecer su perfil.
+
+    Esto permite al usuario seleccionar su negocio del mapa y obtener
+    sus propios metadatos de Google Maps para comparación.
+    """
+    from app.services.competitor_enrichment import CompetitorEnrichmentService
+
+    if session_id not in sessions:
+        raise HTTPException(404, "Session not found")
+
+    try:
+        # Obtener detalles básicos
+        import httpx
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://maps.googleapis.com/maps/api/place/details/json",
+                params={
+                    "place_id": place_id,
+                    "fields": "name,formatted_address,geometry,rating,user_ratings_total,formatted_phone_number,website",
+                    "key": settings.google_maps_api_key,
+                },
+            )
+            data = response.json()
+
+            if data.get("status") != "OK":
+                raise HTTPException(
+                    400, f"Failed to get business details: {data.get('status')}"
+                )
+
+            result = data.get("result", {})
+            location = result.get("geometry", {}).get("location", {})
+
+            business_info = {
+                "place_id": place_id,
+                "name": result.get("name"),
+                "address": result.get("formatted_address"),
+                "lat": location.get("lat"),
+                "lng": location.get("lng"),
+                "rating": result.get("rating"),
+                "user_ratings_total": result.get("user_ratings_total"),
+                "phone": result.get("formatted_phone_number"),
+                "website": result.get("website"),
+            }
+
+            sessions[session_id]["business_location"] = business_info
+            sessions[session_id][
+                "location"
+            ] = business_info  # For backward compatibility with feedback generation
+
+            # Enriquecer perfil si se solicita
+            if enrich_profile:
+                logger.info(
+                    f"Enriching own business profile for {business_info['name']}"
+                )
+
+                enrichment_service = CompetitorEnrichmentService(
+                    google_maps_api_key=settings.google_maps_api_key,
+                    gemini_agent=agent,
+                )
+
+                profile = await enrichment_service.enrich_competitor_profile(
+                    place_id=place_id,
+                    basic_info=business_info,
+                )
+
+                await enrichment_service.close()
+
+                sessions[session_id]["business_profile_enriched"] = profile.to_dict()
+
+                return {
+                    "status": "success",
+                    "business": business_info,
+                    "enriched_profile": profile.to_dict(),
+                    "message": "Negocio establecido y perfil enriquecido",
+                }
+
+            return {
+                "status": "success",
+                "business": business_info,
+                "message": "Negocio establecido",
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Set business location error: {e}")
+        raise HTTPException(500, f"Failed to set business location: {str(e)}")
+
+
 # ============= FEEDBACK ENDPOINT =============
 
 
@@ -2065,9 +2347,7 @@ async def generate_feedback(
     menu_items = session.get("menu_items", [])
     bcg_analysis = session.get("bcg_analysis", {})
     campaigns = session.get("campaigns", [])
-    predictions = session.get("predictions", {})
     location_data = session.get("location", {})
-    competitors = session.get("competitors", [])
 
     # Calculate overall score based on available data
     score = 50  # Base score

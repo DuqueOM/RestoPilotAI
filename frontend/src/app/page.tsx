@@ -163,6 +163,7 @@ export default function Home() {
             {/* Location Picker */}
             {sessionId && (
               <LocationPicker
+                sessionId={sessionId}
                 onLocationSelect={(location, competitors) => {
                   console.log('Location selected:', location, competitors);
                   // Store location and competitors in session data
@@ -579,18 +580,23 @@ export default function Home() {
             {resultsTab === 'competitors' && (
               <CompetitorDashboard 
                 analysis={sessionData?.competitorAnalysis}
-                insights={sessionData?.competitors?.map((c: any, idx: number) => ({
+                insights={sessionData?.competitors?.map((c: any) => ({
                   competitorName: c.name,
                   priceComparison: 'similar' as const,
                   avgPriceDifference: 0,
                   uniqueItems: [],
                   recommendations: [],
-                  confidenceScore: 0.7,
-                  itemCount: 0,
-                  priceRange: { min: 0, max: 0 },
-                  rating: c.rating,
-                  address: c.address,
+                  confidenceScore: c.metadata?.confidence_score || 0.7,
+                  itemCount: c.menu?.item_count || 0,
+                  priceRange: c.competitive_intelligence?.price_range || { min: 0, max: 0 },
+                  rating: c.rating || c.google_maps?.rating,
+                  address: c.address || c.location?.address,
                   distance: c.distance,
+                  social_media: c.social_media,
+                  menu: c.menu,
+                  competitive_intelligence: c.competitive_intelligence,
+                  photo_analysis: c.photo_analysis,
+                  metadata: c.metadata,
                 }))}
               />
             )}
