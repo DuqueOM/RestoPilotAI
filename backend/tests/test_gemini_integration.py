@@ -1,5 +1,5 @@
 """
-Gemini 3 Integration Tests for MenuPilot.
+Gemini 3 Integration Tests for RestoPilotAI.
 
 Tests the Gemini 3 agent architecture and API integration.
 These tests verify the hackathon requirements are met.

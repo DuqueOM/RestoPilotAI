@@ -1,5 +1,5 @@
 """
-Advanced Analytics Service for MenuPilot.
+Advanced Analytics Service for RestoPilotAI.
 Provides demand prediction, seasonal trends, and product analytics.
 """
 

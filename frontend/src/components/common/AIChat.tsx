@@ -141,7 +141,7 @@ export default function AIChat({
                 <Bot className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500 text-sm">
                   {context === 'onboarding' 
-                    ? 'Ask me anything about MenuPilot!' 
+                    ? 'Ask me anything about RestoPilotAI!' 
                     : 'Ask me anything about your restaurant analysis!'}
                 </p>
                 <div className="mt-4 space-y-2">

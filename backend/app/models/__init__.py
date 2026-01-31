@@ -1,5 +1,5 @@
 """
-SQLAlchemy ORM models for MenuPilot.
+SQLAlchemy ORM models for RestoPilotAI.
 
 Includes:
 - Menu and product models
@@ -36,6 +36,7 @@ from app.models.competitor import (
 
 # Thought Trace models
 from app.models.context import (
+    BusinessContext,
     GeminiCallLog,
     ThinkingLevel,
     ThoughtTrace,
@@ -48,6 +49,7 @@ __all__ = [
     # Menu models
     "MenuItem",
     "MenuCategory",
+    "BusinessContext",
     # Sales models
     "SalesRecord",
     # Analysis models

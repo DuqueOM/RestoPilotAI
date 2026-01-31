@@ -1,5 +1,5 @@
 """
-Business logic services for MenuPilot.
+Business logic services for RestoPilotAI.
 
 Includes core services and enhanced agentic capabilities:
 - Verification Agent: Autonomous self-verification loop
@@ -31,8 +31,8 @@ from app.services.analysis.sentiment import (
     SentimentSource,
 )
 from app.services.campaigns.generator import CampaignGenerator
-from app.services.gemini.base_agent import GeminiAgent
-from app.services.gemini.verification import ThinkingLevel, VerificationAgent
+from app.services.gemini.base_agent import GeminiAgent, ThinkingLevel
+from app.services.gemini.verification import VerificationAgent
 from app.services.intelligence.data_enrichment import (
     CompetitorEnrichmentService,
     CompetitorProfile,

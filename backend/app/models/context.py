@@ -6,7 +6,7 @@ Stores AI reasoning traces for transparency and debugging.
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
@@ -61,7 +61,7 @@ class ThoughtTraceSession(Base):
     total_thinking_time_ms: Mapped[int] = mapped_column(Integer, default=0)
 
     # Stage summary
-    stages_completed: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    stages_completed: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
     # Gemini usage
     total_gemini_calls: Mapped[int] = mapped_column(Integer, default=0)
@@ -97,9 +97,9 @@ class ThoughtTrace(Base):
 
     # Reasoning content
     reasoning: Mapped[str] = mapped_column(Text)
-    observations: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    decisions: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    assumptions: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    observations: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    decisions: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    assumptions: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Quality metrics
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
@@ -146,7 +146,7 @@ class VerificationTrace(Base):
 
     # Feedback
     feedback: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    suggestions: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    suggestions: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Severity
     severity: Mapped[str] = mapped_column(String(20), default="info")
@@ -208,3 +208,31 @@ class GeminiCallLog(Base):
 
     # Timestamps
     called_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class BusinessContext(Base):
+    """
+    Stores text and audio context provided by user.
+    """
+    __tablename__ = "business_contexts"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[str] = mapped_column(String(36), index=True)
+    
+    # Text contexts
+    history_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    values_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    unique_selling_points_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    target_audience_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    challenges_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    goals_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Audio transcriptions (Gemini multimodal)
+    history_audio_transcript: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    values_audio_transcript: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Processed insights (by Gemini)
+    processed_insights: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

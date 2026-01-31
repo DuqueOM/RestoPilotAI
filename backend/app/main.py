@@ -1,5 +1,5 @@
 """
-MenuPilot FastAPI Application Entry Point.
+RestoPilotAI FastAPI Application Entry Point.
 
 This module initializes the FastAPI application with all routes,
 middleware, and startup/shutdown events.
@@ -36,19 +36,19 @@ async def lifespan(app: FastAPI):
     # Initialize database
     await init_db()
 
-    logger.info(f"MenuPilot started in {settings.app_env} mode")
+    logger.info(f"RestoPilotAI started in {settings.app_env} mode")
 
     yield
 
-    logger.info("MenuPilot shutting down")
+    logger.info("RestoPilotAI shutting down")
 
 
 app = FastAPI(
-    title="MenuPilot API",
+    title="RestoPilotAI API",
     description="""
-    🍽️ **MenuPilot** - AI-Powered Restaurant Menu Optimization
+    🍽️ **RestoPilotAI** - AI-Powered Restaurant Menu Optimization
     
-    MenuPilot is a multimodal AI assistant that helps small and medium restaurants
+    RestoPilotAI is a multimodal AI assistant that helps small and medium restaurants
     optimize their menu, pricing, and marketing campaigns using real data and
     automated reasoning powered by Google Gemini 3.
     
@@ -69,8 +69,8 @@ app = FastAPI(
     """,
     version=__version__,
     contact={
-        "name": "MenuPilot Team",
-        "url": "https://github.com/menupilot/menupilot",
+        "name": "RestoPilotAI Team",
+        "url": "https://github.com/RestoPilotAI/RestoPilotAI",
     },
     license_info={
         "name": "MIT License",
@@ -105,7 +105,7 @@ if Path("data/uploads").exists():
 async def root():
     """Root endpoint with API information."""
     return {
-        "name": "MenuPilot API",
+        "name": "RestoPilotAI API",
         "version": __version__,
         "status": "operational",
         "docs": "/docs",

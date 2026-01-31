@@ -17,8 +17,9 @@ from uuid import uuid4
 import httpx
 from loguru import logger
 
+from app.services.gemini.base_agent import ThinkingLevel
 from app.services.gemini.multimodal import MultimodalAgent
-from app.services.gemini.reasoning_agent import ReasoningAgent, ThinkingLevel
+from app.services.gemini.reasoning_agent import ReasoningAgent
 from app.services.intelligence.social_scraper import SocialScraper
 
 
@@ -189,7 +190,7 @@ class CompetitorIntelligenceService:
             timeout=30.0,
             follow_redirects=True,
             headers={
-                "User-Agent": "Mozilla/5.0 (compatible; MenuPilot/1.0; +https://menupilot.ai)"
+                "User-Agent": "Mozilla/5.0 (compatible; RestoPilotAI/1.0; +https://RestoPilotAI.ai)"
             },
         )
 

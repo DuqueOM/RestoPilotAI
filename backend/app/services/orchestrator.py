@@ -1,5 +1,5 @@
 """
-Autonomous Analysis Orchestrator - Marathon Agent pattern for MenuPilot.
+Autonomous Analysis Orchestrator - Marathon Agent pattern for RestoPilotAI.
 
 Coordinates the entire analysis pipeline with checkpoints, state management,
 and autonomous execution with transparent reasoning.
@@ -7,6 +7,7 @@ and autonomous execution with transparent reasoning.
 
 import asyncio
 import json
+import httpx  # Added for image downloading
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -16,6 +17,7 @@ from uuid import uuid4
 
 from loguru import logger
 
+from app.core.config import get_settings
 from app.core.websocket_manager import (
     ThoughtType,
     send_error,
@@ -32,10 +34,13 @@ from app.services.analysis.pricing import (
 from app.services.analysis.sales_predictor import SalesPredictor
 from app.services.analysis.sentiment import SentimentAnalyzer
 from app.services.campaigns.generator import CampaignGenerator
-from app.services.gemini.base_agent import GeminiAgent
-from app.services.gemini.verification import ThinkingLevel, VerificationAgent
+from app.services.gemini.base_agent import GeminiAgent, ThinkingLevel
+from app.services.gemini.verification import VerificationAgent
 from app.services.intelligence.competitor_finder import ScoutAgent
-from app.services.intelligence.social_aesthetics import VisualGapAnalyzer
+from app.services.intelligence.data_enrichment import CompetitorEnrichmentService
+from app.services.intelligence.social_aesthetics import SocialAestheticsAnalyzer
+from app.services.intelligence.neighborhood import NeighborhoodAnalyzer
+from app.services.analysis.context_processor import ContextProcessor
 
 
 class PipelineStage(str, Enum):
@@ -45,14 +50,19 @@ class PipelineStage(str, Enum):
     DATA_INGESTION = "data_ingestion"
     MENU_EXTRACTION = "menu_extraction"
     COMPETITOR_DISCOVERY = "competitor_discovery"
+    COMPETITOR_ENRICHMENT = "competitor_enrichment"      # New
+    COMPETITOR_VERIFICATION = "competitor_verification"  # New
+    NEIGHBORHOOD_ANALYSIS = "neighborhood_analysis"      # New
     COMPETITOR_ANALYSIS = "competitor_analysis"
     SENTIMENT_ANALYSIS = "sentiment_analysis"
     IMAGE_ANALYSIS = "image_analysis"
     VISUAL_GAP_ANALYSIS = "visual_gap_analysis"
+    CONTEXT_PROCESSING = "context_processing"            # New
     SALES_PROCESSING = "sales_processing"
     BCG_CLASSIFICATION = "bcg_classification"
     SALES_PREDICTION = "sales_prediction"
     CAMPAIGN_GENERATION = "campaign_generation"
+    STRATEGIC_VERIFICATION = "strategic_verification"    # New
     VERIFICATION = "verification"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -96,17 +106,24 @@ class AnalysisState:
     location: Optional[Dict[str, float]] = None
     menu_items: List[Dict[str, Any]] = field(default_factory=list)
     sales_data: List[Dict[str, Any]] = field(default_factory=list)
+    
+    # Context Data
+    business_context: Dict[str, Any] = field(default_factory=dict) # History, values, goals, etc.
+    competitor_urls: List[str] = field(default_factory=list)
 
     # Intelligence Data
     image_scores: Dict[str, float] = field(default_factory=dict)
     discovered_competitors: List[Dict[str, Any]] = field(default_factory=list)
+    neighborhood_analysis: Optional[Dict[str, Any]] = None # New
     competitor_analysis: Optional[Dict[str, Any]] = None
     sentiment_analysis: Optional[Dict[str, Any]] = None
     visual_gap_report: Optional[Dict[str, Any]] = None
+    context_insights: Optional[Dict[str, Any]] = None      # New
     bcg_analysis: Optional[Dict[str, Any]] = None
     predictions: Optional[Dict[str, Any]] = None
     campaigns: List[Dict[str, Any]] = field(default_factory=list)
     verification_result: Optional[Dict[str, Any]] = None
+    verification_history: List[Dict[str, Any]] = field(default_factory=list) # New
 
     thinking_level: ThinkingLevel = ThinkingLevel.STANDARD
     auto_verify: bool = True
@@ -118,7 +135,7 @@ class AnalysisState:
 
 class AnalysisOrchestrator:
     """
-    Autonomous orchestrator for the complete MenuPilot analysis pipeline.
+    Autonomous orchestrator for the complete RestoPilotAI analysis pipeline.
 
     Implements the Marathon Agent pattern with:
     - Checkpoint-based state management for long-running tasks
@@ -133,13 +150,22 @@ class AnalysisOrchestrator:
         self.bcg_classifier = BCGClassifier(self.gemini)
         self.sales_predictor = SalesPredictor()
         self.campaign_generator = CampaignGenerator(self.gemini)
-        self.verification_agent = VerificationAgent(self.gemini)
+        self.verification_agent = VerificationAgent()
 
         # New Intelligence Services
         self.scout_agent = ScoutAgent()
         self.competitor_intelligence = CompetitorIntelligenceService()
         self.sentiment_analyzer = SentimentAnalyzer()
-        self.visual_gap_analyzer = VisualGapAnalyzer()
+        self.visual_gap_analyzer = SocialAestheticsAnalyzer()
+        self.neighborhood_analyzer = NeighborhoodAnalyzer()
+        self.context_processor = ContextProcessor()
+        
+        # Initialize Enrichment Service
+        settings = get_settings()
+        self.enrichment_service = CompetitorEnrichmentService(
+            google_maps_api_key=settings.google_maps_api_key,
+            gemini_agent=self.gemini
+        )
 
         self.active_sessions: Dict[str, AnalysisState] = {}
         self.completed_sessions: Dict[str, AnalysisState] = {}
@@ -246,6 +272,9 @@ class AnalysisOrchestrator:
         cuisine_type: str = "general",
         thinking_level: Optional[ThinkingLevel] = None,
         auto_verify: Optional[bool] = None,
+        business_context: Optional[Dict[str, Any]] = None,
+        competitor_urls: Optional[List[str]] = None,
+        auto_find_competitors: bool = True,
     ) -> Dict[str, Any]:
         """
         Run the complete analysis pipeline autonomously.
@@ -259,6 +288,9 @@ class AnalysisOrchestrator:
             cuisine_type: Type of cuisine for competitor matching
             thinking_level: Depth of AI analysis
             auto_verify: Whether to run verification loop
+            business_context: Rich context about business (history, values, etc.)
+            competitor_urls: Explicit list of competitors to analyze
+            auto_find_competitors: Whether to run automatic competitor discovery
 
         Returns:
             Complete analysis results with thought traces
@@ -279,6 +311,20 @@ class AnalysisOrchestrator:
             state.thinking_level = thinking_level
         if auto_verify is not None:
             state.auto_verify = auto_verify
+        
+        # Update context
+        if business_context:
+            state.business_context = business_context
+        if competitor_urls:
+            state.competitor_urls = competitor_urls
+            # Add to discovered competitors immediately as manually added
+            for url in competitor_urls:
+                if url:
+                    state.discovered_competitors.append({
+                        "name": "Manual Competitor", # Will be refined by analysis
+                        "website": url,
+                        "source": "manual"
+                    })
 
         # Save updated config
         self._save_session_to_disk(state)
@@ -294,7 +340,8 @@ class AnalysisOrchestrator:
                 )
 
             # 2. Competitor Discovery (Scout Agent)
-            if address:
+            # Only run if auto_find is true OR if we have no competitors yet and an address
+            if auto_find_competitors and address:
                 await self._run_stage(
                     state,
                     PipelineStage.COMPETITOR_DISCOVERY,
@@ -302,8 +349,33 @@ class AnalysisOrchestrator:
                     address,
                     cuisine_type,
                 )
+            elif not auto_find_competitors and state.competitor_urls:
+                 self._add_thought_trace(
+                    state,
+                    step="Competitor Discovery Skipped",
+                    reasoning="User provided manual competitors and disabled auto-discovery",
+                    observations=[f"Using {len(state.competitor_urls)} manual competitors"],
+                    decisions=["Proceeding with manual competitor list"],
+                    confidence=1.0,
+                )
 
-            # 3. Competitor Analysis (Intelligence Service)
+            # 3. Competitor Enrichment (Deep Data)
+            if state.discovered_competitors:
+                await self._run_stage(
+                    state,
+                    PipelineStage.COMPETITOR_ENRICHMENT,
+                    self._run_competitor_enrichment,
+                )
+
+            # 4. Competitor Verification (Data Quality)
+            if state.discovered_competitors:
+                await self._run_stage(
+                    state,
+                    PipelineStage.COMPETITOR_VERIFICATION,
+                    self._run_competitor_verification,
+                )
+
+            # 5. Competitor Analysis (Intelligence Service)
             if state.discovered_competitors and state.menu_items:
                 await self._run_stage(
                     state,
@@ -311,7 +383,15 @@ class AnalysisOrchestrator:
                     self._run_competitor_analysis,
                 )
 
-            # 4. Sentiment Analysis
+            # 6. Neighborhood Analysis
+            if address and state.location:
+                await self._run_stage(
+                    state,
+                    PipelineStage.NEIGHBORHOOD_ANALYSIS,
+                    self._run_neighborhood_analysis,
+                )
+
+            # 7. Sentiment Analysis
             # (In a real scenario, we'd fetch reviews here. For now we simulate or use discovered data)
             if state.discovered_competitors:
                 await self._run_stage(
@@ -320,7 +400,7 @@ class AnalysisOrchestrator:
                     self._run_sentiment_analysis,
                 )
 
-            # 5. Visual Analysis (Dish Photos)
+            # 8. Visual Analysis (Dish Photos)
             if dish_images:
                 await self._run_stage(
                     state,
@@ -329,7 +409,7 @@ class AnalysisOrchestrator:
                     dish_images,
                 )
 
-            # 6. Visual Gap Analysis (Comparing ours vs competitors)
+            # 9. Visual Gap Analysis (Comparing ours vs competitors)
             if dish_images and state.discovered_competitors:
                 await self._run_stage(
                     state,
@@ -338,7 +418,15 @@ class AnalysisOrchestrator:
                     dish_images,
                 )
 
-            # 7. Sales Data Processing
+            # 10. Context Processing (Enrichment)
+            if state.business_context:
+                await self._run_stage(
+                    state,
+                    PipelineStage.CONTEXT_PROCESSING,
+                    self._run_context_processing,
+                )
+
+            # 11. Sales Data Processing
             if sales_csv:
                 await self._run_stage(
                     state,
@@ -347,7 +435,7 @@ class AnalysisOrchestrator:
                     sales_csv,
                 )
 
-            # 8. BCG & Prediction & Campaigns (Requires Menu & Sales)
+            # 12. BCG & Prediction & Campaigns (Requires Menu & Sales)
             if state.menu_items:
                 await self._run_stage(
                     state,
@@ -367,7 +455,16 @@ class AnalysisOrchestrator:
                     state.thinking_level,
                 )
 
-            # 9. Verification
+            # 13. Strategic Verification
+            if state.campaigns:
+                await self._run_stage(
+                    state,
+                    PipelineStage.STRATEGIC_VERIFICATION,
+                    self._run_strategic_verification,
+                )
+
+            # 14. Final Verification (Optional extra check or merge with strategic)
+            # Keeping original verification as final "holistic" check if desired
             if state.auto_verify and state.bcg_analysis:
                 await self._run_stage(
                     state,
@@ -375,7 +472,6 @@ class AnalysisOrchestrator:
                     self._verify_analysis,
                     state.thinking_level,
                 )
-
             state.current_stage = PipelineStage.COMPLETED
             state.completed_at = datetime.now(timezone.utc)
 
@@ -509,6 +605,10 @@ class AnalysisOrchestrator:
         )
 
         state.discovered_competitors = result.get("competitors", [])
+        
+        # Update state location from scout result if available
+        if "summary" in result and "location_analyzed" in result["summary"]:
+            state.location = result["summary"]["location_analyzed"]
 
         # Add scout thought traces to main trace
         for trace in result.get("thought_traces", []):
@@ -520,6 +620,233 @@ class AnalysisOrchestrator:
                 decisions=[],
                 confidence=trace.get("confidence", 0.8),
             )
+
+    async def _run_competitor_enrichment(self, state: AnalysisState):
+        """Run deep competitor enrichment."""
+        self._add_thought_trace(
+            state,
+            step="Competitor Enrichment",
+            reasoning="Gathering deep intelligence on competitors (Social, Reviews, Photos)",
+            observations=[f"Enriching {len(state.discovered_competitors)} competitors"],
+            decisions=["Cross-referencing web & social data", "Analyzing content with Gemini"],
+            confidence=0.9,
+        )
+
+        enriched_competitors = []
+        for i, comp in enumerate(state.discovered_competitors):
+            # Report progress
+            await send_progress_update(
+                session_id=state.session_id,
+                stage=PipelineStage.COMPETITOR_ENRICHMENT.value,
+                progress=(i / len(state.discovered_competitors)) * 100,
+                message=f"Enriching profile for {comp.get('name', 'Competitor')}..."
+            )
+
+            # Check if we have a place_id
+            place_id = comp.get("place_id")
+            if place_id:
+                try:
+                    profile = await self.enrichment_service.enrich_competitor_profile(
+                        place_id=place_id,
+                        basic_info=comp
+                    )
+                    enriched_competitors.append(profile.to_dict())
+                except Exception as e:
+                    logger.warning(f"Enrichment failed for {comp.get('name')}: {e}")
+                    enriched_competitors.append(comp)
+            else:
+                enriched_competitors.append(comp)
+        
+        state.discovered_competitors = enriched_competitors
+
+        self._add_thought_trace(
+            state,
+            step="Enrichment Complete",
+            reasoning="Competitor profiles enriched with deep multimodal data",
+            observations=[f"Enriched {len(enriched_competitors)} profiles"],
+            decisions=["Proceeding to data verification"],
+            confidence=0.9,
+        )
+
+    async def _run_competitor_verification(self, state: AnalysisState):
+        """Verify competitor data quality."""
+        self._add_thought_trace(
+            state,
+            step="Competitor Data Verification",
+            reasoning="Verifying quality and consistency of discovered competitor data",
+            observations=[f"Checking {len(state.discovered_competitors)} competitors"],
+            decisions=["Identifying anomalies or data gaps"],
+            confidence=0.9,
+        )
+
+        verification = await self.verification_agent.verify_competitor_data(
+            state.discovered_competitors
+        )
+
+        state.verification_history.append({
+            "stage": PipelineStage.COMPETITOR_VERIFICATION,
+            "result": verification
+        })
+
+        if not verification.get("verified", False):
+            self._add_thought_trace(
+                state,
+                step="Data Issues Detected",
+                reasoning="Competitor data verification flagged issues",
+                observations=[i.get("issue") for i in verification.get("issues_found", [])],
+                decisions=["Proceeding with caution", "Flagging low confidence data"],
+                confidence=verification.get("confidence_score", 0.5),
+            )
+    
+    async def _run_neighborhood_analysis(self, state: AnalysisState):
+        """Run neighborhood analysis."""
+        self._add_thought_trace(
+            state,
+            step="Neighborhood Analysis",
+            reasoning="Analyzing local demographics and market dynamics",
+            observations=["Using location data", "Considering competitor density"],
+            decisions=["Profiling neighborhood character"],
+            confidence=0.85,
+        )
+
+        # Ensure we have location data. If Scout ran, we have state.location or it's in address.
+        # If we just have address string, we might need geocoding if Scout didn't run.
+        # Scout populates state.location.
+        location_data = state.location or {"address": "Unknown"}
+
+        analysis = await self.neighborhood_analyzer.analyze_neighborhood(
+            location_data=location_data,
+            nearby_businesses=[], # TODO: Fetch from Places API if possible
+            competitor_data=state.discovered_competitors
+        )
+
+        state.neighborhood_analysis = analysis
+
+    async def _run_context_processing(self, state: AnalysisState):
+        """Integrate business context into analysis."""
+        self._add_thought_trace(
+            state,
+            step="Context Integration",
+            reasoning="Integrating user-provided business context",
+            observations=[f"Context keys: {list(state.business_context.keys())}"],
+            decisions=["Enhancing insights with personalization"],
+            confidence=0.9,
+        )
+
+        # 1. Process Audio Context (Multimodal)
+        # Check for audio paths saved by the API
+        audio_updates = {}
+        
+        # History Audio
+        if "history_audio_path" in state.business_context:
+            path = state.business_context["history_audio_path"]
+            try:
+                # Read file bytes
+                import aiofiles
+                async with aiofiles.open(path, 'rb') as f:
+                    audio_bytes = await f.read()
+                
+                self._add_thought_trace(
+                    state,
+                    step="Processing History Audio",
+                    reasoning="Transcribing and analyzing history audio using Gemini Multimodal",
+                    observations=[f"Processing audio file: {path}"],
+                    decisions=["Extracting structured insights"],
+                    confidence=0.9,
+                )
+                
+                result = await self.context_processor.process_audio_context(
+                    audio_file=audio_bytes,
+                    context_type="history",
+                    mime_type="audio/webm" # Assumed from frontend MediaRecorder
+                )
+                
+                audio_updates["history_audio_analysis"] = result
+                # Merge text into main context for redundancy
+                state.business_context["history_text"] = (
+                    state.business_context.get("history_text", "") + 
+                    "\n\n[Audio Transcription]: " + 
+                    result.get("transcription", "")
+                )
+            except Exception as e:
+                logger.error(f"Failed to process history audio: {e}")
+
+        # Values Audio
+        if "values_audio_path" in state.business_context:
+            path = state.business_context["values_audio_path"]
+            try:
+                import aiofiles
+                async with aiofiles.open(path, 'rb') as f:
+                    audio_bytes = await f.read()
+
+                self._add_thought_trace(
+                    state,
+                    step="Processing Values Audio",
+                    reasoning="Transcribing and analyzing values audio using Gemini Multimodal",
+                    observations=[f"Processing audio file: {path}"],
+                    decisions=["Extracting structured insights"],
+                    confidence=0.9,
+                )
+
+                result = await self.context_processor.process_audio_context(
+                    audio_file=audio_bytes,
+                    context_type="values",
+                    mime_type="audio/webm"
+                )
+                
+                audio_updates["values_audio_analysis"] = result
+                state.business_context["values_text"] = (
+                    state.business_context.get("values_text", "") + 
+                    "\n\n[Audio Transcription]: " + 
+                    result.get("transcription", "")
+                )
+            except Exception as e:
+                logger.error(f"Failed to process values audio: {e}")
+        
+        # Update context with audio analysis
+        if audio_updates:
+            state.business_context.update(audio_updates)
+
+        # 2. Integrate into Analysis
+        # Prepare analysis data so far for context integration
+        current_analysis = {
+            "competitors": state.discovered_competitors,
+            "neighborhood": state.neighborhood_analysis,
+            "visual_gaps": state.visual_gap_report
+        }
+
+        insights = await self.context_processor.integrate_context_into_analysis(
+            business_context=state.business_context,
+            analysis_data=current_analysis
+        )
+
+        state.context_insights = insights
+
+    async def _run_strategic_verification(self, state: AnalysisState):
+        """Verify strategic logic."""
+        self._add_thought_trace(
+            state,
+            step="Strategic Verification",
+            reasoning="Verifying logical consistency of strategy and campaigns",
+            observations=["Checking BCG alignment", "Checking campaign viability"],
+            decisions=["Validating recommendations"],
+            confidence=0.9,
+        )
+
+        analysis_snapshot = {
+            "bcg": state.bcg_analysis,
+            "campaigns": state.campaigns,
+            "context_insights": state.context_insights
+        }
+
+        verification = await self.verification_agent.verify_analysis_logic(
+            analysis_snapshot
+        )
+
+        state.verification_history.append({
+            "stage": PipelineStage.STRATEGIC_VERIFICATION,
+            "result": verification
+        })
 
     async def _run_competitor_analysis(self, state: AnalysisState):
         """Run deep competitor analysis."""
@@ -609,47 +936,77 @@ class AnalysisOrchestrator:
             confidence=0.85,
         )
 
-        # Prepare our images
-        our_images_payload = []
-        for i, img in enumerate(dish_images):
-            # Try to match with menu item if possible, otherwise generic
-            name = f"Dish {i+1}"
-            # Simple heuristic matching could go here
-            our_images_payload.append({"image": img, "name": name})
+        if not state.discovered_competitors:
+             self._add_thought_trace(
+                state,
+                step="Visual Gap Analysis Skipped",
+                reasoning="No discovered competitors to compare against",
+                observations=[],
+                decisions=["Skipping comparative visual analysis"],
+                confidence=1.0,
+            )
+             return
 
-        # Prepare competitor images from Scout data
-        competitor_images_payload = []
-        for comp in state.discovered_competitors:
-            for photo_ref in comp.get("photos", [])[
-                :2
-            ]:  # Limit to top 2 per competitor
-                # In real app, we'd download the photo here or pass URL
-                # VisualGapAnalyzer expects bytes or URL
-                competitor_images_payload.append(
-                    {
-                        "image": photo_ref,  # Assuming this is URL or ref VisualAnalyzer can handle
-                        "name": "Competitor Dish",
-                        "competitor": comp["name"],
-                    }
-                )
+        # Prepare competitor images dict
+        comp_images_dict = {}
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                for comp in state.discovered_competitors:
+                    comp_name = comp.get("name", "Unknown")
+                    photos = comp.get("photos", [])[:2] # Limit to top 2 per competitor
+                    
+                    if not photos:
+                        continue
+                        
+                    downloaded_photos = []
+                    for photo_ref in photos:
+                        # If it looks like a URL, use it directly (e.g. from mock or web search)
+                        # If it's a reference (Google Places), construct URL via places service
+                        url = ""
+                        if photo_ref.startswith("http"):
+                            url = photo_ref
+                        else:
+                            url = self.scout_agent.places.get_photo_url(photo_ref)
+                        
+                        if url:
+                            try:
+                                resp = await client.get(url, timeout=10.0)
+                                if resp.status_code == 200:
+                                    downloaded_photos.append(resp.content)
+                            except Exception as e:
+                                logger.warning(f"Failed to download photo from {url}: {e}")
+                    
+                    if downloaded_photos:
+                        comp_images_dict[comp_name] = downloaded_photos
+                        
+        except Exception as e:
+             logger.error(f"Error during competitor image download: {e}")
 
-        if not competitor_images_payload:
+        # If we have no bytes for competitors, we verify if we can proceed
+        if not comp_images_dict:
             self._add_thought_trace(
                 state,
                 step="Visual Gap Analysis Skipped",
-                reasoning="No competitor photos available for comparison",
+                reasoning="Could not retrieve competitor photos (no photos found or download failed)",
                 observations=[],
                 decisions=["Skipping comparative visual analysis"],
                 confidence=1.0,
             )
             return
 
-        report = await self.visual_gap_analyzer.analyze_visual_gaps(
-            our_images=our_images_payload,
-            competitor_images=competitor_images_payload,
-        )
+        context_str = f"Restaurant: {state.restaurant_name}. Cuisine: {state.business_context.get('cuisine', 'General')}"
 
-        state.visual_gap_report = report.to_dict()
+        try:
+            report = await self.visual_gap_analyzer.compare_visual_aesthetics(
+                user_photos=dish_images,
+                competitor_photos=comp_images_dict,
+                context=context_str
+            )
+            state.visual_gap_report = report
+        except Exception as e:
+            logger.error(f"Visual gap analysis failed: {e}")
+            self._save_checkpoint(state, success=False, error=str(e))
 
     async def _process_sales_data(self, state: AnalysisState, sales_csv: str):
         """Process sales CSV data."""

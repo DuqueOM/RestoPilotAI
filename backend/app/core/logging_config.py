@@ -1,5 +1,5 @@
 """
-Structured Logging Configuration for MenuPilot.
+Structured Logging Configuration for RestoPilotAI.
 
 Provides:
 - Structured JSON logging for production
@@ -167,7 +167,7 @@ def configure_logging(
     )
 
 
-def get_logger(name: str = "menupilot") -> "logger":
+def get_logger(name: str = "RestoPilotAI") -> "logger":
     """Get a logger instance with optional context binding."""
     return logger.bind(component=name)
 

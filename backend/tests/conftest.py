@@ -1,5 +1,5 @@
 """
-Pytest configuration and fixtures for MenuPilot tests.
+Pytest configuration and fixtures for RestoPilotAI tests.
 """
 
 import pytest

@@ -1,5 +1,5 @@
 /**
- * Utility functions for MenuPilot frontend
+ * Utility functions for RestoPilotAI frontend
  */
 
 import { clsx, type ClassValue } from 'clsx'

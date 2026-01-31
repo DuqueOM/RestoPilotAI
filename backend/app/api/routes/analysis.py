@@ -23,10 +23,10 @@ from app.services.analysis.sentiment import (
     SentimentSource,
 )
 from app.services.campaigns.generator import CampaignGenerator
-from app.services.gemini.base_agent import GeminiAgent
+from app.services.gemini.base_agent import GeminiAgent, ThinkingLevel
 from app.services.gemini.multimodal import MultimodalAgent
 from app.services.gemini.reasoning_agent import ReasoningAgent
-from app.services.gemini.verification import ThinkingLevel, VerificationAgent
+from app.services.gemini.verification import VerificationAgent
 from app.services.intelligence.competitor_finder import ScoutAgent
 from app.services.orchestrator import orchestrator
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -45,7 +45,7 @@ bcg_classifier = BCGClassifier(agent)
 menu_engineering = MenuEngineeringClassifier()
 sales_predictor = SalesPredictor()
 campaign_generator = CampaignGenerator(agent)
-verification_agent = VerificationAgent(agent)
+verification_agent = VerificationAgent()
 neural_predictor = NeuralPredictor()
 data_capability_detector = DataCapabilityDetector()
 menu_optimizer = MenuOptimizer()
@@ -426,6 +426,122 @@ async def get_scout_results(session_id: str):
     }
 
 
+@router.post("/analysis/start", tags=["Orchestrator"])
+async def start_new_analysis(
+    # Basic Info
+    location: str = Form(...),
+    businessName: Optional[str] = Form(None),
+    instagram: Optional[str] = Form(None),
+    website: Optional[str] = Form(None),
+    
+    # Context (Text)
+    historyContext: Optional[str] = Form(None),
+    valuesContext: Optional[str] = Form(None),
+    uspsContext: Optional[str] = Form(None),
+    targetAudienceContext: Optional[str] = Form(None),
+    challengesContext: Optional[str] = Form(None),
+    goalsContext: Optional[str] = Form(None),
+    
+    # Competitors
+    competitorUrls: Optional[List[str]] = Form(None),
+    autoFindCompetitors: bool = Form(True),
+    
+    # Files
+    menuFiles: List[UploadFile] = File(default=[]),
+    salesFiles: List[UploadFile] = File(default=[]),
+    photoFiles: List[UploadFile] = File(default=[]),
+    
+    # Audio
+    historyAudio: Optional[UploadFile] = File(None),
+    valuesAudio: Optional[UploadFile] = File(None),
+):
+    """Start a new comprehensive analysis session from the setup wizard."""
+    
+    # 1. Create Session first to get ID for file storage
+    try:
+        session_id = await orchestrator.create_session()
+    except Exception as e:
+        logger.error(f"Failed to create session: {e}")
+        raise HTTPException(500, "Failed to initialize session")
+
+    # 2. aggregate context
+    business_context = {
+        "name": businessName,
+        "location_query": location,
+        "instagram": instagram,
+        "website": website,
+        "history": historyContext,
+        "values": valuesContext,
+        "usps": uspsContext,
+        "target_audience": targetAudienceContext,
+        "challenges": challengesContext,
+        "goals": goalsContext,
+    }
+    
+    # 3. Process Files
+    menu_bytes = []
+    for file in menuFiles:
+        menu_bytes.append(await file.read())
+        
+    dish_bytes = []
+    for file in photoFiles:
+        dish_bytes.append(await file.read())
+        
+    sales_csv = None
+    if salesFiles:
+        # Use the first sales file for now
+        content = await salesFiles[0].read()
+        try:
+            sales_csv = content.decode("utf-8")
+        except UnicodeDecodeError:
+            # Fallback for excel? For now assume CSV as per requirements, or handle error
+            logger.warning("Could not decode sales file as UTF-8")
+            
+    # 4. Handle Audio (Save to disk)
+    import aiofiles
+    import os
+    from pathlib import Path
+    
+    upload_dir = Path(f"data/uploads/{session_id}")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    if historyAudio:
+        file_path = upload_dir / f"history_audio_{historyAudio.filename}"
+        async with aiofiles.open(file_path, 'wb') as out_file:
+            content = await historyAudio.read()
+            await out_file.write(content)
+        business_context["history_audio_path"] = str(file_path)
+        
+    if valuesAudio:
+        file_path = upload_dir / f"values_audio_{valuesAudio.filename}"
+        async with aiofiles.open(file_path, 'wb') as out_file:
+            content = await valuesAudio.read()
+            await out_file.write(content)
+        business_context["values_audio_path"] = str(file_path)
+
+    # 5. Start Pipeline
+    try:
+        # Run in background via asyncio task
+        asyncio.create_task(orchestrator.run_full_pipeline(
+            session_id=session_id,
+            menu_images=menu_bytes,
+            dish_images=dish_bytes,
+            sales_csv=sales_csv,
+            address=location,
+            business_context=business_context,
+            competitor_urls=competitorUrls,
+            auto_find_competitors=autoFindCompetitors,
+            thinking_level=ThinkingLevel.STANDARD,
+            auto_verify=True
+        ))
+        
+        return {"analysis_id": session_id, "status": "started"}
+        
+    except Exception as e:
+        logger.error(f"Failed to start analysis pipeline: {e}")
+        # Session was created but pipeline failed to start
+        raise HTTPException(500, f"Failed to start analysis pipeline: {str(e)}")
+
 @router.post("/orchestrator/run", tags=["Orchestrator"])
 async def run_autonomous_pipeline(
     menu_image: Optional[UploadFile] = File(None),
@@ -719,7 +835,7 @@ async def chat_with_ai(
         return f"Stars: {counts.get('star', 0)}, Dogs: {counts.get('dog', 0)}"
 
     session_context = f"""
-    You are MenuPilot AI. 
+    You are RestoPilotAI AI. 
     Menu Items: {len(session.get('menu_items', []))}
     BCG: {_format_bcg(session.get('bcg_analysis', {}))}
     Context: {context}

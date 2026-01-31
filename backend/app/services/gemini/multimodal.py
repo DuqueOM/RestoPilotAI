@@ -33,7 +33,7 @@ class MultimodalAgent(GeminiBaseAgent):
         model: GeminiModel = GeminiModel.FLASH,
         **kwargs,
     ):
-        super().__init__(model=model, **kwargs)
+        super().__init__(model_name=model, **kwargs)
 
     async def process(self, *args, **kwargs) -> Any:
         """Main entry point - routes to specific extraction method."""

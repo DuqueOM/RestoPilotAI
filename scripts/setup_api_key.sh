@@ -3,7 +3,7 @@
 
 set -e
 
-echo "🔑 MenuPilot - Gemini API Key Setup"
+echo "🔑 RestoPilotAI - Gemini API Key Setup"
 echo "===================================="
 echo ""
 

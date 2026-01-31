@@ -1,4 +1,4 @@
-# 🍽️ MenuPilot
+# 🍽️ RestoPilotAI
 
 **AI-Powered Competitive Intelligence & Menu Optimization for Restaurants**
 
@@ -8,7 +8,7 @@
 
 > **"Give us your address. We'll give you competitive intelligence that would cost $5,000 and 2 months with a consultant."**
 
-MenuPilot is an autonomous AI intelligence platform that uses **Google Gemini 3's multimodal capabilities** to gather, analyze, and synthesize competitive data for restaurants. No spreadsheets. No manual research. Just your location—and our Agents do the rest.
+RestoPilotAI is an autonomous AI intelligence platform that uses **Google Gemini 3's multimodal capabilities** to gather, analyze, and synthesize competitive data for restaurants. No spreadsheets. No manual research. Just your location—and our Agents do the rest.
 
 ---
 
@@ -20,7 +20,7 @@ MenuPilot is an autonomous AI intelligence platform that uses **Google Gemini 3'
 - ❌ Manual data collection from dozens of sources
 - ❌ Static insights, outdated by publication
 
-**MenuPilot:**
+**RestoPilotAI:**
 - ✅ Enter your address: Instant Start
 - ✅ **Real-time Agentic Analysis** in < 5 minutes
 - ✅ **Scout Agent** autonomously gathers data from Google Maps, Instagram, reviews, and menus
@@ -32,7 +32,7 @@ MenuPilot is an autonomous AI intelligence platform that uses **Google Gemini 3'
 ## 🌟 Key Features
 
 ### **1. Autonomous Intelligence Gathering ("Scout Agent 2.0")**
-Unlike traditional tools where you input data manually, MenuPilot's **Scout Agent** acts as an autonomous field researcher:
+Unlike traditional tools where you input data manually, RestoPilotAI's **Scout Agent** acts as an autonomous field researcher:
 - **Geospatial Discovery**: Integrates with Google Maps/Places API to identify relevant competitors within a dynamic radius.
 - **Neighborhood Profiling**: Analyzes nearby businesses (universities, offices) to determine demographic opportunities.
 - **Social Intelligence**: Uses `SocialScraper` to extract and analyze Instagram content (captions + images) for aesthetic and engagement benchmarking.
@@ -56,7 +56,7 @@ We don't just read text. We see what your customers see:
 
 ## 🏗️ Technical Architecture
 
-MenuPilot relies on a robust **Agentic Architecture** powered by FastAPI and Next.js.
+RestoPilotAI relies on a robust **Agentic Architecture** powered by FastAPI and Next.js.
 
 ### **Backend (`/backend`)**
 - **Framework**: FastAPI (Python 3.11+)
@@ -106,8 +106,8 @@ MenuPilot relies on a robust **Agentic Architecture** powered by FastAPI and Nex
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/DuqueOM/MenuPilot.git
-   cd MenuPilot
+   git clone https://github.com/DuqueOM/RestoPilotAI.git
+   cd RestoPilotAI
    ```
 
 2. **Backend Setup**
@@ -140,9 +140,9 @@ MenuPilot relies on a robust **Agentic Architecture** powered by FastAPI and Nex
 
 ---
 
-## 🧠 How Gemini 3 Powers MenuPilot
+## 🧠 How Gemini 3 Powers RestoPilotAI
 
-MenuPilot showcases the advanced capabilities of Gemini 3:
+RestoPilotAI showcases the advanced capabilities of Gemini 3:
 
 | Feature | Gemini Capability | Implementation |
 |---------|-------------------|----------------|
@@ -172,4 +172,4 @@ MIT License - See [LICENSE](./LICENSE) for details.
 
 ---
 
-**Built with ❤️ by the MenuPilot Team for the Gemini 3 Hackathon.**
+**Built with ❤️ by the RestoPilotAI Team for the Gemini 3 Hackathon.**

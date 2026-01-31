@@ -28,7 +28,7 @@ interface AnalysisPanelProps {
   setIsLoading: (loading: boolean) => void
 }
 
-// Stages of the new RestaurantIQ Pipeline
+// Stages of the new RestoPilotAI Pipeline
 const ANALYSIS_STAGES = [
   { 
     id: 'menu_ingestion', 
@@ -338,7 +338,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
       <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Orquestador de Análisis</h2>
-          <p className="text-sm text-gray-500">RestaurantIQ Autonomous Pipeline</p>
+          <p className="text-sm text-gray-500">RestoPilotAI Autonomous Pipeline</p>
         </div>
         <div className="flex gap-3">
           <button

@@ -3,6 +3,7 @@ import httpx
 from typing import Optional
 from pydantic import BaseModel
 from loguru import logger
+from app.core.config import get_settings
 
 class GeocodingResult(BaseModel):
     latitude: float
@@ -14,7 +15,8 @@ class GeocodingResult(BaseModel):
 
 class GeocodingService:
     def __init__(self):
-        self.api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+        self.settings = get_settings()
+        self.api_key = self.settings.google_maps_api_key
         self.base_url = "https://maps.googleapis.com/maps/api/geocode/json"
     
     async def geocode(self, address: str) -> GeocodingResult:

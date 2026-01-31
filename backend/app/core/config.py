@@ -1,6 +1,6 @@
 """Application configuration management using Pydantic Settings.
 
-Centralized configuration for MenuPilot backend with support for:
+Centralized configuration for RestoPilotAI backend with support for:
 - Gemini 3 API settings
 - Rate limiting and caching
 - File upload constraints
@@ -26,9 +26,10 @@ class Settings(BaseSettings):
     # ==================== API Keys ====================
     gemini_api_key: str = ""
     google_maps_api_key: str = ""
+    google_places_api_key: str = ""
 
     # ==================== Application ====================
-    app_name: str = "MenuPilot"
+    app_name: str = "RestoPilotAI"
     app_env: str = "development"
     debug: bool = True
     log_level: str = "INFO"
@@ -39,7 +40,8 @@ class Settings(BaseSettings):
     cors_origins: str = "*"
 
     # ==================== Database ====================
-    database_url: str = "sqlite+aiosqlite:///./data/menupilot.db"
+    database_url: str = "sqlite+aiosqlite:///./data/RestoPilotAI.db"
+    redis_url: str = "redis://localhost:6379"
 
     # ==================== Gemini 3 Configuration ====================
     gemini_model: str = "gemini-3-flash-preview"
@@ -48,7 +50,18 @@ class Settings(BaseSettings):
     gemini_rate_limit_rpm: int = 60
     gemini_rate_limit_tpm: int = 1000000
     gemini_cache_ttl_seconds: int = 3600
-    gemini_timeout_seconds: int = 120
+    gemini_timeout_seconds: int = 60 
+
+    # ==================== External APIs ====================
+    places_rate_limit: int = 100
+
+    # ==================== Analysis Configuration ====================
+    max_competitors: int = 5
+    competitor_search_radius: int = 1000 # meters
+    max_images_per_competitor: int = 10
+    
+    # ==================== WebSocket ====================
+    ws_heartbeat_interval: int = 30
 
     # ==================== File Upload ====================
     max_upload_size_mb: int = 10

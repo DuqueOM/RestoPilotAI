@@ -1,4 +1,4 @@
-# MenuPilot - Development Commands
+# RestoPilotAI - Development Commands
 # Usage: make <target>
 # Version: 1.0.0
 
@@ -14,7 +14,7 @@ CYAN   := \033[0;36m
 NC     := \033[0m
 
 help:
-	@echo "$(CYAN)MenuPilot Development Commands$(NC)"
+	@echo "$(CYAN)RestoPilotAI Development Commands$(NC)"
 	@echo ""
 	@echo "$(GREEN)Setup:$(NC)"
 	@echo "  make setup          - Setup both backend and frontend"
@@ -68,7 +68,7 @@ setup-apikey:
 # ============= RUN =============
 
 run:
-	@echo "🚀 Starting MenuPilot..."
+	@echo "🚀 Starting RestoPilotAI..."
 	@echo "Backend: http://localhost:8000"
 	@echo "Frontend: http://localhost:3000"
 	@echo "API Docs: http://localhost:8000/docs"

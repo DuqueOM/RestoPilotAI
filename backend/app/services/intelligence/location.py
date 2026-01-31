@@ -1,8 +1,8 @@
-import os
 import httpx
 from typing import List, Dict, Optional
 from pydantic import BaseModel
 from loguru import logger
+from app.core.config import get_settings
 
 class PlaceResult(BaseModel):
     place_id: str
@@ -21,7 +21,8 @@ class PlaceResult(BaseModel):
 
 class PlacesService:
     def __init__(self):
-        self.api_key = os.getenv("GOOGLE_PLACES_API_KEY") or os.getenv("GOOGLE_MAPS_API_KEY")
+        self.settings = get_settings()
+        self.api_key = self.settings.google_places_api_key or self.settings.google_maps_api_key
         self.nearby_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
         self.details_url = "https://maps.googleapis.com/maps/api/place/details/json"
         self.photo_url = "https://maps.googleapis.com/maps/api/place/photo"

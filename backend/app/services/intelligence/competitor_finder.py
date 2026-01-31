@@ -111,7 +111,7 @@ class ScoutAgent(GeminiBaseAgent):
         thinking_level: ThinkingLevel = ThinkingLevel.DEEP,
         **kwargs,
     ):
-        super().__init__(model=model, **kwargs)
+        super().__init__(model_name=model, **kwargs)
         self.thinking_level = thinking_level
         self.thought_traces: List[ScoutThought] = []
         self.discovered_competitors: List[CompetitorProfile] = []

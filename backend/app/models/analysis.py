@@ -4,7 +4,7 @@ Analysis, campaign, and sentiment models.
 
 from datetime import date, datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
@@ -74,9 +74,9 @@ class ProductProfile(Base):
     overall_score: Mapped[float] = mapped_column(Float)  # Composite score
 
     # AI-generated insights
-    strengths: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    weaknesses: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    recommendations: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    strengths: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    weaknesses: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    recommendations: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -98,14 +98,14 @@ class Campaign(Base):
     # Timing
     start_date: Mapped[date] = mapped_column(Date)
     end_date: Mapped[date] = mapped_column(Date)
-    schedule: Mapped[Optional[str]] = mapped_column(
+    schedule: Mapped[Optional[Dict[str, List[str]]]] = mapped_column(
         JSON, nullable=True
     )  # Hourly schedule
 
     # Content
-    channels: Mapped[str] = mapped_column(JSON)  # List of channels
-    key_messages: Mapped[str] = mapped_column(JSON)  # List of messages
-    promotional_items: Mapped[str] = mapped_column(JSON)  # Featured items
+    channels: Mapped[List[str]] = mapped_column(JSON)  # List of channels
+    key_messages: Mapped[List[str]] = mapped_column(JSON)  # List of messages
+    promotional_items: Mapped[List[str]] = mapped_column(JSON)  # Featured items
     discount_strategy: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Generated assets
@@ -176,7 +176,7 @@ class SentimentAnalysisSession(Base):
     restaurant_id: Mapped[str] = mapped_column(String(36), index=True)
 
     # Sources analyzed
-    sources_used: Mapped[str] = mapped_column(JSON)  # List of SentimentSource
+    sources_used: Mapped[List[str]] = mapped_column(JSON)  # List of SentimentSource
 
     # Overall metrics
     overall_sentiment_score: Mapped[float] = mapped_column(
@@ -187,15 +187,15 @@ class SentimentAnalysisSession(Base):
     )  # Net Promoter Score
 
     # Distribution
-    sentiment_distribution: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    sentiment_distribution: Mapped[Optional[Dict[str, int]]] = mapped_column(JSON, nullable=True)
 
     # Aggregate insights
     total_reviews_analyzed: Mapped[int] = mapped_column(Integer, default=0)
     total_photos_analyzed: Mapped[int] = mapped_column(Integer, default=0)
 
     # Common themes
-    common_praises: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    common_complaints: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    common_praises: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    common_complaints: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Key themes
     service_sentiment: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
@@ -206,7 +206,7 @@ class SentimentAnalysisSession(Base):
     value_sentiment: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     # AI recommendations
-    recommendations: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    recommendations: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
 
     # Gemini stats
     gemini_tokens_used: Mapped[int] = mapped_column(Integer, default=0)
@@ -242,7 +242,7 @@ class ItemSentiment(Base):
     # Text sentiment (from reviews)
     text_sentiment_score: Mapped[float] = mapped_column(Float, default=0.0)  # -1 to 1
     text_mention_count: Mapped[int] = mapped_column(Integer, default=0)
-    common_descriptors: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    common_descriptors: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Visual sentiment (from photos)
     visual_appeal_score: Mapped[Optional[float]] = mapped_column(
@@ -308,15 +308,15 @@ class ReviewAnalysis(Base):
     )
 
     # Extracted entities
-    items_mentioned: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    themes_detected: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    items_mentioned: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    themes_detected: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Competitor mentions
-    competitor_mentions: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    competitor_mentions: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
 
     # Key phrases
-    positive_phrases: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    negative_phrases: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    positive_phrases: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    negative_phrases: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Analysis metadata
     language: Mapped[str] = mapped_column(String(10), default="es")
@@ -365,11 +365,11 @@ class CustomerPhotoAnalysis(Base):
     lighting_quality: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
 
     # Issues detected
-    issues_noted: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    positive_aspects: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    issues_noted: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    positive_aspects: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Sentiment
-    sentiment_indicators: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    sentiment_indicators: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
     # Analysis metadata
     analysis_confidence: Mapped[float] = mapped_column(Float, default=0.0)

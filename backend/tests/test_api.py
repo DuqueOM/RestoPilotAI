@@ -1,5 +1,5 @@
 """
-API endpoint tests for MenuPilot.
+API endpoint tests for RestoPilotAI.
 
 Tests cover health checks and basic API functionality.
 """
@@ -13,7 +13,7 @@ async def test_root_endpoint(client):
     response = await client.get("/")
     assert response.status_code == 200
     data = response.json()
-    assert data["name"] == "MenuPilot API"
+    assert data["name"] == "RestoPilotAI API"
     assert data["status"] == "operational"
     assert "docs" in data
 
@@ -42,7 +42,7 @@ async def test_openapi_schema(client):
     response = await client.get("/openapi.json")
     assert response.status_code == 200
     schema = response.json()
-    assert schema["info"]["title"] == "MenuPilot API"
+    assert schema["info"]["title"] == "RestoPilotAI API"
     assert "paths" in schema
 
 

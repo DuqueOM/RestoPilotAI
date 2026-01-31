@@ -1,5 +1,5 @@
 """
-Demo endpoint tests for MenuPilot.
+Demo endpoint tests for RestoPilotAI.
 
 Tests the demo functionality that judges will use to evaluate the project.
 """

@@ -1,58 +1,54 @@
-# MenuPilot Docker Compose Configuration
-# Usage: docker-compose up --build
-# Version: 1.0.0
+version: '3.8'
 
 services:
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.12}
-    container_name: menupilot-backend
+    build: ./backend
     ports:
       - "8000:8000"
     environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/RestoPilotAI
+      - REDIS_URL=redis://redis:6379
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - APP_ENV=production
-      - DEBUG=false
-      - LOG_LEVEL=INFO
+      - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
+    depends_on:
+      - db
+      - redis
     volumes:
-      - ./data:/app/data
-      - menupilot-models:/app/data/models
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    networks:
-      - menupilot-network
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
-    build:
+    build: 
       context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:8000
-    container_name: menupilot-frontend
+      target: builder
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://backend:8000
-      - NODE_ENV=production
-    depends_on:
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - menupilot-network
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
 
-networks:
-  menupilot-network:
-    driver: bridge
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=RestoPilotAI
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
 volumes:
-  menupilot-models:
-    driver: local
+  postgres_data:
+  redis_data:

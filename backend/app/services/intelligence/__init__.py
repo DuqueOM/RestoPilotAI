@@ -3,34 +3,32 @@ Intelligence Services Package.
 
 Contains advanced AI agents for autonomous intelligence gathering:
 - ScoutAgent: Autonomous competitor discovery and analysis
-- VisualGapAnalyzer: Visual comparison using Gemini Vision
+- SocialAestheticsAnalyzer: Visual comparison using Gemini Vision
 - NeighborhoodAnalyzer: Location-based demographic analysis
 """
 
+from app.services.intelligence.data_enrichment import (
+    CompetitorEnrichmentService,
+    CompetitorProfile,  # Re-exporting if needed, though usually distinct from finder's
+)
 from app.services.intelligence.competitor_finder import (
-    CompetitorProfile,
+    CompetitorProfile as FinderCompetitorProfile, # Avoid conflict if names match
     ScoutAgent,
     ScoutThought,
 )
 from app.services.intelligence.neighborhood import (
-    DemographicInsight,
     NeighborhoodAnalyzer,
-    NeighborhoodProfile,
 )
 from app.services.intelligence.social_aesthetics import (
-    VisualGapAnalyzer,
-    VisualGapReport,
-    VisualScore,
+    SocialAestheticsAnalyzer,
 )
 
 __all__ = [
     "ScoutAgent",
-    "CompetitorProfile",
+    "FinderCompetitorProfile",
     "ScoutThought",
-    "VisualGapAnalyzer",
-    "VisualGapReport",
-    "VisualScore",
+    "SocialAestheticsAnalyzer",
     "NeighborhoodAnalyzer",
-    "NeighborhoodProfile",
-    "DemographicInsight",
+    "CompetitorEnrichmentService",
+    "CompetitorProfile",
 ]

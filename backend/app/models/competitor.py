@@ -6,7 +6,7 @@ Stores competitor data, menu extractions, and competitive analysis results.
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, Any, Dict, List
 
 from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
@@ -58,11 +58,13 @@ class Competitor(Base):
     latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     distance_km: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    distance_meters: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     # Online presence
     website_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     instagram_handle: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     google_place_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    place_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, unique=True) # Alias/User Request
     yelp_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # Classification
@@ -70,14 +72,27 @@ class Competitor(Base):
     price_positioning: Mapped[Optional[str]] = mapped_column(
         SQLEnum(PricePositioning), nullable=True
     )
+    price_range: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    avg_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     # Ratings
+    rating: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     google_rating: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     yelp_rating: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     review_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    sentiment_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+    # Extended Data (Multimodal)
+    google_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    instagram_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    photos: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)  # List of photo URLs/Analysis
+    menu_items: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True) # Cached/Summary items
+    social_aesthetic_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    data_quality: Mapped[Optional[float]] = mapped_column(Float, default=0.0)
 
     # Metadata
     is_active: Mapped[bool] = mapped_column(default=True)
+    last_scraped: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     last_updated: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -108,8 +123,8 @@ class CompetitorMenuExtraction(Base):
     source_image_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     # Extracted data
-    items: Mapped[str] = mapped_column(JSON)  # List of menu items
-    categories: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    items: Mapped[List[Dict[str, Any]]] = mapped_column(JSON)  # List of menu items
+    categories: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
     # Pricing analysis
     price_range_min: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
@@ -143,7 +158,7 @@ class CompetitorAnalysis(Base):
 
     # Analysis scope
     our_restaurant_id: Mapped[str] = mapped_column(String(36), index=True)
-    competitor_ids: Mapped[str] = mapped_column(JSON)  # List of competitor IDs analyzed
+    competitor_ids: Mapped[List[int]] = mapped_column(JSON)  # List of competitor IDs analyzed
 
     # Competitive landscape
     market_position: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
@@ -152,29 +167,29 @@ class CompetitorAnalysis(Base):
     )
 
     # Price analysis
-    price_positioning_analysis: Mapped[Optional[str]] = mapped_column(
+    price_positioning_analysis: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSON, nullable=True
     )
-    price_gaps: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    price_gaps: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
 
     # Product analysis
-    our_unique_items: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    competitor_unique_items: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    category_gaps: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    our_unique_items: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    competitor_unique_items: Mapped[Optional[Dict[str, List[str]]]] = mapped_column(JSON, nullable=True)
+    category_gaps: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
 
     # Strategic insights
-    key_differentiators: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    competitive_threats: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
-    opportunities: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    key_differentiators: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    competitive_threats: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
+    opportunities: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
 
     # Recommendations
-    strategic_recommendations: Mapped[Optional[str]] = mapped_column(
+    strategic_recommendations: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(
         JSON, nullable=True
     )
-    pricing_recommendations: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    pricing_recommendations: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
 
     # Market positioning matrix
-    positioning_matrix: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    positioning_matrix: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
     # AI metadata
     thinking_level: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
@@ -182,7 +197,7 @@ class CompetitorAnalysis(Base):
     gemini_tokens_used: Mapped[int] = mapped_column(Integer, default=0)
 
     # Thought trace
-    thought_trace: Mapped[Optional[str]] = mapped_column(JSON, nullable=True)
+    thought_trace: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
     # Timestamps
     analyzed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

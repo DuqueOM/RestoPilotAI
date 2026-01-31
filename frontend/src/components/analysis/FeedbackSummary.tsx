@@ -83,7 +83,7 @@ export default function FeedbackSummary({ sessionId, sessionData }: FeedbackSumm
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `menupilot_report_${sessionId.substring(0, 8)}.json`;
+      a.download = `RestoPilotAI_report_${sessionId.substring(0, 8)}.json`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

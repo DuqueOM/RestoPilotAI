@@ -1,5 +1,5 @@
 """
-Data Capability Detector for MenuPilot.
+Data Capability Detector for RestoPilotAI.
 Analyzes uploaded CSV data to determine which analytics features are available.
 """
 

@@ -621,7 +621,7 @@ async def export_session(session_id: str, format: str = "json"):
             "session_id": session_id,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "export_format": format,
-            "menupilot_version": "1.0.0",
+            "RestoPilotAI_version": "1.0.0",
         },
         "data_summary": {
             "menu_items_count": len(session.get("menu_items", [])),
@@ -660,7 +660,7 @@ async def export_session(session_id: str, format: str = "json"):
             content=json.dumps(report, indent=2, ensure_ascii=False, default=str),
             media_type="application/json",
             headers={
-                "Content-Disposition": f"attachment; filename=menupilot_analysis_{session_id[:8]}.json"
+                "Content-Disposition": f"attachment; filename=RestoPilotAI_analysis_{session_id[:8]}.json"
             },
         )
         return response
@@ -716,7 +716,7 @@ async def search_location(query: str = Form(...)):
                     "limit": 1,
                     "addressdetails": 1,
                 },
-                headers={"User-Agent": "MenuPilot/1.0"},
+                headers={"User-Agent": "RestoPilotAI/1.0"},
             )
             data = response.json()
             if data:

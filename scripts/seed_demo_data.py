@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Seed demo data for MenuPilot testing.
+Seed demo data for RestoPilotAI testing.
 Creates a pre-loaded session with sample menu items and sales data.
 """
 
@@ -157,7 +157,7 @@ DEMO_CAMPAIGNS = [
         "copy": {
             "social_media": "🌮 TACO TUESDAY IS HERE! 🌮\n\nOur legendary Tacos al Pastor are calling your name! Marinated pork, fresh pineapple, cilantro perfection.\n\n🔥 $2 OFF all tacos today!\n📍 [Location]\n\n#TacoTuesday #TacosAlPastor #AuthenticMexican",
             "email_subject": "🌮 Your Taco Tuesday Deal is Ready!",
-            "email_body": "Hey foodie!\n\nWe know you've been craving our famous Tacos al Pastor. Today's the day!\n\nGet $2 OFF all tacos this Tuesday. Our slow-marinated pork with fresh pineapple is waiting for you.\n\nSee you soon!\n- The MenuPilot Demo Restaurant Team",
+            "email_body": "Hey foodie!\n\nWe know you've been craving our famous Tacos al Pastor. Today's the day!\n\nGet $2 OFF all tacos this Tuesday. Our slow-marinated pork with fresh pineapple is waiting for you.\n\nSee you soon!\n- The RestoPilotAI Demo Restaurant Team",
         },
         "timing": "Every Tuesday, 11am-9pm",
         "expected_impact": "15-25% increase in taco sales, 10% increase in overall Tuesday traffic",

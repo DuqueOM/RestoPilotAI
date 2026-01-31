@@ -1,5 +1,5 @@
 """
-Neural Network Sales Predictor - Deep Learning enhancement for MenuPilot.
+Neural Network Sales Predictor - Deep Learning enhancement for RestoPilotAI.
 
 Complements XGBoost with a neural network approach for more sophisticated
 pattern recognition and ensemble predictions.

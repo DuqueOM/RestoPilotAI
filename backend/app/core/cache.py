@@ -1,5 +1,5 @@
 """
-Caching System for MenuPilot.
+Caching System for RestoPilotAI.
 
 Provides:
 - In-memory cache with TTL
@@ -18,6 +18,8 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Generic, Optional, TypeVar
 
 from loguru import logger
+
+from app.core.config import get_settings
 
 T = TypeVar("T")
 
@@ -309,7 +311,7 @@ class RedisCache(BaseCache):
     def __init__(
         self,
         url: str = "redis://localhost:6379",
-        prefix: str = "menupilot:",
+        prefix: str = "RestoPilotAI:",
         default_ttl: int = 3600,
     ):
         self.url = url
@@ -666,7 +668,8 @@ async def get_cache_manager() -> CacheManager:
     global _cache_manager
 
     if _cache_manager is None:
-        _cache_manager = CacheManager()
+        settings = get_settings()
+        _cache_manager = CacheManager(redis_url=settings.redis_url)
         await _cache_manager.start()
 
     return _cache_manager

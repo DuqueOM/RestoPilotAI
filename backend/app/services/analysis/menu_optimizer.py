@@ -1,5 +1,5 @@
 """
-Menu Optimizer Service for MenuPilot.
+Menu Optimizer Service for RestoPilotAI.
 Provides AI-powered price and margin optimization recommendations.
 """
 

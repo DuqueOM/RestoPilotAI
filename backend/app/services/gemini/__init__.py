@@ -1,5 +1,5 @@
 """
-Gemini Agent Module for MenuPilot.
+Gemini Agent Module for RestoPilotAI.
 
 Provides modular, production-ready integration with Google Gemini 3 API.
 
@@ -28,9 +28,6 @@ from .multimodal import MultimodalAgent
 from .reasoning_agent import ReasoningAgent, ReasoningResult, ThoughtTrace
 from .verification import (
     GeminiVerificationAgent,
-    VerificationCheck,
-    VerificationResult,
-    VerificationStatus,
 )
 
 __all__ = [
@@ -51,9 +48,6 @@ __all__ = [
     "ThoughtTrace",
     # Verification agent
     "GeminiVerificationAgent",
-    "VerificationCheck",
-    "VerificationResult",
-    "VerificationStatus",
     # Legacy
     "GeminiAgent",
 ]

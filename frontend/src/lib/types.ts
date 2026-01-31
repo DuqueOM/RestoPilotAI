@@ -1,5 +1,5 @@
 /**
- * Shared TypeScript types for MenuPilot
+ * Shared TypeScript types for RestoPilotAI
  * Centralized type definitions for the frontend
  */
 

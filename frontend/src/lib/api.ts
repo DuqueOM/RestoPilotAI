@@ -1,5 +1,5 @@
 /**
- * MenuPilot API Client
+ * RestoPilotAI API Client
  * Centralized API communication for the frontend
  */
 
@@ -158,7 +158,7 @@ export interface ThoughtSignature {
   steps: string[];
 }
 
-class MenuPilotAPI {
+class RestoPilotAIAPI {
   private baseUrl: string;
 
   constructor(baseUrl: string = API_BASE) {
@@ -525,7 +525,7 @@ export interface AdvancedAnalyticsResult {
 }
 
 // Singleton instance
-export const api = new MenuPilotAPI();
+export const api = new RestoPilotAIAPI();
 
 // Export class for custom instances
-export { MenuPilotAPI };
+export { RestoPilotAIAPI };

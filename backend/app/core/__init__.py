@@ -1,5 +1,5 @@
 """
-Core module for MenuPilot.
+Core module for RestoPilotAI.
 
 Contains cross-cutting concerns:
 - Logging configuration

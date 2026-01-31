@@ -100,7 +100,7 @@ class ReasoningAgent(GeminiBaseAgent):
         model: GeminiModel = GeminiModel.FLASH,
         **kwargs,
     ):
-        super().__init__(model=model, **kwargs)
+        super().__init__(model_name=model, **kwargs)
         self.thought_traces: List[ThoughtTrace] = []
 
     async def process(self, *args, **kwargs) -> Any:
@@ -131,7 +131,7 @@ class ReasoningAgent(GeminiBaseAgent):
         """
         config = self.THINKING_CONFIGS[thinking_level]
 
-        prompt = f"""You are MenuPilot, an AI assistant for restaurant optimization.
+        prompt = f"""You are RestoPilotAI, an AI assistant for restaurant optimization.
 
 Before executing the following task, create a detailed thought signature that outlines your reasoning process.
 

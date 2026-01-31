@@ -1,139 +1,175 @@
 'use client'
 
-import { Building2, Mic, MicOff, Sparkles, Target, Users } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Mic, MicOff, Sparkles, Wand2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface BusinessContextInputProps {
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
+interface ContextInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  template?: string;
+  allowAudio?: boolean;
+  onAudioChange?: (audio: Blob | null) => void;
 }
 
-export default function BusinessContextInput({ value, onChange, placeholder }: BusinessContextInputProps) {
+export function ContextInput({ 
+  label, 
+  value, 
+  onChange, 
+  placeholder,
+  template,
+  allowAudio = false,
+  onAudioChange
+}: ContextInputProps) {
   const [isListening, setIsListening] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const recognitionRef = useRef<any>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
 
   useEffect(() => {
-    // Check for Web Speech API support
-    if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-      setIsSupported(true)
+    if (typeof window !== 'undefined') {
+      if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        setIsSupported(true)
+      }
     }
   }, [])
 
-  const startListening = useCallback(() => {
-    if (!isSupported) return
+  const startListening = useCallback(async () => {
+    // 1. Start Speech Recognition for text
+    if (isSupported) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      recognitionRef.current = new SpeechRecognition()
+      recognitionRef.current.continuous = true
+      recognitionRef.current.interimResults = true
+      recognitionRef.current.lang = 'es-ES' // Could be dynamic
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    recognitionRef.current = new SpeechRecognition()
-    
-    recognitionRef.current.continuous = true
-    recognitionRef.current.interimResults = true
-    recognitionRef.current.lang = 'es-ES' // Spanish by default, can be made configurable
-
-    recognitionRef.current.onresult = (event: any) => {
-      let transcript = ''
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript
+      recognitionRef.current.onresult = (event: any) => {
+        let transcript = ''
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript
+        }
+        // Append to existing value or replace? Usually append in these UIs
+        // For now, let's just use the current session's transcript + existing value logic if needed
+        // But here we might just want to append to what was there before the recording started.
+        // Simplified: just update the text area.
+        const currentText = value ? value + ' ' : ''
+        if (event.results[0].isFinal) {
+             onChange(currentText + transcript)
+        }
       }
-      onChange(value + (value ? ' ' : '') + transcript)
+      
+      recognitionRef.current.start()
     }
 
-    recognitionRef.current.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error)
-      setIsListening(false)
+    // 2. Start Media Recorder for audio blob if requested
+    if (allowAudio && onAudioChange) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const mediaRecorder = new MediaRecorder(stream)
+        mediaRecorderRef.current = mediaRecorder
+        chunksRef.current = []
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data)
+        }
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+          setAudioBlob(blob)
+          onAudioChange(blob)
+          stream.getTracks().forEach(track => track.stop())
+        }
+
+        mediaRecorder.start()
+      } catch (err) {
+        console.error('Microphone access denied', err)
+      }
     }
 
-    recognitionRef.current.onend = () => {
-      setIsListening(false)
-    }
-
-    recognitionRef.current.start()
     setIsListening(true)
-  }, [isSupported, onChange, value])
+  }, [isSupported, allowAudio, onAudioChange, value, onChange])
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       recognitionRef.current.stop()
-      setIsListening(false)
     }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+    }
+    setIsListening(false)
   }, [])
 
-  const suggestions = [
-    { icon: Building2, label: 'Tipo de restaurante', example: 'Restaurante mexicano casual, 50 asientos' },
-    { icon: Users, label: 'Público objetivo', example: 'Familias, jóvenes profesionales, 25-45 años' },
-    { icon: Target, label: 'Diferenciadores', example: 'Ingredientes orgánicos, recetas tradicionales' },
-  ]
+  const applyTemplate = () => {
+    if (template && !value) {
+      onChange(template)
+    }
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="h-5 w-5 text-purple-500" />
-        <h3 className="font-semibold text-gray-900">Contexto del Negocio</h3>
-        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Opcional</span>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-medium text-gray-700">
+          {label}
+        </label>
+        {template && !value && (
+          <button 
+            onClick={applyTemplate}
+            className="text-xs flex items-center gap-1 text-purple-600 hover:text-purple-700"
+          >
+            <Wand2 className="w-3 h-3" />
+            Use template
+          </button>
+        )}
       </div>
-      
-      <p className="text-sm text-gray-600">
-        Ayuda a nuestros agentes de IA a entender mejor tu negocio para generar análisis y campañas más personalizadas.
-      </p>
 
       <div className="relative">
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder || "Describe tu restaurante, tipo de cocina, público objetivo, ubicación, competencia cercana, diferenciadores, eventos especiales, horarios pico, etc."}
-          className="w-full h-32 p-4 pr-12 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+          placeholder={placeholder}
+          className="w-full h-24 p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
         />
         
-        {isSupported && (
+        {(isSupported || allowAudio) && (
           <button
             type="button"
             onClick={isListening ? stopListening : startListening}
-            className={`absolute right-3 top-3 p-2 rounded-full transition-all ${
+            className={`absolute right-2 top-2 p-2 rounded-full transition-all ${
               isListening 
                 ? 'bg-red-100 text-red-600 animate-pulse' 
-                : 'bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-600'
+                : 'bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600'
             }`}
-            title={isListening ? 'Detener grabación' : 'Dictar con voz'}
+            title={isListening ? 'Stop recording' : 'Record voice input'}
           >
-            {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
           </button>
         )}
       </div>
-
-      {isListening && (
-        <div className="flex items-center gap-2 text-sm text-red-600">
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-          </span>
-          Escuchando... Habla sobre tu negocio
+      
+      {template && (
+        <p className="text-xs text-gray-500 italic">
+          Tip: {template}
+        </p>
+      )}
+      
+      {audioBlob && allowAudio && (
+        <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded w-fit">
+          <Sparkles className="w-3 h-3" />
+          Audio recording attached
+          <button 
+            onClick={() => {
+              setAudioBlob(null)
+              if (onAudioChange) onAudioChange(null)
+            }}
+            className="ml-2 text-gray-400 hover:text-red-500"
+          >
+            ×
+          </button>
         </div>
       )}
-
-      {/* Quick suggestions */}
-      <div className="space-y-2">
-        <p className="text-xs text-gray-500 font-medium">Sugerencias de información útil:</p>
-        <div className="flex flex-wrap gap-2">
-          {suggestions.map((suggestion, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => onChange(value + (value ? '\n' : '') + suggestion.example)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gray-50 hover:bg-purple-50 text-gray-600 hover:text-purple-700 rounded-full border border-gray-200 hover:border-purple-200 transition-all"
-            >
-              <suggestion.icon className="h-3.5 w-3.5" />
-              {suggestion.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Character count */}
-      <div className="flex justify-between text-xs text-gray-400">
-        <span>El contexto ayuda a los agentes a dar recomendaciones más específicas</span>
-        <span>{value.length} / 2000</span>
-      </div>
     </div>
   )
 }

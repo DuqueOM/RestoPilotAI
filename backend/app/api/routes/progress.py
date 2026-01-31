@@ -17,7 +17,7 @@ from loguru import logger
 
 from app.core.websocket_manager import ThoughtType, manager, send_thought
 from app.services.orchestrator import orchestrator
-from app.services.verification_agent import ThinkingLevel
+from app.services.gemini.base_agent import ThinkingLevel
 
 router = APIRouter()
 

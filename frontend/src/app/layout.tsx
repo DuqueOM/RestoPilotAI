@@ -9,10 +9,10 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'MenuPilot - AI Restaurant Optimization',
+  title: 'RestoPilotAI - AI Restaurant Optimization',
   description: 'AI-powered menu optimization, BCG analysis, and campaign generation for restaurants powered by Google Gemini 3',
   keywords: ['restaurant', 'menu optimization', 'AI', 'BCG analysis', 'Gemini', 'marketing campaigns'],
-  authors: [{ name: 'MenuPilot Team' }],
+  authors: [{ name: 'RestoPilotAI Team' }],
   icons: {
     icon: '/favicon.ico',
   },

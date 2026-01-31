@@ -1,5 +1,4 @@
-# MenuPilot - Multi-stage Docker build
-# Optimized for production deployment
+# RestoPilotAI Backend - Production Dockerfile
 
 ARG PYTHON_VERSION=3.11
 
@@ -13,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY backend/requirements.txt .
+COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 # Production image
@@ -35,8 +34,8 @@ COPY --from=builder /app/wheels /wheels
 RUN pip install --no-cache /wheels/*
 
 # Copy application code
-COPY backend/app /app/app
-COPY backend/.env.example /app/.env.example
+COPY app /app/app
+COPY .env.example /app/.env.example
 
 # Create data directories
 RUN mkdir -p /app/data/uploads /app/data/outputs /app/data/models
