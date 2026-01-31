@@ -50,9 +50,9 @@ setup-backend:
 	cd backend && python -m venv venv
 	cd backend && . venv/bin/activate && pip install -U pip setuptools wheel
 	cd backend && . venv/bin/activate && pip install -r requirements.txt
-	@if [ ! -f backend/.env ]; then \
-		cp backend/.env.example backend/.env; \
-		echo "⚠️  Created backend/.env - Please add your GEMINI_API_KEY"; \
+	@if [ ! -f .env ]; then \
+		cp .env.example .env; \
+		echo "⚠️  Created .env - Please add your GEMINI_API_KEY"; \
 	fi
 	@echo "✅ Backend setup complete"
 

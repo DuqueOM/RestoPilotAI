@@ -853,8 +853,9 @@ async def chat_with_ai(
     session_id: Optional[str] = Form(None),
     message: str = Form(...),
     context: str = Form("general"),
+    image: Optional[UploadFile] = File(None),
 ):
-    """Interactive chat with Gemini AI."""
+    """Interactive chat with Gemini AI (Multimodal)."""
     session = None
     if session_id:
         session = load_session(session_id)
@@ -880,9 +881,16 @@ async def chat_with_ai(
         Explain why each piece of information helps the AI generate better strategies.
         """
 
+    # Handle image if provided
+    images = []
+    if image:
+        content = await image.read()
+        images.append(content)
+
     try:
         response = await agent.generate_response(
             prompt=f"{session_context}\n\nUser: {message}",
+            images=images if images else None,
             system_instruction="You are a helpful, professional, and encouraging restaurant consultant.",
         )
         return {"response": response, "session_id": session_id}

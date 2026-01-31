@@ -146,6 +146,34 @@ class GeminiBaseAgent:
         # Define available tools for function calling
         self.tools = self._define_tools()
 
+    async def generate_response(
+        self,
+        prompt: str,
+        images: Optional[List[bytes]] = None,
+        system_instruction: Optional[str] = None,
+        thinking_level: str = "QUICK",
+        **kwargs
+    ) -> str:
+        """
+        Generate a response for chat interactions using Gemini 3.
+        
+        Args:
+            prompt: User message/prompt
+            images: Optional list of image bytes for multimodal context
+            system_instruction: System prompt/persona
+            thinking_level: Depth of reasoning (default QUICK for chat)
+        """
+        config_kwargs = kwargs.copy()
+        if system_instruction:
+            config_kwargs["system_instruction"] = system_instruction
+
+        return await self.generate(
+            prompt=prompt,
+            images=images,
+            thinking_level=thinking_level,
+            **config_kwargs
+        )
+
     @retry(
         stop=stop_after_attempt(3), # Using hardcoded 3 as default, or use settings.gemini_max_retries if accessible
         wait=wait_exponential(multiplier=1, min=2, max=10)

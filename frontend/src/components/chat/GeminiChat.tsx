@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, Loader2, MessageSquare, Send, X } from 'lucide-react';
+import { Bot, Image as ImageIcon, Loader2, MessageSquare, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -8,6 +8,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  hasImage?: boolean;
 }
 
 export function GeminiChat({ sessionId }: { sessionId?: string }) {
@@ -15,7 +16,9 @@ export function GeminiChat({ sessionId }: { sessionId?: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -25,13 +28,29 @@ export function GeminiChat({ sessionId }: { sessionId?: string }) {
     scrollToBottom();
   }, [messages, isOpen]);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !selectedImage) || isLoading) return;
 
     const userMessage = input;
+    const hasImage = !!selectedImage;
+    
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setSelectedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    setMessages(prev => [...prev, { 
+      role: 'user', 
+      content: userMessage || (hasImage ? 'Sent an image' : ''),
+      hasImage 
+    }]);
+    
     setIsLoading(true);
 
     try {
@@ -39,8 +58,12 @@ export function GeminiChat({ sessionId }: { sessionId?: string }) {
       if (sessionId) {
         formData.append('session_id', sessionId);
       }
-      formData.append('message', userMessage);
+      formData.append('message', userMessage || 'Analyze this image');
       formData.append('context', 'general');
+      
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      }
 
       const response = await fetch(`${API_BASE}/api/v1/chat`, {
         method: 'POST',
@@ -85,7 +108,7 @@ export function GeminiChat({ sessionId }: { sessionId?: string }) {
             </div>
             <div>
               <h3 className="font-semibold">Gemini Assistant</h3>
-              <p className="text-xs text-blue-100">Ask me anything about the app</p>
+              <p className="text-xs text-blue-100">Ask me anything (Multimodal Supported)</p>
             </div>
           </div>
 
@@ -94,7 +117,7 @@ export function GeminiChat({ sessionId }: { sessionId?: string }) {
             {messages.length === 0 && (
               <div className="text-center text-gray-500 text-sm mt-8">
                 <p>👋 Hi! I'm Gemini 3.</p>
-                <p>I can help you navigate the app or explain analysis features.</p>
+                <p>I can help you navigate, explain analysis, or look at your photos.</p>
               </div>
             )}
             
@@ -110,6 +133,12 @@ export function GeminiChat({ sessionId }: { sessionId?: string }) {
                       : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm'
                   }`}
                 >
+                  {msg.hasImage && (
+                    <div className="mb-2 flex items-center gap-1 text-xs opacity-80">
+                      <ImageIcon className="w-3 h-3" />
+                      <span>Image attached</span>
+                    </div>
+                  )}
                   {msg.content}
                 </div>
               </div>
@@ -126,8 +155,42 @@ export function GeminiChat({ sessionId }: { sessionId?: string }) {
           </div>
 
           {/* Input */}
-          <form onSubmit={handleSubmit} className="p-3 bg-white border-t border-gray-100">
-            <div className="flex items-center gap-2">
+          <div className="p-3 bg-white border-t border-gray-100">
+            {selectedImage && (
+              <div className="flex items-center gap-2 mb-2 p-2 bg-gray-100 rounded-lg text-xs">
+                <ImageIcon className="w-4 h-4 text-blue-600" />
+                <span className="truncate max-w-[200px]">{selectedImage.name}</span>
+                <button 
+                  onClick={() => {
+                    setSelectedImage(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="ml-auto p-1 hover:bg-gray-200 rounded-full"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleImageSelect}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className={`p-2 rounded-full transition-colors ${
+                  selectedImage ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+                title="Upload image"
+              >
+                <ImageIcon className="w-4 h-4" />
+              </button>
+              
               <input
                 type="text"
                 value={input}
@@ -137,13 +200,13 @@ export function GeminiChat({ sessionId }: { sessionId?: string }) {
               />
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
+                disabled={(!input.trim() && !selectedImage) || isLoading}
                 className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Send className="w-4 h-4" />
               </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       )}
     </>

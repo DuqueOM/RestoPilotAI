@@ -1,5 +1,6 @@
 'use client';
 
+import { GeminiChat } from '@/components/chat/GeminiChat';
 import { ContextInput } from '@/components/setup/ContextInput';
 import { FileUpload } from '@/components/setup/FileUpload';
 import { InfoTooltip } from '@/components/setup/InfoTooltip';
@@ -22,6 +23,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 export default function SetupPage() {
   const router = useRouter();
   const [completionScore, setCompletionScore] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     // Location (most important - shown first)
     location: '',
@@ -83,6 +85,9 @@ export default function SetupPage() {
   }, [formData]);
   
   const handleSubmit = async () => {
+    if (!formData.location) return;
+    
+    setIsSubmitting(true);
     try {
       const data = new FormData();
       
@@ -147,6 +152,7 @@ export default function SetupPage() {
     } catch (error) {
       console.error('Error starting analysis:', error);
       alert('Failed to start analysis. Please try again.');
+      setIsSubmitting(false);
     }
   };
   
@@ -496,14 +502,23 @@ export default function SetupPage() {
             
             <button
               onClick={handleSubmit}
-              disabled={!formData.location}
-              className={`px-8 py-3 rounded-lg font-semibold text-white transition-all ${
-                formData.location
+              disabled={!formData.location || isSubmitting}
+              className={`px-8 py-3 rounded-lg font-semibold text-white transition-all flex items-center gap-2 ${
+                formData.location && !isSubmitting
                   ? 'bg-gradient-to-r from-orange-500 to-blue-600 hover:shadow-lg hover:scale-105'
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
-              {formData.location ? '🚀 Analyze My Business' : '📍 Add Location First'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Starting Analysis...
+                </>
+              ) : (
+                <>
+                  {formData.location ? '🚀 Analyze My Business' : '📍 Add Location First'}
+                </>
+              )}
             </button>
           </div>
         </div>

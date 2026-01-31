@@ -1,7 +1,11 @@
 'use client';
 
-import { Building2, Loader2, Search, Star } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { GoogleMap, Marker, StandaloneSearchBox, useJsApiLoader } from '@react-google-maps/api';
+import { Building2, Loader2, MapPin, Search, Star, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+// Libraries must be defined outside component to avoid re-renders
+const LIBRARIES: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 
 interface Location {
   lat: number;
@@ -62,6 +66,13 @@ export function LocationInput({
   placeholder,
   autoFocus
 }: LocationInputProps) {
+  // Google Maps Loader
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: LIBRARIES
+  });
+
   const [searchQuery, setSearchQuery] = useState(value || '');
   const [isSearching, setIsSearching] = useState(false);
   const [candidates, setCandidates] = useState<BusinessCandidate[]>([]);
@@ -71,10 +82,17 @@ export function LocationInput({
   const [isLoadingNearby, setIsLoadingNearby] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Map State
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.0060 }); // Default NY
+  const [mapZoom, setMapZoom] = useState(13);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null);
 
   // Sync internal state with prop value
   useEffect(() => {
-    if (value !== undefined) {
+    if (value !== undefined && value !== searchQuery) {
       setSearchQuery(value);
     }
   }, [value]);
@@ -87,47 +105,7 @@ export function LocationInput({
     }
   };
 
-  const handleManualLocation = async () => {
-    // Treat the search query as a direct address lookup
-    if (!searchQuery.trim()) return;
-    
-    setIsSearching(true);
-    setShowCandidates(false);
-    
-    try {
-      const formData = new FormData();
-      formData.append('query', searchQuery);
-      
-      const response = await fetch(`${API_BASE}/api/v1/location/search`, {
-        method: 'POST',
-        body: formData
-      });
-      
-      const data = await response.json();
-      
-      if (data.status === 'ok' && data.location) {
-        // Create a synthetic candidate
-        const customCandidate: BusinessCandidate = {
-          name: "Custom Location", 
-          address: data.location.address,
-          placeId: `custom_${Date.now()}`,
-          lat: data.location.lat,
-          lng: data.location.lng,
-          rating: 0,
-          types: ["point_of_interest"]
-        };
-        
-        selectCandidate(customCandidate);
-      } else {
-        setError('Could not locate this address on the map.');
-      }
-    } catch (err) {
-      console.error('Manual location error:', err);
-      setError('Failed to resolve location.');
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  // --- BUSINESS SEARCH ---
 
   const searchBusiness = async () => {
     if (!searchQuery.trim()) return;
@@ -136,6 +114,7 @@ export function LocationInput({
     setError(null);
     setCandidates([]);
     setShowCandidates(true);
+    setShowMapPicker(false);
     
     try {
       const formData = new FormData();
@@ -160,14 +139,12 @@ export function LocationInput({
       if (data.status === 'success' && data.candidates.length > 0) {
         setCandidates(data.candidates);
       } else {
-        // Even if no candidates, show the "Manual" option
         setCandidates([]);
       }
       setShowCandidates(true);
     } catch (err) {
       console.error('Search error:', err);
       setError('Failed to search for business. Please try again.');
-      // Still allow manual entry on error
       setShowCandidates(true);
     } finally {
       setIsSearching(false);
@@ -176,6 +153,7 @@ export function LocationInput({
 
   const selectCandidate = async (candidate: BusinessCandidate) => {
     setShowCandidates(false);
+    setShowMapPicker(false);
     
     const loc: Location = {
       lat: candidate.lat,
@@ -189,6 +167,8 @@ export function LocationInput({
     };
     
     setSelectedLocation(loc);
+    setMapCenter({ lat: loc.lat, lng: loc.lng });
+    setMapZoom(17);
     
     // Update the input text to the selected address
     if (onChange) {
@@ -225,6 +205,100 @@ export function LocationInput({
     // Load nearby competitors with enrichment
     await loadNearbyCompetitors(loc, true);
   };
+
+  // --- MAP PICKER ---
+
+  const enableMapPicker = () => {
+    setShowCandidates(false);
+    setShowMapPicker(true);
+    // Try to get user location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setMapCenter({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                });
+                setMapZoom(15);
+            },
+            () => {
+                console.log("Geolocation permission denied or error");
+            }
+        );
+    }
+  };
+
+  const handleMapClick = async (e: google.maps.MapMouseEvent) => {
+    if (!e.latLng) return;
+    
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+    
+    // Reverse Geocoding
+    const geocoder = new google.maps.Geocoder();
+    
+    try {
+        const response = await geocoder.geocode({ location: { lat, lng } });
+        if (response.results && response.results[0]) {
+            const result = response.results[0];
+            const address = result.formatted_address;
+            
+            const loc: Location = {
+                lat,
+                lng,
+                address: address,
+                placeId: result.place_id,
+                name: "Pinned Location"
+            };
+            
+            setSelectedLocation(loc);
+            setMapCenter({ lat, lng });
+            
+            if (onChange) {
+                onChange(address);
+            } else {
+                setSearchQuery(address);
+            }
+            
+            // Auto-load competitors for this pinned location
+            await loadNearbyCompetitors(loc, true);
+        }
+    } catch (err) {
+        console.error("Geocoding failed", err);
+        // Fallback if geocoding fails
+         const loc: Location = {
+            lat,
+            lng,
+            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+            name: "Pinned Location"
+        };
+        setSelectedLocation(loc);
+        if (onChange) onChange(loc.address);
+    }
+  };
+
+  const onLoadMap = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+  }, []);
+
+  const onPlacesChanged = () => {
+    const places = searchBoxRef.current?.getPlaces();
+    if (places && places.length > 0) {
+        const place = places[0];
+        if (place.geometry && place.geometry.location) {
+             const lat = place.geometry.location.lat();
+             const lng = place.geometry.location.lng();
+             setMapCenter({ lat, lng });
+             setMapZoom(17);
+        }
+    }
+  };
+
+  const onSearchBoxLoad = (ref: google.maps.places.SearchBox) => {
+      searchBoxRef.current = ref;
+  };
+
+  // --- COMPETITORS ---
 
   const loadNearbyCompetitors = async (location: Location, enrich: boolean = false) => {
     setIsLoadingNearby(true);
@@ -269,33 +343,10 @@ export function LocationInput({
     }
   };
 
-  const getMapEmbedUrl = (location: Location) => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    
-    if (!apiKey) {
-      return `https://www.openstreetmap.org/export/embed.html?bbox=${location.lng - 0.01},${location.lat - 0.01},${location.lng + 0.01},${location.lat + 0.01}&layer=mapnik&marker=${location.lat},${location.lng}`;
-    }
-    
-    return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${location.lat},${location.lng}&zoom=15`;
-  };
-
-  const openInGoogleMaps = () => {
-    if (selectedLocation) {
-      window.open(
-        `https://www.google.com/maps/search/?api=1&query=${selectedLocation.lat},${selectedLocation.lng}`,
-        '_blank'
-      );
-    }
-  };
-
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header (Hidden if simple input mode, or keep it?) 
-          The user design in page.tsx wraps this in a section, so maybe we keep the internal styling 
-          but simplify if needed. For now, let's keep the rich UI as it adds value. 
-      */}
       
-      {/* Search */}
+      {/* Search Input Area */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -330,7 +381,7 @@ export function LocationInput({
           <p className="mt-2 text-sm text-red-600">{error}</p>
         )}
 
-        {/* Candidates Selection */}
+        {/* Candidates List */}
         {showCandidates && (
           <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-4">
             <h4 className="text-sm font-medium text-gray-700">
@@ -361,36 +412,85 @@ export function LocationInput({
                 </button>
               ))}
 
-              {/* Option for manual location selection */}
+              {/* Manual Location Button */}
               <button
-                onClick={handleManualLocation}
+                onClick={enableMapPicker}
                 className="flex items-center justify-center gap-2 p-4 w-full text-sm font-medium text-gray-600 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
               >
                 <div className="p-1 bg-gray-200 rounded-full">
-                  <Search className="w-4 h-4" />
+                  <MapPin className="w-4 h-4" />
                 </div>
-                My business is not listed (Use address/coordinates)
+                My business is not listed (Pin on Map)
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Map Preview */}
-      {selectedLocation && !showCandidates && (
-        <div className="relative">
-          <div className="h-48 bg-gray-100">
-            <iframe
-              src={getMapEmbedUrl(selectedLocation)}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="w-full h-full"
-            />
+      {/* Map Picker Area (Large Square) */}
+      {showMapPicker && isLoaded && (
+          <div className="p-4 bg-gray-50 border-b border-gray-200 animate-in fade-in zoom-in-95 duration-300">
+             <div className="flex items-center justify-between mb-2">
+                 <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-emerald-600" />
+                    Pin your location
+                 </h4>
+                 <button onClick={() => setShowMapPicker(false)} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-5 h-5" />
+                 </button>
+             </div>
+             <div className="relative w-full aspect-square md:aspect-[4/3] rounded-xl overflow-hidden shadow-inner border border-gray-300">
+                <GoogleMap
+                    mapContainerStyle={{ width: '100%', height: '100%' }}
+                    center={mapCenter}
+                    zoom={mapZoom}
+                    onLoad={onLoadMap}
+                    onClick={handleMapClick}
+                    options={{
+                        streetViewControl: false,
+                        mapTypeControl: false,
+                        fullscreenControl: true
+                    }}
+                >
+                    <StandaloneSearchBox onLoad={onSearchBoxLoad} onPlacesChanged={onPlacesChanged}>
+                         <input
+                            type="text"
+                            placeholder="Search map..."
+                            className="box-border border border-transparent w-60 h-8 px-3 rounded shadow-md text-sm outline-none absolute top-2 left-1/2 -translate-x-1/2 z-10"
+                         />
+                    </StandaloneSearchBox>
+                    {selectedLocation && (
+                        <Marker position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }} />
+                    )}
+                </GoogleMap>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-lg text-xs font-medium text-gray-600 pointer-events-none">
+                    Click anywhere to set your location
+                </div>
+             </div>
           </div>
+      )}
+
+      {/* Selected Location Preview (When not picking) */}
+      {selectedLocation && !showCandidates && !showMapPicker && (
+        <div className="relative">
+          {isLoaded && (
+              <div className="h-48 bg-gray-100">
+                <GoogleMap
+                    mapContainerStyle={{ width: '100%', height: '100%' }}
+                    center={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
+                    zoom={16}
+                    options={{
+                        disableDefaultUI: true,
+                        draggable: false,
+                        zoomControl: false,
+                        scrollwheel: false,
+                        disableDoubleClickZoom: true
+                    }}
+                >
+                    <Marker position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }} />
+                </GoogleMap>
+              </div>
+          )}
           
           <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
             <div className="flex items-start justify-between gap-3">
@@ -403,6 +503,12 @@ export function LocationInput({
                   <p className="text-sm text-gray-600 line-clamp-1">{selectedLocation.address}</p>
                 </div>
               </div>
+              <button 
+                onClick={() => setShowMapPicker(true)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap"
+              >
+                Change
+              </button>
             </div>
           </div>
         </div>

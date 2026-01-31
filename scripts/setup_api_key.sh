@@ -8,8 +8,8 @@ echo "===================================="
 echo ""
 
 # Check if .env exists
-if [ -f "backend/.env" ]; then
-    echo "⚠️  backend/.env already exists"
+if [ -f ".env" ]; then
+    echo "⚠️  .env already exists"
     read -p "Do you want to update it? (y/n): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -17,8 +17,8 @@ if [ -f "backend/.env" ]; then
         exit 0
     fi
 else
-    echo "Creating backend/.env from template..."
-    cp backend/.env.example backend/.env
+    echo "Creating .env from template..."
+    cp .env.example .env
 fi
 
 echo ""
@@ -35,10 +35,10 @@ fi
 # Update .env file
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
-    sed -i '' "s/GEMINI_API_KEY=.*/GEMINI_API_KEY=$api_key/" backend/.env
+    sed -i '' "s/GEMINI_API_KEY=.*/GEMINI_API_KEY=$api_key/" .env
 else
     # Linux
-    sed -i "s/GEMINI_API_KEY=.*/GEMINI_API_KEY=$api_key/" backend/.env
+    sed -i "s/GEMINI_API_KEY=.*/GEMINI_API_KEY=$api_key/" .env
 fi
 
 echo ""

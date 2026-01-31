@@ -181,6 +181,9 @@ class CompetitorEnrichmentService:
     ):
         self.google_api_key = google_maps_api_key
         self.gemini = gemini_agent or GeminiAgent()
+        
+        if not self.google_api_key:
+            logger.info("CompetitorEnrichmentService initialized without Google Maps API key. Place Details extraction will be disabled.")
 
         self.http_client = httpx.AsyncClient(
             timeout=30.0,
@@ -340,8 +343,7 @@ class CompetitorEnrichmentService:
 
     async def _get_place_details(self, place_id: str) -> Optional[Dict[str, Any]]:
         """Obtener detalles completos usando Google Places API (New)."""
-
-        # Check for custom/manual place ID
+eck for custom/manual place ID
         if not self.google_api_key:
             logger.warning("No Google Maps API key configured")
             return None

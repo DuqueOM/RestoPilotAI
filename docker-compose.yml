@@ -5,11 +5,12 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/RestoPilotAI
       - REDIS_URL=redis://redis:6379
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
+      # Explicit overrides or fallbacks if needed, otherwise pulled from .env
     depends_on:
       - db
       - redis
@@ -23,6 +24,8 @@ services:
       target: builder
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     volumes:

@@ -8,8 +8,9 @@ Centralized configuration for RestoPilotAI backend with support for:
 """
 
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,7 +18,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=[".env", "../.env"],  # Load from local .env or root .env
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -27,6 +28,13 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     google_maps_api_key: str = ""
     google_places_api_key: str = ""
+
+    @model_validator(mode="after")
+    def consolidate_keys(self) -> "Settings":
+        """Consolidate API keys to ensure google_maps_api_key is populated."""
+        if not self.google_maps_api_key and self.google_places_api_key:
+            self.google_maps_api_key = self.google_places_api_key
+        return self
 
     # ==================== Application ====================
     app_name: str = "RestoPilotAI"

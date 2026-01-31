@@ -290,7 +290,7 @@ def main():
     # Load .env file
     from dotenv import load_dotenv
 
-    env_path = Path(__file__).parent / "backend" / ".env"
+    env_path = Path(__file__).parent / ".env"
     if env_path.exists():
         load_dotenv(env_path)
         print(f"✅ Loaded .env from {env_path}")
