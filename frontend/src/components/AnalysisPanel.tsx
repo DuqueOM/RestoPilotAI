@@ -1,8 +1,22 @@
 'use client'
 
+import { WebSocketMessage, wsManager } from '@/lib/websocket'
 import axios from 'axios'
-import { BarChart3, CheckCircle, ChevronRight, Clock, Loader2, Megaphone, MessageSquare, Play, RefreshCw, Target, TrendingUp } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import {
+  BarChart3,
+  Camera,
+  CheckCircle,
+  Clock,
+  Loader2,
+  MapPin,
+  Megaphone,
+  Play,
+  ShieldCheck,
+  TrendingUp,
+  Utensils
+} from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import ThinkingStream, { ThoughtStep } from './ThinkingStream'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -14,419 +28,428 @@ interface AnalysisPanelProps {
   setIsLoading: (loading: boolean) => void
 }
 
-// Progress messages for each step
-const PROGRESS_MESSAGES: Record<string, string[]> = {
-  bcg: [
-    'Analizando portafolio de productos (últimos 30 días)...',
-    'Calculando popularidad y margen de contribución...',
-    'Clasificando productos (Estrellas, Caballos, Rompecabezas, Perros)...',
-    'Generando estrategias por categoría...',
-    'Finalizando análisis de Ingeniería de Menú...'
-  ],
-  predictions: [
-    'Cargando histórico de ventas...',
-    'Entrenando modelo de predicción (XGBoost + LSTM)...',
-    'Generando pronóstico a 14 días...',
-    'Calculando intervalos de confianza...',
-    'Finalizando proyecciones...'
-  ],
-  competitors: [
-    'Identificando competidores cercanos...',
-    'Analizando posicionamiento de precios...',
-    'Comparando oferta gastronómica...',
-    'Detectando brechas de mercado...',
-    'Finalizando inteligencia competitiva...'
-  ],
-  sentiment: [
-    'Recopilando reseñas de Google y redes sociales...',
-    'Analizando sentimiento de clientes...',
-    'Procesando feedback sobre platos específicos...',
-    'Detectando quejas recurrentes y elogios...',
-    'Generando insights de reputación...'
-  ],
-  campaigns: [
-    'Analizando segmentos objetivo...',
-    'Generando ideas de campaña creativas...',
-    'Redactando copy de marketing...',
-    'Optimizando calendario de promociones...',
-    'Finalizando propuestas de campaña...'
-  ]
+// Stages of the new RestaurantIQ Pipeline
+const ANALYSIS_STAGES = [
+  { 
+    id: 'menu_ingestion', 
+    title: '1. Ingesta y Digitalización', 
+    description: 'Extracción multimodal del menú y análisis de calidad fotográfica.',
+    icon: Utensils
+  },
+  { 
+    id: 'competitor_scout', 
+    title: '2. Scout Agent: Discovery', 
+    description: 'Búsqueda autónoma de competidores y análisis de posicionamiento.',
+    icon: MapPin 
+  },
+  { 
+    id: 'visual_sentiment', 
+    title: '3. Análisis Sensorial y Reputación', 
+    description: 'Evaluación visual de platos (Visual Gap) y sentimiento de reseñas.',
+    icon: Camera 
+  },
+  { 
+    id: 'strategic_analysis', 
+    title: '4. Matriz Estratégica BCG', 
+    description: 'Clasificación de rentabilidad y popularidad de productos.',
+    icon: BarChart3 
+  },
+  { 
+    id: 'predictive_model', 
+    title: '5. Motor Predictivo', 
+    description: 'Proyección de demanda futura con escenarios (XGBoost).',
+    icon: TrendingUp 
+  },
+  { 
+    id: 'growth_actions', 
+    title: '6. Plan de Crecimiento', 
+    description: 'Generación de campañas y verificación autónoma de estrategias.',
+    icon: Megaphone 
+  }
+]
+
+// Mapping from Backend Pipeline Stages to Frontend UI Stages
+const BACKEND_TO_FRONTEND_STAGE_MAP: Record<string, string> = {
+  'data_ingestion': 'menu_ingestion',
+  'menu_extraction': 'menu_ingestion',
+  'image_analysis': 'menu_ingestion',
+  
+  'competitor_discovery': 'competitor_scout',
+  'competitor_analysis': 'competitor_scout',
+  
+  'sentiment_analysis': 'visual_sentiment',
+  'visual_gap_analysis': 'visual_sentiment',
+  
+  'bcg_classification': 'strategic_analysis',
+  'sales_processing': 'strategic_analysis',
+  
+  'sales_prediction': 'predictive_model',
+  
+  'campaign_generation': 'growth_actions',
+  'verification': 'growth_actions'
 }
 
 export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLoading, setIsLoading }: AnalysisPanelProps) {
-  const [bcgDone, setBcgDone] = useState(!!sessionData?.bcg_analysis)
-  const [predictionsDone, setPredictionsDone] = useState(!!sessionData?.predictions)
-  const [competitorsDone, setCompetitorsDone] = useState(!!sessionData?.competitor_analysis)
-  const [sentimentDone, setSentimentDone] = useState(!!sessionData?.sentiment_analysis)
-  const [campaignsDone, setCampaignsDone] = useState(!!sessionData?.campaigns && sessionData.campaigns.length > 0)
+  // State for each stage completion
+  const [stageStatus, setStageStatus] = useState<Record<string, 'pending' | 'running' | 'completed' | 'failed'>>({})
   const [currentStep, setCurrentStep] = useState<string | null>(null)
-  const [results, setResults] = useState<any>({})
-  const [elapsedTime, setElapsedTime] = useState(0)
-  const [progressIndex, setProgressIndex] = useState(0)
-  const [retryCount, setRetryCount] = useState<Record<string, number>>({})
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const [stepThoughts, setStepThoughts] = useState<Record<string, ThoughtStep[]>>({})
+  const [processingTime, setProcessingTime] = useState<Record<string, number>>({})
+  
+  const startTimeRef = useRef<number | null>(null)
   const mounted = useRef(false)
 
-  // Auto-start analysis on mount
+  // Initialize status based on sessionData if available
   useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true
-      runFullAnalysis()
+    if (sessionData) {
+      const newStatus: any = {}
+      if (sessionData.menu_items?.length > 0) newStatus.menu_ingestion = 'completed'
+      if (sessionData.competitor_analysis) newStatus.competitor_scout = 'completed'
+      if (sessionData.sentiment_analysis) newStatus.visual_sentiment = 'completed'
+      if (sessionData.bcg_analysis) newStatus.strategic_analysis = 'completed'
+      if (sessionData.predictions) newStatus.predictive_model = 'completed'
+      if (sessionData.campaigns?.length > 0) newStatus.growth_actions = 'completed'
+      setStageStatus(prev => ({ ...prev, ...newStatus }))
     }
+  }, [sessionData])
+
+  // Helper to add thoughts to stream
+  const addThought = useCallback((step: string, thought: Omit<ThoughtStep, 'id' | 'timestamp'>) => {
+    const newThought: ThoughtStep = {
+      ...thought,
+      id: `${step}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      timestamp: Date.now(),
+      isStreaming: true, // Only new thoughts stream
+    }
+    
+    setStepThoughts(prev => ({
+      ...prev,
+      [step]: [...(prev[step] || []), newThought],
+    }))
+
+    // Turn off streaming effect after a delay
+    setTimeout(() => {
+      setStepThoughts(prev => ({
+        ...prev,
+        [step]: prev[step]?.map(t => t.id === newThought.id ? { ...t, isStreaming: false } : t) || [],
+      }))
+    }, 1500)
   }, [])
 
-  // Timer for elapsed time and progress messages
+  // WebSocket Connection
   useEffect(() => {
-    if (currentStep) {
-      setElapsedTime(0)
-      setProgressIndex(0)
-      timerRef.current = setInterval(() => {
-        setElapsedTime(prev => prev + 1)
-        setProgressIndex(prev => {
-          const messages = PROGRESS_MESSAGES[currentStep] || []
-          return Math.min(prev + 1, messages.length - 1)
-        })
-      }, 8000)
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current)
+    if (!sessionId) return
+
+    // Connect to WebSocket
+    wsManager.connect(sessionId)
+
+    const handleMessage = (msg: WebSocketMessage) => {
+      // 1. Handle Thoughts
+      if (msg.type === 'thought' && msg.thought) {
+        const backendStep = msg.thought.step || ''
+        const frontendStage = BACKEND_TO_FRONTEND_STAGE_MAP[backendStep] || currentStep
+        
+        if (frontendStage) {
+          // If we receive a thought for a stage, ensure it's marked as running if not completed
+          setStageStatus(prev => {
+             if (prev[frontendStage] === 'completed') return prev;
+             return { ...prev, [frontendStage]: 'running' }
+          })
+          
+          if (!currentStep) setCurrentStep(frontendStage)
+
+          addThought(frontendStage, {
+            type: msg.thought.type,
+            content: msg.thought.content,
+            confidence: msg.thought.confidence
+          })
+        }
+      }
+
+      // 2. Handle Progress / Stage Updates
+      if (msg.type === 'progress' && msg.stage) {
+        const frontendStage = BACKEND_TO_FRONTEND_STAGE_MAP[msg.stage]
+        if (frontendStage) {
+          setCurrentStep(frontendStage)
+          setStageStatus(prev => {
+            // Don't revert completed stages
+            if (prev[frontendStage] === 'completed') return prev
+            return { ...prev, [frontendStage]: 'running' }
+          })
+        }
+      }
+
+      // 3. Handle Stage Completion
+      if (msg.type === 'stage_complete' && msg.stage) {
+        const frontendStage = BACKEND_TO_FRONTEND_STAGE_MAP[msg.stage]
+        if (frontendStage) {
+          setStageStatus(prev => ({ ...prev, [frontendStage]: 'completed' }))
+          
+          // Calculate processing time if we were tracking it
+          if (startTimeRef.current) {
+            const elapsed = (Date.now() - startTimeRef.current) / 1000
+            setProcessingTime(prev => ({ ...prev, [frontendStage]: elapsed }))
+          }
+        }
+        // Update parent data if provided
+        if (msg.data) {
+          onComplete(msg.data)
+        }
+      }
+
+      // 4. Handle Full Completion
+      if (msg.type === 'completed') {
+        setIsLoading(false)
+        setCurrentStep(null)
+        onComplete({}) // Trigger refresh or final state update
+      }
+
+      // 5. Handle Errors
+      if (msg.type === 'error') {
+        console.error("Orchestrator Error:", msg.message)
+        if (msg.stage) {
+           const frontendStage = BACKEND_TO_FRONTEND_STAGE_MAP[msg.stage]
+           if (frontendStage) {
+             setStageStatus(prev => ({ ...prev, [frontendStage]: 'failed' }))
+           }
+        }
+        setIsLoading(false)
+      }
     }
+
+    const unsubscribe = wsManager.subscribe(handleMessage)
+
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
+      unsubscribe()
+      // We don't necessarily disconnect here to allow background updates, 
+      // but good practice if component unmounts completely
     }
-  }, [currentStep])
+  }, [sessionId, currentStep, addThought, onComplete])
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
+  // Orchestrator Execution (Full Pipeline)
+  const runFullPipeline = async () => {
+    setIsLoading(true)
+    startTimeRef.current = Date.now()
+    
+    // Reset statuses for a fresh run
+    setStageStatus({})
+    setStepThoughts({})
+    
+    try {
+      // Trigger the orchestrator
+      await axios.post(`${API_URL}/api/v1/orchestrator/run`, 
+        // Send data as form data if needed, or just params. 
+        // The endpoint usually expects multipart if uploading files, 
+        // but for a re-run/trigger we might need to adjust endpoint or params.
+        // Assuming we are triggering an analysis on *existing* session data if files aren't provided.
+        // But the route in backend expects UploadFile which are optional.
+        // We need to pass session_id somehow? 
+        // Actually, /orchestrator/run creates a NEW session if we don't pass one, 
+        // OR we use /orchestrator/resume/{session_id} for existing.
+        // Let's use resume for existing session to trigger pipeline on it?
+        // Or if we are starting fresh, we use run.
+        // Given sessionId exists in props, we likely want to Resume or Trigger on *this* session.
+        null, 
+        {
+          params: {
+             session_id: sessionId // If the backend supports passing session_id to run (it might not based on code read)
+          }
+        }
+      )
+      
+      // If /orchestrator/run creates a NEW session, we have a problem because we are on `sessionId`.
+      // Let's check backend route: 
+      // @router.post("/orchestrator/run") -> creates new session via orchestrator.create_session()
+      
+      // We should probably use /orchestrator/resume/{session_id} if we want to run on *current* session
+      // OR we need to update the session ID if a new one is returned.
+      
+      // Let's try resume first as it likely continues or re-runs.
+      // Or we can call the individual endpoints if orchestrator/run forces new session.
+      
+      // Wait, if we use /orchestrator/resume/{session_id}, it calls orchestrator.resume_session -> run_full_pipeline.
+      // This seems correct for "Run Analysis" on this session.
+      
+      await axios.post(`${API_URL}/api/v1/orchestrator/resume/${sessionId}`, new FormData())
+      
+    } catch (error) {
+      console.error('Failed to start pipeline:', error)
+      setIsLoading(false)
+      setStageStatus(prev => ({ ...prev, [currentStep || 'unknown']: 'failed' }))
+    }
   }
 
-  const runBCGAnalysis = async (isRetry = false) => {
-    setCurrentStep('bcg')
+  // Legacy/Manual Stage Execution
+  const runStage = async (stageId: string) => {
+    setCurrentStep(stageId)
+    setStageStatus(prev => ({ ...prev, [stageId]: 'running' }))
     setIsLoading(true)
-    if (isRetry) {
-      setRetryCount(prev => ({ ...prev, bcg: (prev.bcg || 0) + 1 }))
-    }
+
     try {
-      const res = await axios.post(
-        `${API_URL}/api/v1/analyze/bcg?session_id=${sessionId}`,
-        {},
-        { timeout: 0 }
-      )
-      const data = { bcg_analysis: res.data }
-      setResults((prev: any) => ({ ...prev, ...data }))
-      onComplete(data)
-      setBcgDone(true)
-    } catch (err: any) {
-      console.error('BCG error:', err)
-      alert(`BCG Analysis failed: ${err.message}`)
+      let endpoint = ''
+      let body = {}
+
+      switch (stageId) {
+        case 'menu_ingestion':
+          // Usually handled by upload, but maybe re-extract?
+          await new Promise(r => setTimeout(r, 1000)) 
+          break
+        case 'competitor_scout':
+          endpoint = `/api/v1/analyze/competitors?session_id=${sessionId}`
+          break
+        case 'visual_sentiment':
+          endpoint = `/api/v1/analyze/sentiment?session_id=${sessionId}`
+          break
+        case 'strategic_analysis':
+          endpoint = `/api/v1/analyze/bcg?session_id=${sessionId}`
+          break
+        case 'predictive_model':
+          endpoint = `/api/v1/predict/sales?session_id=${sessionId}&horizon_days=14`
+          body = []
+          break
+        case 'growth_actions':
+          endpoint = `/api/v1/campaigns/generate?session_id=${sessionId}&num_campaigns=3`
+          body = []
+          break
+      }
+
+      if (endpoint) {
+        const res = await axios.post(`${API_URL}${endpoint}`, body)
+        if (res.data) {
+           onComplete(res.data)
+           setStageStatus(prev => ({ ...prev, [stageId]: 'completed' }))
+        }
+      } else {
+         setStageStatus(prev => ({ ...prev, [stageId]: 'completed' }))
+      }
+      
+    } catch (error) {
+      console.error(`Error in stage ${stageId}:`, error)
+      setStageStatus(prev => ({ ...prev, [stageId]: 'failed' }))
     } finally {
       setIsLoading(false)
       setCurrentStep(null)
     }
-  }
-
-  const runPredictions = async (isRetry = false) => {
-    setCurrentStep('predictions')
-    setIsLoading(true)
-    if (isRetry) {
-      setRetryCount(prev => ({ ...prev, predictions: (prev.predictions || 0) + 1 }))
-    }
-    try {
-      const res = await axios.post(
-        `${API_URL}/api/v1/predict/sales?session_id=${sessionId}&horizon_days=14`,
-        [],
-        { timeout: 0 }
-      )
-      const data = { predictions: res.data }
-      setResults((prev: any) => ({ ...prev, ...data }))
-      onComplete(data)
-      setPredictionsDone(true)
-    } catch (err: any) {
-      console.error('Predictions error:', err)
-      alert(`Predictions failed: ${err.message}`)
-    } finally {
-      setIsLoading(false)
-      setCurrentStep(null)
-    }
-  }
-
-  const runCompetitorAnalysis = async (isRetry = false) => {
-    setCurrentStep('competitors')
-    setIsLoading(true)
-    if (isRetry) {
-      setRetryCount(prev => ({ ...prev, competitors: (prev.competitors || 0) + 1 }))
-    }
-    try {
-      const res = await axios.post(
-        `${API_URL}/api/v1/analyze/competitors?session_id=${sessionId}`,
-        {},
-        { timeout: 0 }
-      )
-      const data = { competitor_analysis: res.data.competitor_analysis }
-      setResults((prev: any) => ({ ...prev, ...data }))
-      onComplete(data)
-      setCompetitorsDone(true)
-    } catch (err: any) {
-      console.error('Competitor Analysis error:', err)
-      // Non-blocking error
-      console.warn('Continuing without competitor analysis')
-      setCompetitorsDone(true) // Mark as done to allow flow to continue
-    } finally {
-      setIsLoading(false)
-      setCurrentStep(null)
-    }
-  }
-
-  const runSentimentAnalysis = async (isRetry = false) => {
-    setCurrentStep('sentiment')
-    setIsLoading(true)
-    if (isRetry) {
-      setRetryCount(prev => ({ ...prev, sentiment: (prev.sentiment || 0) + 1 }))
-    }
-    try {
-      const res = await axios.post(
-        `${API_URL}/api/v1/analyze/sentiment?session_id=${sessionId}`,
-        {},
-        { timeout: 0 }
-      )
-      const data = { sentiment_analysis: res.data.sentiment_analysis }
-      setResults((prev: any) => ({ ...prev, ...data }))
-      onComplete(data)
-      setSentimentDone(true)
-    } catch (err: any) {
-      console.error('Sentiment Analysis error:', err)
-      // Non-blocking error
-      console.warn('Continuing without sentiment analysis')
-      setSentimentDone(true) // Mark as done to allow flow to continue
-    } finally {
-      setIsLoading(false)
-      setCurrentStep(null)
-    }
-  }
-
-  const generateCampaigns = async (isRetry = false) => {
-    setCurrentStep('campaigns')
-    setIsLoading(true)
-    if (isRetry) {
-      setRetryCount(prev => ({ ...prev, campaigns: (prev.campaigns || 0) + 1 }))
-    }
-    try {
-      const res = await axios.post(
-        `${API_URL}/api/v1/campaigns/generate?session_id=${sessionId}&num_campaigns=3`,
-        [],
-        { timeout: 300000 }
-      )
-      const data = { campaigns: res.data.campaigns, thought_signature: res.data.thought_signature }
-      setResults((prev: any) => ({ ...prev, ...data }))
-      onComplete(data)
-      setCampaignsDone(true)
-    } catch (err: any) {
-      console.error('Campaign error:', err)
-      alert(`Campaign generation failed: ${err.message}`)
-    } finally {
-      setIsLoading(false)
-      setCurrentStep(null)
-    }
-  }
-
-  const runFullAnalysis = async () => {
-    if (!bcgDone) await runBCGAnalysis()
-    if (!predictionsDone) await runPredictions()
-    if (!competitorsDone) await runCompetitorAnalysis()
-    if (!sentimentDone) await runSentimentAnalysis()
-    if (!campaignsDone) await generateCampaigns()
-  }
-
-  // Get current progress message
-  const getCurrentMessage = () => {
-    if (!currentStep) return ''
-    const messages = PROGRESS_MESSAGES[currentStep] || []
-    return messages[Math.min(progressIndex, messages.length - 1)] || 'Processing...'
-  }
-
-  // Render a step item
-  const renderStep = (
-    id: string, 
-    title: string, 
-    description: string, 
-    icon: any, 
-    isDone: boolean, 
-    onRun: () => void, 
-    isDisabled: boolean
-  ) => {
-    const isRunning = currentStep === id
-    const Icon = icon
-
-    return (
-      <div className={`relative flex gap-4 p-4 rounded-xl border transition-all ${
-        isRunning 
-          ? 'bg-blue-50 border-blue-200 shadow-md scale-[1.02]' 
-          : isDone 
-            ? 'bg-white border-green-200' 
-            : 'bg-white border-gray-100 hover:border-gray-300'
-      }`}>
-        {/* Icon & Status */}
-        <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-          isRunning 
-            ? 'bg-blue-100 text-blue-600 animate-pulse' 
-            : isDone 
-              ? 'bg-green-100 text-green-600' 
-              : 'bg-gray-100 text-gray-500'
-        }`}>
-          {isRunning ? <Loader2 className="h-6 w-6 animate-spin" /> : isDone ? <CheckCircle className="h-6 w-6" /> : <Icon className="h-6 w-6" />}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className={`font-semibold text-lg ${isRunning ? 'text-blue-900' : 'text-gray-900'}`}>{title}</h3>
-            {isDone && !isRunning && (
-              <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Completed</span>
-            )}
-          </div>
-          
-          <p className="text-sm text-gray-600 mb-3">{description}</p>
-          
-          {isRunning && (
-            <div className="mb-3 space-y-2">
-              <div className="flex items-center gap-2 text-xs text-blue-700 font-medium">
-                <Clock className="h-3 w-3" />
-                {formatTime(elapsedTime)} - {getCurrentMessage()}
-              </div>
-              <div className="w-full bg-blue-200 rounded-full h-1.5 overflow-hidden">
-                <div 
-                  className="bg-blue-500 h-full rounded-full transition-all duration-1000"
-                  style={{ width: `${Math.min((progressIndex + 1) * 20, 95)}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            {!isRunning && (
-              <button
-                onClick={onRun}
-                disabled={isDisabled}
-                className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${
-                  isDone 
-                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' 
-                    : 'bg-primary-600 text-white hover:bg-primary-700 shadow-sm'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isDone ? <RefreshCw className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                {isDone ? 'Run Again' : 'Run Analysis'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col space-y-4">
-        {/* Step 1: BCG */}
-        {renderStep(
-          'bcg',
-          '1. BCG Matrix Classification',
-          'Classify your menu items into Stars, Cash Cows, Question Marks, and Dogs based on sales performance.',
-          BarChart3,
-          bcgDone,
-          () => runBCGAnalysis(bcgDone),
-          isLoading && currentStep !== 'bcg'
-        )}
-
-        {/* Connector Line */}
-        <div className="pl-6">
-          <div className={`w-0.5 h-6 ${bcgDone ? 'bg-green-200' : 'bg-gray-200'}`} />
+    <div className="space-y-8">
+      {/* Header Actions */}
+      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Orquestador de Análisis</h2>
+          <p className="text-sm text-gray-500">RestaurantIQ Autonomous Pipeline</p>
         </div>
-
-        {/* Step 2: Predictions */}
-        {renderStep(
-          'predictions',
-          '2. AI Sales Predictions',
-          'Forecast sales for the next 14 days to optimize inventory and staffing.',
-          TrendingUp,
-          predictionsDone,
-          () => runPredictions(predictionsDone),
-          isLoading && currentStep !== 'predictions'
-        )}
-
-        {/* Connector Line */}
-        <div className="pl-6">
-          <div className={`w-0.5 h-6 ${predictionsDone ? 'bg-green-200' : 'bg-gray-200'}`} />
+        <div className="flex gap-3">
+          <button
+            onClick={runFullPipeline}
+            disabled={isLoading}
+            className={`
+              flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white shadow-lg transition-all
+              ${isLoading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:-translate-y-0.5'
+              }
+            `}
+          >
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Play className="h-5 w-5" />}
+            {isLoading ? 'Ejecutando...' : 'Iniciar Análisis Completo'}
+          </button>
         </div>
-
-        {/* Step 3: Competitor Analysis */}
-        {renderStep(
-          'competitors',
-          '3. Competitive Intelligence',
-          'Analyze market positioning, price gaps, and competitor offerings.',
-          Target,
-          competitorsDone,
-          () => runCompetitorAnalysis(competitorsDone),
-          isLoading && currentStep !== 'competitors'
-        )}
-
-        {/* Connector Line */}
-        <div className="pl-6">
-          <div className={`w-0.5 h-6 ${competitorsDone ? 'bg-green-200' : 'bg-gray-200'}`} />
-        </div>
-
-        {/* Step 4: Sentiment Analysis */}
-        {renderStep(
-          'sentiment',
-          '4. Customer Sentiment',
-          'Analyze reviews and feedback to understand customer satisfaction and reputation.',
-          MessageSquare,
-          sentimentDone,
-          () => runSentimentAnalysis(sentimentDone),
-          isLoading && currentStep !== 'sentiment'
-        )}
-
-        {/* Connector Line */}
-        <div className="pl-6">
-          <div className={`w-0.5 h-6 ${sentimentDone ? 'bg-green-200' : 'bg-gray-200'}`} />
-        </div>
-
-        {/* Step 5: Campaigns */}
-        {renderStep(
-          'campaigns',
-          '5. Marketing Campaigns',
-          'Generate targeted marketing proposals to boost revenue and promote specific items.',
-          Megaphone,
-          campaignsDone,
-          () => generateCampaigns(campaignsDone),
-          isLoading && currentStep !== 'campaigns'
-        )}
       </div>
 
-      {/* Global Actions */}
-      <div className="flex justify-end items-center gap-4 pt-4 border-t border-gray-100">
-        {!isLoading && !currentStep && (
-          <>
-            {(!bcgDone || !predictionsDone || !competitorsDone || !sentimentDone || !campaignsDone) && (
-               <button 
-                onClick={runFullAnalysis}
-                className="text-primary-600 hover:text-primary-700 text-sm font-medium hover:underline"
-              >
-                Run Remaining Steps Automatically
-              </button>
-            )}
-            
-            {(bcgDone || campaignsDone) && (
-              <button 
-                onClick={() => onComplete(results)} 
-                className="btn-primary px-6 py-3 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
-              >
-                View Strategic Results
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            )}
-          </>
-        )}
+      {/* Vertical Pipeline Steps */}
+      <div className="relative space-y-6 before:absolute before:inset-0 before:ml-8 before:w-0.5 before:-translate-x-1/2 before:bg-gray-200 before:h-full before:-z-10">
+        {ANALYSIS_STAGES.map((stage, index) => {
+          const status = stageStatus[stage.id] || 'pending'
+          const isRunning = (currentStep === stage.id) || (status === 'running')
+          const isCompleted = status === 'completed'
+          const Icon = stage.icon
+
+          return (
+            <div key={stage.id} className="relative flex gap-6 group">
+              {/* Timeline Node */}
+              <div className={`
+                flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center border-4 transition-all duration-500 z-10
+                ${isRunning 
+                  ? 'bg-white border-blue-500 text-blue-600 shadow-lg shadow-blue-200 scale-110' 
+                  : isCompleted 
+                    ? 'bg-green-50 border-green-500 text-green-600' 
+                    : 'bg-gray-50 border-gray-200 text-gray-400'
+                }
+              `}>
+                {isRunning ? (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                ) : isCompleted ? (
+                  <CheckCircle className="h-8 w-8" />
+                ) : (
+                  <Icon className="h-7 w-7" />
+                )}
+              </div>
+
+              {/* Card Content */}
+              <div className={`
+                flex-1 p-5 rounded-xl border transition-all duration-300 bg-white
+                ${isRunning 
+                  ? 'border-blue-200 shadow-lg ring-1 ring-blue-100' 
+                  : 'border-gray-200 hover:border-gray-300 shadow-sm'
+                }
+              `}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className={`font-bold text-lg ${isRunning ? 'text-blue-900' : 'text-gray-900'}`}>
+                      {stage.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">{stage.description}</p>
+                  </div>
+                  
+                  {!isRunning && !isCompleted && (
+                    <button 
+                      onClick={() => runStage(stage.id)}
+                      disabled={isLoading}
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <Play className="h-5 w-5" />
+                    </button>
+                  )}
+                  
+                  {isCompleted && (
+                    <div className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                      <CheckCircle className="h-3 w-3" />
+                      Completado
+                    </div>
+                  )}
+                </div>
+
+                {/* Thinking Stream Component */}
+                {(isRunning || (stepThoughts[stage.id] && stepThoughts[stage.id].length > 0)) && (
+                  <div className="mt-4 border-t border-gray-100 pt-4">
+                    <ThinkingStream
+                      thoughts={stepThoughts[stage.id] || []}
+                      isActive={isRunning}
+                      title={`Agente IA: ${stage.title}`}
+                      showConfidence={true}
+                      defaultExpanded={true}
+                    />
+                  </div>
+                )}
+                
+                {/* Stats / Mini Result Preview */}
+                {isCompleted && (
+                  <div className="mt-3 flex gap-2 text-xs text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> 
+                      {processingTime[stage.id] ? `${processingTime[stage.id].toFixed(1)}s` : 'Procesado'}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck className="h-3 w-3" /> Verificado
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

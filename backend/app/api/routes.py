@@ -16,6 +16,10 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import JSONResponse
+from loguru import logger
+
 from app.config import get_settings
 from app.services.advanced_analytics import AdvancedAnalyticsService
 from app.services.bcg_classifier import BCGClassifier
@@ -28,11 +32,12 @@ from app.services.data_capability_detector import DataCapabilityDetector
 from app.services.gemini.multimodal_agent import MultimodalAgent
 from app.services.gemini.reasoning_agent import ReasoningAgent
 from app.services.gemini_agent import GeminiAgent
+from app.services.intelligence.scout_agent import ScoutAgent
 from app.services.menu_engineering import AnalysisPeriod, MenuEngineeringClassifier
 from app.services.menu_extractor import DishImageAnalyzer, MenuExtractor
 from app.services.menu_optimizer import MenuOptimizer
 from app.services.neural_predictor import NeuralPredictor
-from app.services.orchestrator import AnalysisOrchestrator
+from app.services.orchestrator import orchestrator
 from app.services.period_calculator import PeriodCalculator
 from app.services.sales_predictor import SalesPredictor
 from app.services.sentiment_analyzer import (
@@ -41,9 +46,6 @@ from app.services.sentiment_analyzer import (
     SentimentSource,
 )
 from app.services.verification_agent import ThinkingLevel, VerificationAgent
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
-from loguru import logger
 
 router = APIRouter()
 settings = get_settings()
@@ -62,7 +64,7 @@ sales_predictor = SalesPredictor()
 campaign_generator = CampaignGenerator(agent)
 verification_agent = VerificationAgent(agent)
 neural_predictor = NeuralPredictor()
-orchestrator = AnalysisOrchestrator()
+# orchestrator is imported from app.services.orchestrator
 data_capability_detector = DataCapabilityDetector()
 menu_optimizer = MenuOptimizer()
 advanced_analytics = AdvancedAnalyticsService()
@@ -70,6 +72,7 @@ competitor_intelligence = CompetitorIntelligenceService(
     multimodal_agent, reasoning_agent
 )
 sentiment_analyzer = SentimentAnalyzer(multimodal_agent, reasoning_agent)
+scout_agent = ScoutAgent()
 
 # In-memory session storage with file persistence
 sessions = {}
@@ -79,10 +82,7 @@ SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
 def load_session(session_id: str) -> Optional[Dict]:
     """Get session from memory or load from disk."""
-    if session_id in sessions:
-        return sessions[session_id]
-
-    # Try loading from disk
+    # Always try loading from disk to ensure sync with Orchestrator
     session_file = SESSIONS_DIR / f"{session_id}.json"
     if session_file.exists():
         try:
@@ -93,6 +93,11 @@ def load_session(session_id: str) -> Optional[Dict]:
         except Exception as e:
             logger.error(f"Failed to load session {session_id}: {e}")
             return None
+
+    # Fallback to memory if file doesn't exist (unlikely if persisted correctly)
+    if session_id in sessions:
+        return sessions[session_id]
+
     return None
 
 
@@ -104,6 +109,11 @@ def save_session(session_id: str):
             with open(session_file, "w") as f:
                 # Use default=str to handle datetime objects
                 json.dump(sessions[session_id], f, indent=2, default=str)
+
+            # Invalidate orchestrator cache to ensure it reloads updated data
+            if session_id in orchestrator.active_sessions:
+                del orchestrator.active_sessions[session_id]
+
         except Exception as e:
             logger.error(f"Failed to save session {session_id}: {e}")
 
@@ -118,18 +128,13 @@ async def ingest_menu_image(
     Upload and process menu images/PDFs (supports multiple files).
     """
 
-    # Create or get session
-    session_id = session_id or str(uuid.uuid4())
-    session = load_session(session_id)
+    # Create or get session using orchestrator to ensure state compatibility
+    if not session_id or not load_session(session_id):
+        session_id = await orchestrator.create_session()
 
+    session = load_session(session_id)
     if not session:
-        session = {
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "menu_items": [],
-            "sales_data": [],
-        }
-        sessions[session_id] = session
-        save_session(session_id)
+        raise HTTPException(500, "Failed to create or load session")
 
     upload_dir = Path("data/uploads") / session_id
     upload_dir.mkdir(parents=True, exist_ok=True)
@@ -646,6 +651,12 @@ async def run_bcg_analysis(session_id: str, period: str = "30d"):
     menu_items = session.get("menu_items", [])
     sales_data = session.get("sales_data", [])
 
+    # Convert period string to Enum
+    try:
+        analysis_period = AnalysisPeriod(period)
+    except ValueError:
+        analysis_period = AnalysisPeriod.LAST_30_DAYS
+
     # MERGE menu items from both sources: menu extraction AND sales data
     existing_menu_names = {item["name"].lower().strip() for item in menu_items}
 
@@ -1117,6 +1128,95 @@ async def analyze_sentiment(session_id: str):
         raise HTTPException(500, f"Sentiment analysis failed: {str(e)}")
 
 
+@router.post("/intelligence/scout", tags=["Intelligence"])
+async def run_scout_mission(
+    session_id: str,
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    cuisine_type: str = Form("mexican"),
+    radius_meters: int = Form(1000),
+    max_competitors: int = Form(10),
+    deep_analysis: bool = Form(True),
+):
+    """
+    Run autonomous Scout Agent to discover and analyze competitors.
+
+    The Scout Agent uses Gemini 3 multimodal capabilities to:
+    - Discover nearby competitors using location data
+    - Analyze competitor photos with Gemini Vision
+    - Profile each competitor's strengths and weaknesses
+    - Generate strategic competitive intelligence
+
+    Returns:
+        Complete intelligence report with competitor profiles,
+        comparative analysis, and strategic recommendations.
+    """
+    session = load_session(session_id)
+    if not session:
+        raise HTTPException(404, "Session not found")
+
+    try:
+        logger.info(f"Starting Scout mission for session {session_id}")
+
+        # Get our menu for comparison if available
+        our_menu = None
+        if session.get("menu_items"):
+            our_menu = {
+                "items": session["menu_items"],
+                "price_range": "mid-range",
+                "specialties": [item.get("name") for item in session["menu_items"][:5]],
+            }
+
+        # Run scouting mission
+        result = await scout_agent.run_scouting_mission(
+            our_location={"lat": latitude, "lng": longitude},
+            our_cuisine_type=cuisine_type,
+            radius_meters=radius_meters,
+            max_competitors=max_competitors,
+            our_menu=our_menu,
+            deep_analysis=deep_analysis,
+            session_id=session_id,
+        )
+
+        # Store results in session
+        sessions[session_id]["scout_intelligence"] = result
+        sessions[session_id]["competitors_discovered"] = result.get("competitors", [])
+        save_session(session_id)
+
+        return {
+            "session_id": session_id,
+            "status": "success",
+            "mission_status": result.get("mission_status"),
+            "summary": result.get("summary"),
+            "competitors": result.get("competitors"),
+            "comparative_analysis": result.get("comparative_analysis"),
+            "thought_traces": result.get("thought_traces"),
+            "processing_time_ms": result.get("processing_time_ms"),
+        }
+
+    except Exception as e:
+        logger.error(f"Scout mission failed: {e}")
+        raise HTTPException(500, f"Scout mission failed: {str(e)}")
+
+
+@router.get("/intelligence/scout/{session_id}", tags=["Intelligence"])
+async def get_scout_results(session_id: str):
+    """Get cached Scout Agent results for a session."""
+    session = load_session(session_id)
+    if not session:
+        raise HTTPException(404, "Session not found")
+
+    if "scout_intelligence" not in session:
+        raise HTTPException(
+            404, "No scout intelligence found. Run /intelligence/scout first."
+        )
+
+    return {
+        "session_id": session_id,
+        "scout_intelligence": session["scout_intelligence"],
+    }
+
+
 @router.get("/session/{session_id}", tags=["Session"])
 async def get_session(session_id: str):
     """Get full session data including all analysis results."""
@@ -1158,7 +1258,8 @@ async def export_session(session_id: str, format: str = "json"):
     """
     from fastapi.responses import Response
 
-    if not load_session(session_id):
+    session = load_session(session_id)
+    if not session:
         raise HTTPException(404, "Session not found")
 
     # Get BCG analysis data

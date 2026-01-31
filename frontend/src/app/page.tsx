@@ -122,7 +122,7 @@ export default function Home() {
       setSessionData(data)
       
       // Determine state based on loaded data
-      const hasAnalysis = data.bcg || data.bcg_analysis || data.predictions || data.competitors
+      const hasAnalysis = data.bcg || (data as any).bcg_analysis || data.predictions || (data as any).competitors
       if (hasAnalysis) {
         setAnalysisStarted(true)
         setAnalysisComplete(true)

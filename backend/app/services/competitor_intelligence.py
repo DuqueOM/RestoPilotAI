@@ -19,6 +19,7 @@ from loguru import logger
 
 from app.services.gemini.multimodal_agent import MultimodalAgent
 from app.services.gemini.reasoning_agent import ReasoningAgent, ThinkingLevel
+from app.services.social_scraper import SocialScraper
 
 
 @dataclass
@@ -183,6 +184,7 @@ class CompetitorIntelligenceService:
     ):
         self.multimodal = multimodal_agent or MultimodalAgent()
         self.reasoning = reasoning_agent or ReasoningAgent()
+        self.social_scraper = SocialScraper()
         self.http_client = httpx.AsyncClient(
             timeout=30.0,
             follow_redirects=True,
@@ -391,36 +393,112 @@ Extract all menu items with prices. Return JSON:
     ) -> Optional[CompetitorMenu]:
         """Extract menu from Instagram profile."""
 
-        # Note: In production, this would use Instagram's API or a scraping service
-        # For the hackathon, we'll return a placeholder that indicates the capability
+        # Clean handle
+        handle = source.value
+        if "instagram.com" in handle:
+            handle = handle.split("instagram.com/")[-1].replace("/", "")
+        handle = handle.replace("@", "")
 
         logger.info(
-            f"Instagram extraction for {source.value} - requires API integration"
+            f"Instagram extraction for {handle} - using SocialScraper and Gemini"
         )
-
-        return CompetitorMenu(
-            competitor_name=source.name or source.value,
-            items=[],
-            categories=[],
-            price_range={"min": 0, "max": 0},
-            average_price=0,
-            currency="MXN",
-            source_type="instagram",
-            extraction_confidence=0.0,
-            metadata={
-                "handle": source.value,
-                "note": "Instagram API integration required for production",
-            },
-        )
-
-    def _parse_direct_data(
-        self,
-        source: CompetitorSource,
-    ) -> Optional[CompetitorMenu]:
-        """Parse directly provided competitor data."""
 
         try:
-            if isinstance(source.value, str):
+            # 1. Get recent posts
+            posts = await self.social_scraper.get_recent_posts(handle, limit=5)
+
+            if not posts:
+                logger.warning(f"No posts found for {handle}")
+                return None
+
+            # 2. Analyze captions for menu text
+            captions_text = "\n\n".join(
+                [f"Post {i+1}: {p.caption}" for i, p in enumerate(posts) if p.caption]
+            )
+
+            menu_items = []
+            confidence = 0.5
+
+            # 3. Analyze images (Multimodal)
+            # Try to find a menu-like image or use the latest one
+            if posts and posts[0].image_url:
+                latest_image_url = posts[0].image_url
+                logger.info(f"Analyzing latest Instagram image: {latest_image_url}")
+
+                try:
+                    img_response = await self.http_client.get(latest_image_url)
+                    if img_response.status_code == 200:
+                        image_bytes = img_response.content
+
+                        prompt = f"""Analyze this Instagram post image and the captions from recent posts to identify menu items.
+                        
+                        CAPTIONS CONTEXT:
+                        {captions_text[:2000]}
+                        
+                        Extract any food or drink items mentioned with prices if available.
+                        If the image is a menu, extract everything.
+                        
+                        Return JSON:
+                        {{
+                            "items": [{{"name": "Item", "price": 0, "description": "From caption/image", "category": "Food"}}],
+                            "confidence": 0.7
+                        }}
+                        """
+
+                        result_text = await self.multimodal._generate_multimodal(
+                            prompt=prompt,
+                            images=[image_bytes],
+                            feature="instagram_menu_extraction",
+                        )
+
+                        data = self.multimodal._parse_json_response(result_text)
+                        menu_items = data.get("items", [])
+                        confidence = data.get("confidence", 0.6)
+
+                except Exception as e:
+                    logger.warning(f"Failed to analyze Instagram image: {e}")
+
+            # Fallback: Text-only analysis if image failed or yielded nothing
+            if not menu_items and captions_text:
+                prompt = f"""Extract menu items from these Instagram captions:
+                
+                {captions_text[:3000]}
+                
+                Return JSON with items list."""
+
+                result = await self.reasoning._generate_content(
+                    prompt, feature="instagram_caption_extraction"
+                )
+                data = self.reasoning._parse_json_response(result)
+                menu_items = data.get("items", [])
+
+            # Calculate metrics
+            prices = [item.get("price", 0) for item in menu_items if item.get("price")]
+
+            return CompetitorMenu(
+                competitor_name=source.name or handle,
+                items=menu_items,
+                categories=list(
+                    set(item.get("category", "Instagram") for item in menu_items)
+                ),
+                price_range={
+                    "min": min(prices) if prices else 0,
+                    "max": max(prices) if prices else 0,
+                },
+                average_price=sum(prices) / len(prices) if prices else 0,
+                currency="MXN",
+                source_type="instagram",
+                extraction_confidence=confidence,
+                metadata={
+                    "handle": handle,
+                    "posts_analyzed": len(posts),
+                    "latest_post_date": (
+                        posts[0].timestamp.isoformat() if posts else None
+                    ),
+                },
+            )
+
+    # ... (rest of the code remains the same)
                 data = json.loads(source.value)
             else:
                 data = source.value

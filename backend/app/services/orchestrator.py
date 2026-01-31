@@ -13,21 +13,34 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
 
-from app.services.bcg_classifier import BCGClassifier
-from app.services.campaign_generator import CampaignGenerator
-from app.services.gemini_agent import GeminiAgent
-from app.services.menu_extractor import MenuExtractor
-from app.services.sales_predictor import SalesPredictor
-from app.services.verification_agent import ThinkingLevel, VerificationAgent
 from loguru import logger
 
+from app.services.bcg_classifier import BCGClassifier
+from app.services.campaign_generator import CampaignGenerator
+from app.services.competitor_intelligence import (
+    CompetitorIntelligenceService,
+    CompetitorSource,
+)
+from app.services.gemini_agent import GeminiAgent
+from app.services.intelligence.scout_agent import ScoutAgent
+from app.services.intelligence.visual_gap_analyzer import VisualGapAnalyzer
+from app.services.menu_extractor import MenuExtractor
+from app.services.sales_predictor import SalesPredictor
+from app.services.sentiment_analyzer import SentimentAnalyzer
+from app.services.verification_agent import ThinkingLevel, VerificationAgent
 
-class PipelineStage(str, Enum):    """Stages of the analysis pipeline."""
+
+class PipelineStage(str, Enum):
+    """Stages of the analysis pipeline."""
 
     INITIALIZED = "initialized"
     DATA_INGESTION = "data_ingestion"
     MENU_EXTRACTION = "menu_extraction"
+    COMPETITOR_DISCOVERY = "competitor_discovery"
+    COMPETITOR_ANALYSIS = "competitor_analysis"
+    SENTIMENT_ANALYSIS = "sentiment_analysis"
     IMAGE_ANALYSIS = "image_analysis"
+    VISUAL_GAP_ANALYSIS = "visual_gap_analysis"
     SALES_PROCESSING = "sales_processing"
     BCG_CLASSIFICATION = "bcg_classification"
     SALES_PREDICTION = "sales_prediction"
@@ -70,9 +83,18 @@ class AnalysisState:
     checkpoints: List[PipelineCheckpoint]
     thought_traces: List[ThoughtTrace]
 
+    # Core Data
+    restaurant_name: str = "Our Restaurant"
+    location: Optional[Dict[str, float]] = None
     menu_items: List[Dict[str, Any]] = field(default_factory=list)
-    image_scores: Dict[str, float] = field(default_factory=dict)
     sales_data: List[Dict[str, Any]] = field(default_factory=list)
+
+    # Intelligence Data
+    image_scores: Dict[str, float] = field(default_factory=dict)
+    discovered_competitors: List[Dict[str, Any]] = field(default_factory=list)
+    competitor_analysis: Optional[Dict[str, Any]] = None
+    sentiment_analysis: Optional[Dict[str, Any]] = None
+    visual_gap_report: Optional[Dict[str, Any]] = None
     bcg_analysis: Optional[Dict[str, Any]] = None
     predictions: Optional[Dict[str, Any]] = None
     campaigns: List[Dict[str, Any]] = field(default_factory=list)
@@ -105,10 +127,16 @@ class AnalysisOrchestrator:
         self.campaign_generator = CampaignGenerator(self.gemini)
         self.verification_agent = VerificationAgent(self.gemini)
 
+        # New Intelligence Services
+        self.scout_agent = ScoutAgent()
+        self.competitor_intelligence = CompetitorIntelligenceService()
+        self.sentiment_analyzer = SentimentAnalyzer()
+        self.visual_gap_analyzer = VisualGapAnalyzer()
+
         self.active_sessions: Dict[str, AnalysisState] = {}
         self.completed_sessions: Dict[str, AnalysisState] = {}
 
-        self.storage_dir = Path("data/orchestrator_sessions")
+        self.storage_dir = Path("data/sessions")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
 
     def _save_session_to_disk(self, state: AnalysisState):
@@ -143,7 +171,7 @@ class AnalysisOrchestrator:
             data["current_stage"] = PipelineStage(data["current_stage"])
             if "thinking_level" in data:
                 data["thinking_level"] = ThinkingLevel(data["thinking_level"])
-            
+
             data["started_at"] = datetime.fromisoformat(data["started_at"])
             if data.get("completed_at"):
                 data["completed_at"] = datetime.fromisoformat(data["completed_at"])
@@ -206,6 +234,8 @@ class AnalysisOrchestrator:
         menu_images: Optional[List[bytes]] = None,
         dish_images: Optional[List[bytes]] = None,
         sales_csv: Optional[str] = None,
+        address: Optional[str] = None,
+        cuisine_type: str = "general",
         thinking_level: Optional[ThinkingLevel] = None,
         auto_verify: Optional[bool] = None,
     ) -> Dict[str, Any]:
@@ -217,6 +247,8 @@ class AnalysisOrchestrator:
             menu_images: Raw menu image bytes
             dish_images: Raw dish photo bytes
             sales_csv: CSV content for sales data
+            address: Restaurant address for location-based analysis
+            cuisine_type: Type of cuisine for competitor matching
             thinking_level: Depth of AI analysis
             auto_verify: Whether to run verification loop
 
@@ -239,11 +271,12 @@ class AnalysisOrchestrator:
             state.thinking_level = thinking_level
         if auto_verify is not None:
             state.auto_verify = auto_verify
-        
+
         # Save updated config
         self._save_session_to_disk(state)
 
         try:
+            # 1. Menu Extraction
             if menu_images:
                 await self._run_stage(
                     state,
@@ -252,6 +285,34 @@ class AnalysisOrchestrator:
                     menu_images,
                 )
 
+            # 2. Competitor Discovery (Scout Agent)
+            if address:
+                await self._run_stage(
+                    state,
+                    PipelineStage.COMPETITOR_DISCOVERY,
+                    self._run_competitor_discovery,
+                    address,
+                    cuisine_type,
+                )
+
+            # 3. Competitor Analysis (Intelligence Service)
+            if state.discovered_competitors and state.menu_items:
+                await self._run_stage(
+                    state,
+                    PipelineStage.COMPETITOR_ANALYSIS,
+                    self._run_competitor_analysis,
+                )
+
+            # 4. Sentiment Analysis
+            # (In a real scenario, we'd fetch reviews here. For now we simulate or use discovered data)
+            if state.discovered_competitors:
+                await self._run_stage(
+                    state,
+                    PipelineStage.SENTIMENT_ANALYSIS,
+                    self._run_sentiment_analysis,
+                )
+
+            # 5. Visual Analysis (Dish Photos)
             if dish_images:
                 await self._run_stage(
                     state,
@@ -260,6 +321,16 @@ class AnalysisOrchestrator:
                     dish_images,
                 )
 
+            # 6. Visual Gap Analysis (Comparing ours vs competitors)
+            if dish_images and state.discovered_competitors:
+                await self._run_stage(
+                    state,
+                    PipelineStage.VISUAL_GAP_ANALYSIS,
+                    self._run_visual_gap_analysis,
+                    dish_images,
+                )
+
+            # 7. Sales Data Processing
             if sales_csv:
                 await self._run_stage(
                     state,
@@ -268,6 +339,7 @@ class AnalysisOrchestrator:
                     sales_csv,
                 )
 
+            # 8. BCG & Prediction & Campaigns (Requires Menu & Sales)
             if state.menu_items:
                 await self._run_stage(
                     state,
@@ -287,6 +359,7 @@ class AnalysisOrchestrator:
                     state.thinking_level,
                 )
 
+            # 9. Verification
             if state.auto_verify and state.bcg_analysis:
                 await self._run_stage(
                     state,
@@ -326,6 +399,14 @@ class AnalysisOrchestrator:
 
         logger.info(f"Running stage: {stage.value}")
 
+        # Broadcast stage start
+        await send_progress_update(
+            session_id=state.session_id,
+            stage=stage.value,
+            progress=0.0,
+            message=f"Starting {stage.value.replace('_', ' ')}...",
+        )
+
         try:
             await handler(state, *args)
 
@@ -336,9 +417,23 @@ class AnalysisOrchestrator:
 
             self._save_checkpoint(state, success=True)
 
+            # Broadcast stage completion
+            await send_stage_complete(
+                session_id=state.session_id,
+                stage=stage.value,
+                result={"duration_ms": elapsed_ms},
+            )
+
         except Exception as e:
             logger.error(f"Stage {stage.value} failed: {e}")
             self._save_checkpoint(state, success=False, error=str(e))
+
+            # Broadcast error
+            await send_error(
+                session_id=state.session_id,
+                stage=stage.value,
+                error=str(e),
+            )
             raise
 
     async def _extract_menus(self, state: AnalysisState, menu_images: List[bytes]):
@@ -384,6 +479,169 @@ class AnalysisOrchestrator:
 
             if "item_name" in result and "score" in result:
                 state.image_scores[result["item_name"]] = result["score"]
+
+    async def _run_competitor_discovery(
+        self, state: AnalysisState, address: str, cuisine_type: str
+    ):
+        """Run competitor discovery using Scout Agent."""
+        self._add_thought_trace(
+            state,
+            step="Competitor Discovery",
+            reasoning=f"Scouting for competitors near {address}",
+            observations=["Initiating Scout Agent", f"Cuisine: {cuisine_type}"],
+            decisions=["Searching for top relevant competitors"],
+            confidence=0.9,
+        )
+
+        result = await self.scout_agent.run_scouting_mission(
+            address=address,
+            our_cuisine_type=cuisine_type,
+            radius_meters=1000,
+            max_competitors=5,
+        )
+
+        state.discovered_competitors = result.get("competitors", [])
+
+        # Add scout thought traces to main trace
+        for trace in result.get("thought_traces", []):
+            self._add_thought_trace(
+                state,
+                step=f"Scout: {trace.get('action')}",
+                reasoning=trace.get("reasoning", ""),
+                observations=trace.get("observations", []),
+                decisions=[],
+                confidence=trace.get("confidence", 0.8),
+            )
+
+    async def _run_competitor_analysis(self, state: AnalysisState):
+        """Run deep competitor analysis."""
+        self._add_thought_trace(
+            state,
+            step="Competitor Analysis",
+            reasoning="Analyzing competitor menus and pricing strategies",
+            observations=[f"Analyzing {len(state.discovered_competitors)} competitors"],
+            decisions=["Extracting menus and comparing prices"],
+            confidence=0.85,
+        )
+
+        # Convert discovered competitors to sources
+        sources = []
+        for comp in state.discovered_competitors:
+            # If we have a website, use it
+            if comp.get("website"):
+                sources.append(
+                    CompetitorSource(
+                        type="url", value=comp["website"], name=comp["name"]
+                    )
+                )
+            # Or use the data directly if scout gathered it
+            else:
+                sources.append(
+                    CompetitorSource(
+                        type="data",
+                        value=json.dumps(comp),
+                        name=comp["name"],
+                        metadata=comp,
+                    )
+                )
+
+        # Prepare our menu data
+        our_menu = {
+            "items": state.menu_items,
+            "categories": list(
+                set(item.get("category", "Other") for item in state.menu_items)
+            ),
+        }
+
+        result = await self.competitor_intelligence.analyze_competitors(
+            our_menu=our_menu,
+            competitor_sources=sources,
+            restaurant_name=state.restaurant_name,
+            thinking_level=state.thinking_level,
+        )
+
+        state.competitor_analysis = result.to_dict()
+
+    async def _run_sentiment_analysis(self, state: AnalysisState):
+        """Run sentiment analysis on discovered reviews."""
+        self._add_thought_trace(
+            state,
+            step="Sentiment Analysis",
+            reasoning="Analyzing customer sentiment from reviews and photos",
+            observations=["Processing sentiment data"],
+            decisions=["Identifying key themes and item-level sentiment"],
+            confidence=0.8,
+        )
+
+        # Collect reviews from discovered competitors (as proxy or if we had own reviews)
+        # For this hackathon flow, we might simulate 'our' reviews or use what Scout found
+        # Here we'll try to use data if Scout Agent found reviews
+        reviews = []
+        # TODO: Scout Agent doesn't fully scrape text reviews yet, so this might be limited
+
+        result = await self.sentiment_analyzer.analyze_customer_sentiment(
+            restaurant_id=state.session_id,
+            reviews=reviews,
+            menu_items=[item["name"] for item in state.menu_items if "name" in item],
+            bcg_data=state.bcg_analysis,
+        )
+
+        state.sentiment_analysis = result.to_dict()
+
+    async def _run_visual_gap_analysis(
+        self, state: AnalysisState, dish_images: List[bytes]
+    ):
+        """Run visual gap analysis comparing our photos to competitors."""
+        self._add_thought_trace(
+            state,
+            step="Visual Gap Analysis",
+            reasoning="Comparing our food presentation against market standards",
+            observations=[f"Comparing {len(dish_images)} of our photos"],
+            decisions=["Identifying visual competitive advantages/disadvantages"],
+            confidence=0.85,
+        )
+
+        # Prepare our images
+        our_images_payload = []
+        for i, img in enumerate(dish_images):
+            # Try to match with menu item if possible, otherwise generic
+            name = f"Dish {i+1}"
+            # Simple heuristic matching could go here
+            our_images_payload.append({"image": img, "name": name})
+
+        # Prepare competitor images from Scout data
+        competitor_images_payload = []
+        for comp in state.discovered_competitors:
+            for photo_ref in comp.get("photos", [])[
+                :2
+            ]:  # Limit to top 2 per competitor
+                # In real app, we'd download the photo here or pass URL
+                # VisualGapAnalyzer expects bytes or URL
+                competitor_images_payload.append(
+                    {
+                        "image": photo_ref,  # Assuming this is URL or ref VisualAnalyzer can handle
+                        "name": "Competitor Dish",
+                        "competitor": comp["name"],
+                    }
+                )
+
+        if not competitor_images_payload:
+            self._add_thought_trace(
+                state,
+                step="Visual Gap Analysis Skipped",
+                reasoning="No competitor photos available for comparison",
+                observations=[],
+                decisions=["Skipping comparative visual analysis"],
+                confidence=1.0,
+            )
+            return
+
+        report = await self.visual_gap_analyzer.analyze_visual_gaps(
+            our_images=our_images_payload,
+            competitor_images=competitor_images_payload,
+        )
+
+        state.visual_gap_report = report.to_dict()
 
     async def _process_sales_data(self, state: AnalysisState, sales_csv: str):
         """Process sales CSV data."""
@@ -593,6 +851,17 @@ class AnalysisOrchestrator:
             confidence=result.overall_score,
         )
 
+    def get_session_status(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Get the current status of a session."""
+        state = self.active_sessions.get(session_id) or self._load_session_from_disk(
+            session_id
+        )
+
+        if not state:
+            return None
+
+        return self._build_final_response(state)
+
     def _add_thought_trace(
         self,
         state: AnalysisState,
@@ -611,6 +880,48 @@ class AnalysisOrchestrator:
             confidence=confidence,
         )
         state.thought_traces.append(trace)
+
+        # Broadcast thoughts via WebSocket (fire-and-forget)
+        try:
+            loop = asyncio.get_event_loop()
+
+            # Send main reasoning
+            loop.create_task(
+                send_thought(
+                    session_id=state.session_id,
+                    thought_type=ThoughtType.THINKING,
+                    content=reasoning,
+                    step=step,
+                    confidence=confidence,
+                )
+            )
+
+            # Send observations
+            for obs in observations:
+                loop.create_task(
+                    send_thought(
+                        session_id=state.session_id,
+                        thought_type=ThoughtType.OBSERVATION,
+                        content=obs,
+                        step=step,
+                        confidence=confidence,
+                    )
+                )
+
+            # Send decisions
+            for dec in decisions:
+                loop.create_task(
+                    send_thought(
+                        session_id=state.session_id,
+                        thought_type=ThoughtType.ACTION,
+                        content=dec,
+                        step=step,
+                        confidence=confidence,
+                    )
+                )
+
+        except Exception as e:
+            logger.warning(f"Failed to broadcast thought trace: {e}")
 
     def _save_checkpoint(
         self,
@@ -679,7 +990,9 @@ class AnalysisOrchestrator:
             ],
         }
 
-    async def resume_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+    async def resume_session(
+        self, session_id: str, **kwargs
+    ) -> Optional[Dict[str, Any]]:
         """Resume a session from its last checkpoint."""
         state = self.active_sessions.get(session_id) or self._load_session_from_disk(
             session_id
@@ -695,40 +1008,8 @@ class AnalysisOrchestrator:
         ]:
             self.active_sessions[session_id] = state
 
-        return {
-            "session_id": session_id,
-            "current_stage": state.current_stage.value,
-            "checkpoints": len(state.checkpoints),
-            "can_resume": state.current_stage != PipelineStage.FAILED,
-        }
+        return await self.run_full_pipeline(session_id=session_id, **kwargs)
 
-    def get_session_status(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Get the current status of a session."""
-        state = self.active_sessions.get(session_id) or self.completed_sessions.get(
-            session_id
-        )
 
-        if not state:
-            state = self._load_session_from_disk(session_id)
-            if state:
-                if state.current_stage in [
-                    PipelineStage.COMPLETED,
-                    PipelineStage.FAILED,
-                ]:
-                    self.completed_sessions[session_id] = state
-                else:
-                    self.active_sessions[session_id] = state
-
-        if not state:
-            return None
-
-        return {
-            "session_id": session_id,
-            "current_stage": state.current_stage.value,
-            "started_at": state.started_at.isoformat(),
-            "completed_at": (
-                state.completed_at.isoformat() if state.completed_at else None
-            ),
-            "checkpoints": len(state.checkpoints),
-            "thought_traces": len(state.thought_traces),
-        }
+# Global orchestrator instance
+orchestrator = AnalysisOrchestrator()

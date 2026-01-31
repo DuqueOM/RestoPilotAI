@@ -1,0 +1,185 @@
+{
+  "session_id": "demo-session-001",
+  "status": "completed",
+  "created_at": "2026-01-30T12:00:00Z",
+  "menu": {
+    "items": [
+      {"name": "Tacos al Pastor", "price": 85, "cost": 28, "category": "Tacos", "description": "Tacos de cerdo marinado con piña"},
+      {"name": "Tacos de Carnitas", "price": 80, "cost": 26, "category": "Tacos", "description": "Cerdo confitado tradicional"},
+      {"name": "Tacos de Birria", "price": 95, "cost": 35, "category": "Tacos", "description": "Birria estilo Jalisco con consomé"},
+      {"name": "Quesadillas de Flor de Calabaza", "price": 75, "cost": 22, "category": "Quesadillas", "description": "Con queso Oaxaca y epazote"},
+      {"name": "Enchiladas Suizas", "price": 120, "cost": 38, "category": "Platos Fuertes", "description": "Con pollo, crema y queso gratinado"},
+      {"name": "Pozole Rojo", "price": 110, "cost": 32, "category": "Sopas", "description": "Tradicional con cerdo y maíz cacahuazintle"},
+      {"name": "Guacamole con Totopos", "price": 95, "cost": 25, "category": "Entradas", "description": "Aguacate fresco preparado al momento"},
+      {"name": "Chiles Rellenos", "price": 130, "cost": 42, "category": "Platos Fuertes", "description": "Chiles poblanos rellenos de picadillo"},
+      {"name": "Coctel de Camarón", "price": 145, "cost": 55, "category": "Mariscos", "description": "Camarones frescos en salsa de tomate"},
+      {"name": "Flan Napolitano", "price": 65, "cost": 15, "category": "Postres", "description": "Postre tradicional con caramelo"},
+      {"name": "Agua de Horchata", "price": 35, "cost": 8, "category": "Bebidas", "description": "Bebida tradicional de arroz y canela"},
+      {"name": "Margarita Clásica", "price": 95, "cost": 28, "category": "Bebidas", "description": "Tequila, triple sec y limón"}
+    ],
+    "categories": ["Tacos", "Quesadillas", "Platos Fuertes", "Sopas", "Entradas", "Mariscos", "Postres", "Bebidas"],
+    "extraction_confidence": 0.95
+  },
+  "bcg": {
+    "methodology": "Menu Engineering (Kasavana & Smith)",
+    "period": "30d",
+    "date_range": {"start": "2026-01-01", "end": "2026-01-30"},
+    "total_records": 2847,
+    "items_analyzed": 12,
+    "thresholds": {
+      "popularity_threshold": 8.33,
+      "margin_threshold": 55.2
+    },
+    "summary": {
+      "portfolio_health_score": 0.78,
+      "total_revenue": 285400,
+      "total_profit": 156800,
+      "avg_margin": 54.9,
+      "counts": {
+        "star": 3,
+        "cash_cow": 4,
+        "question_mark": 3,
+        "dog": 2
+      }
+    },
+    "items": [
+      {"name": "Tacos al Pastor", "classification": "star", "popularity_index": 15.2, "margin_percentage": 67.1, "units_sold": 432, "revenue": 36720, "profit": 24624, "recommendation": "Mantener promoción activa, considerar variantes"},
+      {"name": "Tacos de Birria", "classification": "star", "popularity_index": 12.8, "margin_percentage": 63.2, "units_sold": 365, "revenue": 34675, "profit": 21915, "recommendation": "Producto estrella, invertir en marketing"},
+      {"name": "Enchiladas Suizas", "classification": "star", "popularity_index": 10.5, "margin_percentage": 68.3, "units_sold": 298, "revenue": 35760, "profit": 24424, "recommendation": "Alta rentabilidad, mantener calidad"},
+      {"name": "Tacos de Carnitas", "classification": "cash_cow", "popularity_index": 11.2, "margin_percentage": 67.5, "units_sold": 318, "revenue": 25440, "profit": 17172, "recommendation": "Optimizar costos sin afectar calidad"},
+      {"name": "Guacamole con Totopos", "classification": "cash_cow", "popularity_index": 9.8, "margin_percentage": 73.7, "units_sold": 278, "revenue": 26410, "profit": 19464, "recommendation": "Alta margen, mantener precio"},
+      {"name": "Pozole Rojo", "classification": "cash_cow", "popularity_index": 8.5, "margin_percentage": 70.9, "units_sold": 242, "revenue": 26620, "profit": 18873, "recommendation": "Producto consistente, promover en temporada fría"},
+      {"name": "Flan Napolitano", "classification": "cash_cow", "popularity_index": 9.2, "margin_percentage": 76.9, "units_sold": 262, "revenue": 17030, "profit": 13096, "recommendation": "Excelente margen, incluir en combos"},
+      {"name": "Quesadillas de Flor de Calabaza", "classification": "question_mark", "popularity_index": 6.8, "margin_percentage": 70.7, "units_sold": 194, "revenue": 14550, "profit": 10287, "recommendation": "Buen margen, aumentar visibilidad en menú"},
+      {"name": "Chiles Rellenos", "classification": "question_mark", "popularity_index": 5.9, "margin_percentage": 67.7, "units_sold": 168, "revenue": 21840, "profit": 14786, "recommendation": "Evaluar presentación y porción"},
+      {"name": "Margarita Clásica", "classification": "question_mark", "popularity_index": 7.2, "margin_percentage": 70.5, "units_sold": 205, "revenue": 19475, "profit": 13730, "recommendation": "Promover en happy hour"},
+      {"name": "Coctel de Camarón", "classification": "dog", "popularity_index": 4.2, "margin_percentage": 62.1, "units_sold": 119, "revenue": 17255, "profit": 10715, "recommendation": "Revisar precio o calidad del producto"},
+      {"name": "Agua de Horchata", "classification": "dog", "popularity_index": 5.5, "margin_percentage": 77.1, "units_sold": 156, "revenue": 5460, "profit": 4210, "recommendation": "Buen margen pero bajo volumen, incluir en combos"}
+    ],
+    "strategic_insights": {
+      "portfolio_balance": "Saludable con buen mix de Stars y Cash Cows",
+      "growth_opportunities": ["Birria en tendencia nacional", "Potencial para delivery"],
+      "risk_areas": ["Coctel de Camarón con bajo desempeño", "Dependencia de tacos"],
+      "recommended_focus": "Invertir en Stars, optimizar Question Marks"
+    }
+  },
+  "campaigns": {
+    "campaigns": [
+      {
+        "id": "camp-001",
+        "name": "Festival de Birria",
+        "type": "product_promotion",
+        "target_products": ["Tacos de Birria"],
+        "target_segment": "Amantes de la comida mexicana tradicional",
+        "objective": "Incrementar ventas de Birria 25%",
+        "duration_days": 14,
+        "budget_estimate": "$5,000 MXN",
+        "channels": ["Instagram", "Facebook", "Google Maps"],
+        "creative_concept": "Muestra el proceso de preparación artesanal de la birria con video corto mostrando los ingredientes frescos y el consomé humeante",
+        "call_to_action": "Ven por tu Birria auténtica - Los primeros 50 clientes reciben consomé gratis",
+        "expected_roi": "3.2x",
+        "kpis": ["Incremento en ventas de birria", "Nuevos seguidores en redes", "Menciones en Google Maps"]
+      },
+      {
+        "id": "camp-002",
+        "name": "Combo Ejecutivo Express",
+        "type": "bundle_promotion",
+        "target_products": ["Enchiladas Suizas", "Agua de Horchata"],
+        "target_segment": "Profesionales de oficina cercanos",
+        "objective": "Capturar mercado de almuerzo ejecutivo",
+        "duration_days": 30,
+        "budget_estimate": "$3,500 MXN",
+        "channels": ["WhatsApp Business", "Volantes en oficinas", "LinkedIn local"],
+        "creative_concept": "Combo Ejecutivo: Enchiladas Suizas + Agua de Horchata + Flan por $165 (ahorra $65). Servido en menos de 15 minutos.",
+        "call_to_action": "Ordena por WhatsApp y recógelo listo - Lun a Vie 12-3pm",
+        "expected_roi": "2.8x",
+        "kpis": ["Pedidos por WhatsApp", "Ticket promedio almuerzo", "Clientes recurrentes"]
+      },
+      {
+        "id": "camp-003",
+        "name": "Margarita Happy Hour",
+        "type": "time_based_promotion",
+        "target_products": ["Margarita Clásica", "Guacamole con Totopos"],
+        "target_segment": "Jóvenes profesionales 25-40",
+        "objective": "Incrementar ventas en horario bajo (17-19h)",
+        "duration_days": 60,
+        "budget_estimate": "$2,000 MXN",
+        "channels": ["Instagram Stories", "TikTok", "Influencers locales"],
+        "creative_concept": "2x1 en Margaritas + Guacamole a mitad de precio. Ambiente con música en vivo los viernes.",
+        "call_to_action": "Happy Hour de Lunes a Viernes 5-7pm - Etiquétanos para descuento extra",
+        "expected_roi": "4.1x",
+        "kpis": ["Ventas 17-19h", "Check-ins en redes", "User generated content"]
+      }
+    ],
+    "thought_process": "Análisis estratégico completado usando BCG Matrix y datos de ventas para generar campañas personalizadas"
+  },
+  "predictions": {
+    "horizon_days": 14,
+    "model_type": "ensemble",
+    "confidence_level": 0.85,
+    "daily_predictions": [
+      {"date": "2026-01-31", "predicted_revenue": 9850, "predicted_units": 112, "confidence_interval": [8900, 10800]},
+      {"date": "2026-02-01", "predicted_revenue": 12400, "predicted_units": 142, "confidence_interval": [11200, 13600]},
+      {"date": "2026-02-02", "predicted_revenue": 13100, "predicted_units": 150, "confidence_interval": [11800, 14400]},
+      {"date": "2026-02-03", "predicted_revenue": 8200, "predicted_units": 94, "confidence_interval": [7400, 9000]},
+      {"date": "2026-02-04", "predicted_revenue": 8500, "predicted_units": 97, "confidence_interval": [7700, 9300]},
+      {"date": "2026-02-05", "predicted_revenue": 9100, "predicted_units": 104, "confidence_interval": [8200, 10000]},
+      {"date": "2026-02-06", "predicted_revenue": 10200, "predicted_units": 117, "confidence_interval": [9200, 11200]}
+    ],
+    "weekly_summary": {
+      "total_predicted_revenue": 71350,
+      "avg_daily_revenue": 10193,
+      "peak_day": "2026-02-02",
+      "lowest_day": "2026-02-03"
+    },
+    "top_items_forecast": [
+      {"name": "Tacos al Pastor", "predicted_units": 145, "trend": "stable"},
+      {"name": "Tacos de Birria", "predicted_units": 128, "trend": "growing"},
+      {"name": "Enchiladas Suizas", "predicted_units": 98, "trend": "stable"}
+    ]
+  },
+  "thought_signature": {
+    "plan": [
+      "Analizar datos de ventas para identificar patrones",
+      "Clasificar productos usando metodología BCG",
+      "Generar predicciones con modelo ensemble",
+      "Crear campañas personalizadas basadas en insights",
+      "Verificar coherencia de recomendaciones"
+    ],
+    "observations": [
+      "Portfolio bien balanceado con 3 Stars generando crecimiento",
+      "Birria muestra tendencia positiva alineada con tendencias nacionales",
+      "Oportunidad en horario de 17-19h para incrementar ventas",
+      "Margen promedio de 54.9% indica operación saludable"
+    ],
+    "reasoning": "El análisis revela un negocio con fundamentos sólidos. Los productos estrella (Tacos al Pastor, Birria, Enchiladas) tienen alta popularidad Y margen, lo cual es ideal. Las campañas propuestas atacan oportunidades específicas: capitalizar tendencia de Birria, capturar mercado ejecutivo, y llenar horario bajo con Happy Hour.",
+    "assumptions": [
+      "Costos de ingredientes se mantienen estables",
+      "Capacidad de cocina puede manejar incremento de 20%",
+      "Competencia no lanza promociones agresivas"
+    ],
+    "confidence": 0.87,
+    "verification_checks": [
+      {"check": "BCG classifications align with margin/popularity data", "passed": true},
+      {"check": "Campaign budgets are realistic for business size", "passed": true},
+      {"check": "Predictions within historical variance", "passed": true}
+    ],
+    "thinking_level": "DEEP"
+  },
+  "marathon_agent_context": {
+    "total_steps_executed": 7,
+    "checkpoints_created": 5,
+    "self_corrections": 1,
+    "processing_time_seconds": 45,
+    "gemini_calls": 12,
+    "thinking_mode": "DEEP",
+    "stages_completed": [
+      "data_ingestion",
+      "menu_extraction", 
+      "bcg_classification",
+      "sales_prediction",
+      "campaign_generation",
+      "verification"
+    ]
+  }
+}

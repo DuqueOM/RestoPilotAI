@@ -8,93 +8,50 @@ Provides real-time communication for:
 """
 
 import asyncio
+import base64
 from datetime import datetime
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from loguru import logger
 
-from app.services.gemini.orchestrator_agent import OrchestratorAgent, PipelineStage
+from app.core.websocket_manager import ThoughtType, manager, send_thought
+from app.services.orchestrator import orchestrator
+from app.services.verification_agent import ThinkingLevel
 
 router = APIRouter()
 
 
-class ConnectionManager:
-    """Manages WebSocket connections for session-based updates."""
+async def send_thinking_sequence(
+    session_id: str,
+    step: str,
+    thoughts: List[Dict[str, Any]],
+    delay_ms: int = 500,
+) -> None:
+    """
+    Send a sequence of thoughts with delays for visual effect.
 
-    def __init__(self):
-        self.active_connections: Dict[str, Set[WebSocket]] = {}
-        self.session_data: Dict[str, Dict[str, Any]] = {}
-
-    async def connect(self, websocket: WebSocket, session_id: str) -> None:
-        """Accept connection and register for session updates."""
-        await websocket.accept()
-
-        if session_id not in self.active_connections:
-            self.active_connections[session_id] = set()
-
-        self.active_connections[session_id].add(websocket)
-
-        logger.info(f"WebSocket connected for session {session_id}")
-
-    def disconnect(self, websocket: WebSocket, session_id: str) -> None:
-        """Remove connection from session."""
-        if session_id in self.active_connections:
-            self.active_connections[session_id].discard(websocket)
-
-            if not self.active_connections[session_id]:
-                del self.active_connections[session_id]
-
-        logger.info(f"WebSocket disconnected for session {session_id}")
-
-    async def send_to_session(self, session_id: str, message: Dict[str, Any]) -> None:
-        """Send message to all connections for a session."""
-        if session_id not in self.active_connections:
-            return
-
-        disconnected = set()
-
-        for connection in self.active_connections[session_id]:
-            try:
-                await connection.send_json(message)
-            except Exception as e:
-                logger.warning(f"Failed to send to connection: {e}")
-                disconnected.add(connection)
-
-        # Clean up disconnected
-        for conn in disconnected:
-            self.active_connections[session_id].discard(conn)
-
-    async def broadcast(self, message: Dict[str, Any]) -> None:
-        """Broadcast message to all active connections."""
-        for session_id in self.active_connections:
-            await self.send_to_session(session_id, message)
-
-    def get_connection_count(self, session_id: Optional[str] = None) -> int:
-        """Get number of active connections."""
-        if session_id:
-            return len(self.active_connections.get(session_id, set()))
-        return sum(len(conns) for conns in self.active_connections.values())
-
-
-# Global connection manager
-manager = ConnectionManager()
-
-# Global orchestrator instance
-orchestrator = OrchestratorAgent()
+    Args:
+        session_id: The session to send thoughts to
+        step: The current analysis step name
+        thoughts: List of dicts with 'type', 'content', and optional 'confidence'
+        delay_ms: Delay between thoughts in milliseconds
+    """
+    for thought in thoughts:
+        await send_thought(
+            session_id=session_id,
+            thought_type=ThoughtType(thought.get("type", "thinking")),
+            content=thought["content"],
+            step=step,
+            confidence=thought.get("confidence"),
+        )
+        await asyncio.sleep(delay_ms / 1000)
 
 
 @router.websocket("/ws/analysis/{session_id}")
 async def analysis_progress_websocket(websocket: WebSocket, session_id: str):
     """
     WebSocket endpoint for real-time analysis progress updates.
-
-    Sends updates for each pipeline stage completion:
-    - stage: Current stage name
-    - progress: 0-100 percentage
-    - message: Human-readable status message
-    - eta_seconds: Estimated time remaining
-    - data: Partial results (if available)
     """
     await manager.connect(websocket, session_id)
 
@@ -148,12 +105,15 @@ async def analysis_progress_websocket(websocket: WebSocket, session_id: str):
 
             except asyncio.TimeoutError:
                 # Send heartbeat on timeout
-                await websocket.send_json(
-                    {
-                        "type": "heartbeat",
-                        "timestamp": datetime.utcnow().isoformat(),
-                    }
-                )
+                try:
+                    await websocket.send_json(
+                        {
+                            "type": "heartbeat",
+                            "timestamp": datetime.utcnow().isoformat(),
+                        }
+                    )
+                except Exception:
+                    break
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, session_id)
@@ -166,9 +126,6 @@ async def analysis_progress_websocket(websocket: WebSocket, session_id: str):
 async def live_analysis_websocket(websocket: WebSocket, session_id: str):
     """
     WebSocket endpoint for live analysis with real-time updates.
-
-    Runs the analysis pipeline and streams progress updates
-    as each stage completes.
     """
     await manager.connect(websocket, session_id)
 
@@ -229,115 +186,63 @@ async def run_pipeline_with_updates(
     """
     Run the analysis pipeline and send progress updates via WebSocket.
     """
-    stages = [
-        ("menu_extraction", "Extracting menu items...", 15),
-        ("bcg_classification", "Running BCG classification...", 35),
-        ("competitor_analysis", "Analyzing competitors...", 55),
-        ("sentiment_analysis", "Analyzing customer sentiment...", 70),
-        ("sales_prediction", "Predicting sales...", 85),
-        ("campaign_generation", "Generating campaigns...", 95),
-        ("verification", "Verifying results...", 100),
-    ]
-
     try:
-        for stage_name, message, progress in stages:
-            await websocket.send_json(
-                {
-                    "type": "progress",
-                    "session_id": session_id,
-                    "stage": stage_name,
-                    "progress": progress,
-                    "message": message,
-                    "timestamp": datetime.utcnow().isoformat(),
-                }
-            )
+        # Decode images if present
+        decoded_images = []
+        for img_str in menu_images:
+            if isinstance(img_str, str):
+                if "," in img_str:
+                    img_str = img_str.split(",")[1]
+                decoded_images.append(base64.b64decode(img_str))
 
-            # Simulate stage execution (in production, this would be actual processing)
-            await asyncio.sleep(0.5)
+        # Parse thinking level
+        try:
+            level = ThinkingLevel(thinking_level)
+        except ValueError:
+            level = ThinkingLevel.STANDARD
 
-        # Send completion
-        await websocket.send_json(
-            {
-                "type": "completed",
-                "session_id": session_id,
-                "progress": 100,
-                "message": "Analysis completed successfully",
-                "timestamp": datetime.utcnow().isoformat(),
-            }
+        # Run pipeline
+        result = await orchestrator.run_full_pipeline(
+            session_id=session_id,
+            menu_images=decoded_images if decoded_images else None,
+            sales_csv=sales_data,
+            thinking_level=level,
         )
 
+        if "error" in result:
+            await manager.send_to_session(
+                session_id,
+                {
+                    "type": "error",
+                    "session_id": session_id,
+                    "message": result["error"],
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+            )
+        else:
+            await manager.send_to_session(
+                session_id,
+                {
+                    "type": "completed",
+                    "session_id": session_id,
+                    "progress": 100,
+                    "message": "Analysis completed successfully",
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "result": result,
+                },
+            )
+
     except Exception as e:
-        await websocket.send_json(
+        logger.error(f"Pipeline error: {e}")
+        await manager.send_to_session(
+            session_id,
             {
                 "type": "error",
                 "session_id": session_id,
                 "message": str(e),
                 "timestamp": datetime.utcnow().isoformat(),
-            }
+            },
         )
-
-
-async def send_progress_update(
-    session_id: str,
-    stage: PipelineStage,
-    progress: float,
-    message: str,
-    data: Optional[Dict[str, Any]] = None,
-) -> None:
-    """
-    Send progress update to all WebSocket connections for a session.
-
-    Call this function from pipeline stages to stream updates.
-    """
-    update = {
-        "type": "progress",
-        "session_id": session_id,
-        "stage": stage.value,
-        "progress": progress,
-        "message": message,
-        "timestamp": datetime.utcnow().isoformat(),
-    }
-
-    if data:
-        update["data"] = data
-
-    await manager.send_to_session(session_id, update)
-
-
-async def send_stage_complete(
-    session_id: str,
-    stage: PipelineStage,
-    result: Dict[str, Any],
-) -> None:
-    """Send stage completion notification."""
-    await manager.send_to_session(
-        session_id,
-        {
-            "type": "stage_complete",
-            "session_id": session_id,
-            "stage": stage.value,
-            "result": result,
-            "timestamp": datetime.utcnow().isoformat(),
-        },
-    )
-
-
-async def send_error(
-    session_id: str,
-    stage: PipelineStage,
-    error: str,
-) -> None:
-    """Send error notification."""
-    await manager.send_to_session(
-        session_id,
-        {
-            "type": "error",
-            "session_id": session_id,
-            "stage": stage.value,
-            "error": error,
-            "timestamp": datetime.utcnow().isoformat(),
-        },
-    )
 
 
 @router.get("/ws/connections")
