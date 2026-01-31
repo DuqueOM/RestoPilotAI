@@ -12,13 +12,11 @@ from app.schemas.analysis import (
     ProductProfileResponse,
     ThoughtSignature,
 )
-from app.schemas.menu import (
+from app.schemas.business import (
     MenuCategoryResponse,
     MenuExtractionResponse,
     MenuItemCreate,
     MenuItemResponse,
-)
-from app.schemas.sales import (
     SalesAnalyticsResponse,
     SalesDataUploadResponse,
     SalesRecordCreate,

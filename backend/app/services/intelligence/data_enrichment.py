@@ -18,8 +18,9 @@ from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 import httpx
-from app.services.gemini_agent import GeminiAgent
 from loguru import logger
+
+from app.services.gemini.base_agent import GeminiAgent
 
 
 @dataclass

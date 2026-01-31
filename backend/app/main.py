@@ -14,10 +14,11 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from app import __version__
-from app.api.routes import router as api_router
-from app.api.websocket import router as ws_router
-from app.config import get_settings
-from app.database import init_db
+from app.api.routes.analysis import router as analysis_router
+from app.api.routes.business import router as business_router
+from app.api.routes.progress import router as progress_router
+from app.core.config import get_settings
+from app.models.database import init_db
 
 
 @asynccontextmanager
@@ -91,10 +92,9 @@ app.add_middleware(
 )
 
 # Include API routes
-app.include_router(api_router, prefix="/api/v1")
-
-# Include WebSocket routes
-app.include_router(ws_router, prefix="/api/v1", tags=["WebSocket"])
+app.include_router(business_router, prefix="/api/v1")
+app.include_router(analysis_router, prefix="/api/v1")
+app.include_router(progress_router, prefix="/api/v1", tags=["WebSocket"])
 
 # Serve static files for uploads if they exist
 if Path("data/uploads").exists():

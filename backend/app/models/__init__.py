@@ -13,8 +13,16 @@ from app.models.analysis import (
     AnalysisSession,
     BCGClassification,
     Campaign,
+    CustomerPhotoAnalysis,
+    ItemSentiment,
+    PortionPerception,
     ProductProfile,
+    ReviewAnalysis,
+    SentimentAnalysisSession,
+    SentimentCategory,
+    SentimentSource,
 )
+from app.models.business import MenuCategory, MenuItem, SalesRecord
 
 # Competitor Intelligence models
 from app.models.competitor import (
@@ -25,22 +33,9 @@ from app.models.competitor import (
     PriceComparison,
     PricePositioning,
 )
-from app.models.menu import MenuCategory, MenuItem
-from app.models.sales import SalesRecord
-
-# Sentiment Analysis models
-from app.models.sentiment_analysis import (
-    CustomerPhotoAnalysis,
-    ItemSentiment,
-    PortionPerception,
-    ReviewAnalysis,
-    SentimentAnalysisSession,
-    SentimentCategory,
-    SentimentSource,
-)
 
 # Thought Trace models
-from app.models.thought_trace import (
+from app.models.context import (
     GeminiCallLog,
     ThinkingLevel,
     ThoughtTrace,

@@ -7,17 +7,17 @@ Contains advanced AI agents for autonomous intelligence gathering:
 - NeighborhoodAnalyzer: Location-based demographic analysis
 """
 
-from app.services.intelligence.neighborhood_analyzer import (
-    DemographicInsight,
-    NeighborhoodAnalyzer,
-    NeighborhoodProfile,
-)
-from app.services.intelligence.scout_agent import (
+from app.services.intelligence.competitor_finder import (
     CompetitorProfile,
     ScoutAgent,
     ScoutThought,
 )
-from app.services.intelligence.visual_gap_analyzer import (
+from app.services.intelligence.neighborhood import (
+    DemographicInsight,
+    NeighborhoodAnalyzer,
+    NeighborhoodProfile,
+)
+from app.services.intelligence.social_aesthetics import (
     VisualGapAnalyzer,
     VisualGapReport,
     VisualScore,

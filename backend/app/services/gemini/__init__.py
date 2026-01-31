@@ -13,9 +13,8 @@ Components:
 """
 
 # Legacy import for backwards compatibility
-from app.services.gemini_agent import GeminiAgent
-
 from .base_agent import (
+    GeminiAgent,
     GeminiBaseAgent,
     GeminiCache,
     GeminiModel,
@@ -25,16 +24,9 @@ from .base_agent import (
     TokenUsage,
     with_retry,
 )
-from .multimodal_agent import MultimodalAgent
-from .orchestrator_agent import (
-    OrchestratorAgent,
-    PipelineCheckpoint,
-    PipelineStage,
-    PipelineState,
-    ProgressUpdate,
-)
+from .multimodal import MultimodalAgent
 from .reasoning_agent import ReasoningAgent, ReasoningResult, ThoughtTrace
-from .verification_agent import (
+from .verification import (
     GeminiVerificationAgent,
     VerificationCheck,
     VerificationResult,
@@ -62,12 +54,6 @@ __all__ = [
     "VerificationCheck",
     "VerificationResult",
     "VerificationStatus",
-    # Orchestrator agent
-    "OrchestratorAgent",
-    "PipelineStage",
-    "PipelineState",
-    "PipelineCheckpoint",
-    "ProgressUpdate",
     # Legacy
     "GeminiAgent",
 ]

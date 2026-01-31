@@ -3,20 +3,20 @@
 import { WebSocketMessage, wsManager } from '@/lib/websocket'
 import axios from 'axios'
 import {
-  BarChart3,
-  Camera,
-  CheckCircle,
-  Clock,
-  Loader2,
-  MapPin,
-  Megaphone,
-  Play,
-  ShieldCheck,
-  TrendingUp,
-  Utensils
+    BarChart3,
+    Camera,
+    CheckCircle,
+    Clock,
+    Loader2,
+    MapPin,
+    Megaphone,
+    Play,
+    ShieldCheck,
+    TrendingUp,
+    Utensils
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import ThinkingStream, { ThoughtStep } from './ThinkingStream'
+import ThinkingStream, { ThoughtStep } from '../common/ProgressTracker'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 

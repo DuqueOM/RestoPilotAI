@@ -5,9 +5,8 @@ Period Calculator - Calculate available analysis periods based on data.
 from datetime import timedelta
 from typing import Any, Dict, List
 
+from app.services.analysis.menu_engineering import parse_date_flexible
 from loguru import logger
-
-from app.services.menu_engineering import parse_date_flexible
 
 
 class PeriodCalculator:

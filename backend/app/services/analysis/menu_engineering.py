@@ -34,9 +34,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+from app.core.config import get_settings
 from loguru import logger
-
-from app.config import get_settings
 
 
 class MenuCategory(str, Enum):

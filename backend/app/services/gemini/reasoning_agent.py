@@ -794,3 +794,7 @@ Write the executive summary now:"""
     def clear_thought_traces(self) -> None:
         """Clear thought traces for new session."""
         self.thought_traces = []
+
+
+# Alias for backward compatibility
+GeminiReasoningAgent = ReasoningAgent

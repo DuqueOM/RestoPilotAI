@@ -633,3 +633,7 @@ RESPOND WITH VALID JSON:
             "high_quality_count": sum(1 for s in scores if s >= 0.7),
             "needs_improvement_count": sum(1 for s in scores if s < 0.5),
         }
+
+
+# Alias for backward compatibility
+GeminiMultimodalAgent = MultimodalAgent

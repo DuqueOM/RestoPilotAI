@@ -15,10 +15,9 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from loguru import logger
-
-from app.services.gemini.multimodal_agent import MultimodalAgent
+from app.services.gemini.multimodal import MultimodalAgent
 from app.services.gemini.reasoning_agent import ReasoningAgent
+from loguru import logger
 
 
 class SentimentSource(str, Enum):

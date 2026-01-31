@@ -9,8 +9,9 @@ from typing import Any, Dict, List, Optional
 from loguru import logger
 
 from app.services.gemini.base_agent import GeminiBaseAgent, GeminiModel, ThinkingLevel
-from app.services.geocoding_service import GeocodingService
-from app.services.places_service import PlacesService
+from app.services.intelligence.geocoding import GeocodingService
+from app.services.intelligence.location import PlacesService
+
 
 class ScoutAction(str, Enum):
     DISCOVER = "discover"
@@ -20,9 +21,11 @@ class ScoutAction(str, Enum):
     COMPARE = "compare"
     REPORT = "report"
 
+
 @dataclass
 class ScoutThought:
     """A thought/action from the Scout Agent for transparency."""
+
     action: ScoutAction
     reasoning: str
     observations: List[str]
@@ -40,9 +43,11 @@ class ScoutThought:
             "data": self.data,
         }
 
-@dataclass 
+
+@dataclass
 class CompetitorProfile:
     """Detailed profile of a discovered competitor."""
+
     place_id: str
     name: str
     address: str
@@ -53,19 +58,19 @@ class CompetitorProfile:
     price_level: Optional[int] = None
     cuisine_types: List[str] = field(default_factory=list)
     photos: List[str] = field(default_factory=list)
-    
+
     # Enriched data from Gemini Vision
     photo_analysis: Optional[Dict[str, Any]] = None
     menu_analysis: Optional[Dict[str, Any]] = None
     ambiance_score: Optional[float] = None
     food_presentation_score: Optional[float] = None
-    
+
     # Competitive insights
     strengths: List[str] = field(default_factory=list)
     weaknesses: List[str] = field(default_factory=list)
     threat_level: Optional[str] = None
     opportunity_gaps: List[str] = field(default_factory=list)
-    
+
     # Metadata
     last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     confidence_score: float = 0.0
@@ -93,6 +98,7 @@ class CompetitorProfile:
             "last_updated": self.last_updated.isoformat(),
             "confidence_score": self.confidence_score,
         }
+
 
 class ScoutAgent(GeminiBaseAgent):
     """
@@ -146,50 +152,54 @@ class ScoutAgent(GeminiBaseAgent):
         our_menu: Optional[Dict[str, Any]] = None,
         deep_analysis: bool = True,
         session_id: Optional[str] = None,
-        websocket_callback = None,
+        websocket_callback=None,
         **kwargs,
     ) -> Dict[str, Any]:
         """
         Run a complete autonomous scouting mission.
         """
         start_time = time.time()
-        
+
         self.thought_traces = []
         self.discovered_competitors = []
 
         # 1. Geocoding
         if address:
             if websocket_callback:
-                await websocket_callback({
-                    "step": "GEOCODING",
-                    "progress": 5,
-                    "message": f"🌍 Geocodificando '{address}'..."
-                })
-            
+                await websocket_callback(
+                    {
+                        "step": "GEOCODING",
+                        "progress": 5,
+                        "message": f"🌍 Geocodificando '{address}'...",
+                    }
+                )
+
             geo_result = await self.geocoding.geocode(address)
             our_location = {"lat": geo_result.latitude, "lng": geo_result.longitude}
-            
+
             self._add_thought(
                 action=ScoutAction.DISCOVER,
                 reasoning=f"Geocodificación completada para '{address}'",
                 observations=[
                     f"Dirección formateada: {geo_result.formatted_address}",
                     f"Coordenadas: {our_location}",
-                    f"Vecindario: {geo_result.neighborhood or 'N/A'}"
+                    f"Vecindario: {geo_result.neighborhood or 'N/A'}",
                 ],
-                confidence=1.0
+                confidence=1.0,
             )
-        
+
         if not our_location:
             raise ValueError("Must provide either address or our_location")
 
         # 2. Discovery
         if websocket_callback:
-            await websocket_callback({
-                "step": "COMPETITOR_SEARCH",
-                "progress": 15,
-                "message": f"🔍 Buscando restaurantes en {radius_meters}m..."
-            })
+            await websocket_callback(
+                {
+                    "step": "COMPETITOR_SEARCH",
+                    "progress": 15,
+                    "message": f"🔍 Buscando restaurantes en {radius_meters}m...",
+                }
+            )
 
         self._add_thought(
             action=ScoutAction.DISCOVER,
@@ -205,21 +215,23 @@ class ScoutAgent(GeminiBaseAgent):
             latitude=our_location["lat"],
             longitude=our_location["lng"],
             radius_meters=radius_meters,
-            max_results=max_competitors * 2
+            max_results=max_competitors * 2,
         )
 
         self._add_thought(
             action=ScoutAction.DISCOVER,
             reasoning=f"Encontrados {len(competitors_raw)} lugares. Filtrando y enriqueciendo datos.",
             observations=[f"Total raw results: {len(competitors_raw)}"],
-            confidence=0.9
+            confidence=0.9,
         )
 
         # 3. Profiling & Filtering
         filtered_competitors = []
         for idx, place in enumerate(competitors_raw):
-            dist = self._calculate_distance(our_location, {"lat": place.latitude, "lng": place.longitude})
-            
+            dist = self._calculate_distance(
+                our_location, {"lat": place.latitude, "lng": place.longitude}
+            )
+
             profile = CompetitorProfile(
                 place_id=place.place_id,
                 name=place.name,
@@ -230,30 +242,37 @@ class ScoutAgent(GeminiBaseAgent):
                 total_reviews=place.total_ratings,
                 price_level=place.price_level,
                 cuisine_types=place.types,
-                photos=place.photos
+                photos=place.photos,
             )
-            
-            filtered_competitors.append(profile)
-            
-            if websocket_callback and idx % 2 == 0:
-                 progress = 20 + int((idx / len(competitors_raw)) * 20)
-                 await websocket_callback({
-                    "step": "ENRICHING_COMPETITOR",
-                    "progress": progress,
-                    "message": f"📊 Analizando '{place.name}'..."
-                })
 
-        filtered_competitors.sort(key=lambda x: (x.rating or 0) * 2 - (x.distance_meters/1000 * 0.5), reverse=True)
+            filtered_competitors.append(profile)
+
+            if websocket_callback and idx % 2 == 0:
+                progress = 20 + int((idx / len(competitors_raw)) * 20)
+                await websocket_callback(
+                    {
+                        "step": "ENRICHING_COMPETITOR",
+                        "progress": progress,
+                        "message": f"📊 Analizando '{place.name}'...",
+                    }
+                )
+
+        filtered_competitors.sort(
+            key=lambda x: (x.rating or 0) * 2 - (x.distance_meters / 1000 * 0.5),
+            reverse=True,
+        )
         self.discovered_competitors = filtered_competitors[:max_competitors]
 
         # 4. Deep Analysis (Photos)
         if deep_analysis and self.discovered_competitors:
             if websocket_callback:
-                await websocket_callback({
-                    "step": "VISUAL_ANALYSIS",
-                    "progress": 50,
-                    "message": "📸 Analizando fotos con Gemini Vision..."
-                })
+                await websocket_callback(
+                    {
+                        "step": "VISUAL_ANALYSIS",
+                        "progress": 50,
+                        "message": "📸 Analizando fotos con Gemini Vision...",
+                    }
+                )
 
             self._add_thought(
                 action=ScoutAction.ANALYZE_PHOTOS,
@@ -263,23 +282,25 @@ class ScoutAgent(GeminiBaseAgent):
             )
 
             for i, profile in enumerate(self.discovered_competitors):
-                if i < 3: 
+                if i < 3:
                     await self._analyze_competitor_photos(profile)
                     await self._analyze_competitor_positioning(profile, our_menu)
 
         # 5. Comparative Analysis & Report
         if websocket_callback:
-            await websocket_callback({
-                "step": "STRATEGY_GENERATION",
-                "progress": 90,
-                "message": "🚀 Generando reporte estratégico..."
-            })
+            await websocket_callback(
+                {
+                    "step": "STRATEGY_GENERATION",
+                    "progress": 90,
+                    "message": "🚀 Generando reporte estratégico...",
+                }
+            )
 
         self._add_thought(
             action=ScoutAction.COMPARE,
             reasoning="Generando reporte comparativo final.",
             observations=["Sintetizando insights de todos los competidores"],
-            confidence=0.9
+            confidence=0.9,
         )
 
         comparative_analysis = await self._generate_comparative_analysis(our_menu)
@@ -293,9 +314,11 @@ class ScoutAgent(GeminiBaseAgent):
             "thought_traces": [t.to_dict() for t in self.thought_traces],
             "summary": {
                 "total_competitors": len(self.discovered_competitors),
-                "high_threat": len([c for c in self.discovered_competitors if c.threat_level == "high"]),
+                "high_threat": len(
+                    [c for c in self.discovered_competitors if c.threat_level == "high"]
+                ),
                 "radius_meters": radius_meters,
-                "location_analyzed": our_location
+                "location_analyzed": our_location,
             },
             "processing_time_ms": processing_time,
         }
@@ -305,21 +328,22 @@ class ScoutAgent(GeminiBaseAgent):
     ) -> float:
         lat1, lng1 = loc1["lat"], loc1["lng"]
         lat2, lng2 = loc2["lat"], loc2["lng"]
-        
+
         R = 6371000
         phi1 = math.radians(lat1)
         phi2 = math.radians(lat2)
         delta_phi = math.radians(lat2 - lat1)
         delta_lambda = math.radians(lng2 - lng1)
-        
-        a = math.sin(delta_phi/2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda/2)**2
-        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-        
+
+        a = (
+            math.sin(delta_phi / 2) ** 2
+            + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+        )
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
         return R * c
 
-    async def _analyze_competitor_photos(
-        self, profile: CompetitorProfile
-    ) -> None:
+    async def _analyze_competitor_photos(self, profile: CompetitorProfile) -> None:
         prompt = f"""You are a restaurant industry analyst evaluating competitor '{profile.name}'.
 
 Based on typical restaurant photos (simulated analysis context), evaluate:
@@ -346,15 +370,17 @@ RESPOND WITH VALID JSON:
                 max_output_tokens=2048,
                 feature="competitor_photo_analysis",
             )
-            
+
             analysis = self._parse_json_response(response)
-            
+
             profile.photo_analysis = analysis
-            profile.food_presentation_score = analysis.get("food_presentation_score", 5.0)
+            profile.food_presentation_score = analysis.get(
+                "food_presentation_score", 5.0
+            )
             profile.ambiance_score = analysis.get("ambiance_score", 5.0)
             profile.strengths.extend(analysis.get("visual_strengths", []))
             profile.weaknesses.extend(analysis.get("visual_weaknesses", []))
-            
+
         except Exception as e:
             logger.warning(f"Photo analysis failed for {profile.name}: {e}")
             profile.food_presentation_score = 5.0
@@ -409,18 +435,18 @@ RESPOND WITH VALID JSON:
                 max_output_tokens=2048,
                 feature="competitor_positioning",
             )
-            
+
             analysis = self._parse_json_response(response)
-            
+
             profile.threat_level = analysis.get("threat_level", "medium")
             profile.opportunity_gaps = analysis.get("opportunity_gaps", [])
             profile.strengths.extend(analysis.get("competitive_advantages", []))
             profile.confidence_score = analysis.get("confidence", 0.7)
-            
+
             if not profile.menu_analysis:
                 profile.menu_analysis = {}
             profile.menu_analysis["positioning"] = analysis
-            
+
         except Exception as e:
             logger.warning(f"Positioning analysis failed for {profile.name}: {e}")
             profile.threat_level = "medium"
@@ -431,15 +457,17 @@ RESPOND WITH VALID JSON:
     ) -> Dict[str, Any]:
         competitors_summary = []
         for c in self.discovered_competitors:
-            competitors_summary.append({
-                "name": c.name,
-                "rating": c.rating,
-                "price_level": c.price_level,
-                "distance": c.distance_meters,
-                "threat_level": c.threat_level,
-                "strengths": c.strengths[:3],
-                "gaps": c.opportunity_gaps[:2],
-            })
+            competitors_summary.append(
+                {
+                    "name": c.name,
+                    "rating": c.rating,
+                    "price_level": c.price_level,
+                    "distance": c.distance_meters,
+                    "threat_level": c.threat_level,
+                    "strengths": c.strengths[:3],
+                    "gaps": c.opportunity_gaps[:2],
+                }
+            )
 
         prompt = f"""Generate a strategic competitive analysis based on these competitors:
 
@@ -494,9 +522,9 @@ RESPOND WITH VALID JSON:
                 max_output_tokens=4096,
                 feature="comparative_analysis",
             )
-            
+
             return self._parse_json_response(response)
-            
+
         except Exception as e:
             logger.error(f"Comparative analysis failed: {e}")
             return {

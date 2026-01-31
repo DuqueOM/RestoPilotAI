@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import fitz  # PyMuPDF
 import pytesseract
-from app.services.gemini_agent import GeminiAgent
+from app.services.gemini.base_agent import GeminiAgent
 from loguru import logger
 from pdf2image import convert_from_path
 from PIL import Image

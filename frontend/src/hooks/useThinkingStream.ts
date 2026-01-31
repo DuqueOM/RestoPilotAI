@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { ThoughtStep } from '@/components/ThinkingStream'
+import { ThoughtStep } from '@/components/common/ProgressTracker'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface UseThinkingStreamOptions {
   sessionId: string | null

@@ -11,9 +11,8 @@ Generates highly personalized, actionable marketing campaigns based on:
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
+from app.services.gemini.base_agent import GeminiAgent
 from loguru import logger
-
-from app.services.gemini_agent import GeminiAgent
 
 
 class CampaignGenerator:

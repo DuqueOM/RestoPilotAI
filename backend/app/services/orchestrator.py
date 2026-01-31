@@ -5,6 +5,7 @@ Coordinates the entire analysis pipeline with checkpoints, state management,
 and autonomous execution with transparent reasoning.
 """
 
+import asyncio
 import json
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -15,19 +16,26 @@ from uuid import uuid4
 
 from loguru import logger
 
-from app.services.bcg_classifier import BCGClassifier
-from app.services.campaign_generator import CampaignGenerator
-from app.services.competitor_intelligence import (
+from app.core.websocket_manager import (
+    ThoughtType,
+    send_error,
+    send_progress_update,
+    send_stage_complete,
+    send_thought,
+)
+from app.services.analysis.bcg import BCGClassifier
+from app.services.analysis.menu_analyzer import MenuExtractor
+from app.services.analysis.pricing import (
     CompetitorIntelligenceService,
     CompetitorSource,
 )
-from app.services.gemini_agent import GeminiAgent
-from app.services.intelligence.scout_agent import ScoutAgent
-from app.services.intelligence.visual_gap_analyzer import VisualGapAnalyzer
-from app.services.menu_extractor import MenuExtractor
-from app.services.sales_predictor import SalesPredictor
-from app.services.sentiment_analyzer import SentimentAnalyzer
-from app.services.verification_agent import ThinkingLevel, VerificationAgent
+from app.services.analysis.sales_predictor import SalesPredictor
+from app.services.analysis.sentiment import SentimentAnalyzer
+from app.services.campaigns.generator import CampaignGenerator
+from app.services.gemini.base_agent import GeminiAgent
+from app.services.gemini.verification import ThinkingLevel, VerificationAgent
+from app.services.intelligence.competitor_finder import ScoutAgent
+from app.services.intelligence.social_aesthetics import VisualGapAnalyzer
 
 
 class PipelineStage(str, Enum):

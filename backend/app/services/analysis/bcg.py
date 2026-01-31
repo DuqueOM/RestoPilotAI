@@ -20,10 +20,9 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+from app.core.config import get_settings
+from app.services.gemini.base_agent import GeminiAgent
 from loguru import logger
-
-from app.config import get_settings
-from app.services.gemini_agent import GeminiAgent
 
 
 class BCGClass(str, Enum):

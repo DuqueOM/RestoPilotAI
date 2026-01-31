@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
-from app.services.gemini_agent import GeminiAgent
+from app.services.gemini.base_agent import GeminiAgent
 
 
 class VerificationStatus(str, Enum):
@@ -595,3 +595,7 @@ Provide a 2-3 sentence executive summary recommendation.
                 len(v.improvements_made) for v in self.verification_history
             ),
         }
+
+
+# Alias for backward compatibility
+GeminiVerificationAgent = VerificationAgent

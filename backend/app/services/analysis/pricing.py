@@ -17,9 +17,9 @@ from uuid import uuid4
 import httpx
 from loguru import logger
 
-from app.services.gemini.multimodal_agent import MultimodalAgent
+from app.services.gemini.multimodal import MultimodalAgent
 from app.services.gemini.reasoning_agent import ReasoningAgent, ThinkingLevel
-from app.services.social_scraper import SocialScraper
+from app.services.intelligence.social_scraper import SocialScraper
 
 
 @dataclass
@@ -497,6 +497,10 @@ Extract all menu items with prices. Return JSON:
                     ),
                 },
             )
+
+        except Exception as e:
+            logger.error(f"Instagram extraction failed for {handle}: {e}")
+            return None
 
     def _parse_direct_data(
         self,
