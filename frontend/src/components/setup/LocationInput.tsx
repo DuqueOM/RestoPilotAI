@@ -87,6 +87,48 @@ export function LocationInput({
     }
   };
 
+  const handleManualLocation = async () => {
+    // Treat the search query as a direct address lookup
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    setShowCandidates(false);
+    
+    try {
+      const formData = new FormData();
+      formData.append('query', searchQuery);
+      
+      const response = await fetch(`${API_BASE}/api/v1/location/search`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === 'ok' && data.location) {
+        // Create a synthetic candidate
+        const customCandidate: BusinessCandidate = {
+          name: "Custom Location", 
+          address: data.location.address,
+          placeId: `custom_${Date.now()}`,
+          lat: data.location.lat,
+          lng: data.location.lng,
+          rating: 0,
+          types: ["point_of_interest"]
+        };
+        
+        selectCandidate(customCandidate);
+      } else {
+        setError('Could not locate this address on the map.');
+      }
+    } catch (err) {
+      console.error('Manual location error:', err);
+      setError('Failed to resolve location.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const searchBusiness = async () => {
     if (!searchQuery.trim()) return;
     
@@ -118,13 +160,15 @@ export function LocationInput({
       if (data.status === 'success' && data.candidates.length > 0) {
         setCandidates(data.candidates);
       } else {
-        setError('No businesses found. Try a more specific name or address.');
-        setShowCandidates(false);
+        // Even if no candidates, show the "Manual" option
+        setCandidates([]);
       }
+      setShowCandidates(true);
     } catch (err) {
       console.error('Search error:', err);
       setError('Failed to search for business. Please try again.');
-      setShowCandidates(false);
+      // Still allow manual entry on error
+      setShowCandidates(true);
     } finally {
       setIsSearching(false);
     }
@@ -287,13 +331,15 @@ export function LocationInput({
         )}
 
         {/* Candidates Selection */}
-        {showCandidates && candidates.length > 0 && (
+        {showCandidates && (
           <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-4">
-            <h4 className="text-sm font-medium text-gray-700">Select your business:</h4>
+            <h4 className="text-sm font-medium text-gray-700">
+              {candidates.length > 0 ? "Select your business:" : "No exact matches found."}
+            </h4>
             <div className="grid gap-3 max-h-96 overflow-y-auto">
-              {candidates.map((candidate) => (
+              {candidates.map((candidate, idx) => (
                 <button
-                  key={candidate.placeId}
+                  key={candidate.placeId || `candidate-${idx}`}
                   onClick={() => selectCandidate(candidate)}
                   className="flex items-start gap-4 p-3 w-full text-left bg-white border border-gray-200 rounded-lg hover:border-emerald-500 hover:shadow-md transition-all group"
                 >
@@ -314,6 +360,17 @@ export function LocationInput({
                   </div>
                 </button>
               ))}
+
+              {/* Option for manual location selection */}
+              <button
+                onClick={handleManualLocation}
+                className="flex items-center justify-center gap-2 p-4 w-full text-sm font-medium text-gray-600 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+              >
+                <div className="p-1 bg-gray-200 rounded-full">
+                  <Search className="w-4 h-4" />
+                </div>
+                My business is not listed (Use address/coordinates)
+              </button>
             </div>
           </div>
         )}

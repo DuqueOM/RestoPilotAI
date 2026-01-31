@@ -1,6 +1,6 @@
 'use client'
 
-import { Mic, MicOff, Sparkles, Wand2 } from 'lucide-react';
+import { Mic, MicOff, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface ContextInputProps {
@@ -114,15 +114,6 @@ export function ContextInput({
         <label className="block text-sm font-medium text-gray-700">
           {label}
         </label>
-        {template && !value && (
-          <button 
-            onClick={applyTemplate}
-            className="text-xs flex items-center gap-1 text-purple-600 hover:text-purple-700"
-          >
-            <Wand2 className="w-3 h-3" />
-            Use template
-          </button>
-        )}
       </div>
 
       <div className="relative">
@@ -151,7 +142,7 @@ export function ContextInput({
       
       {template && (
         <p className="text-xs text-gray-500 italic">
-          Tip: {template}
+          💡 {template}
         </p>
       )}
       

@@ -1,4 +1,4 @@
-import { Upload, X, FileText, Image as ImageIcon, Loader2, CheckCircle } from 'lucide-react';
+import { CheckCircle, Upload, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { InfoTooltip } from './InfoTooltip';
@@ -44,6 +44,7 @@ export function FileUpload({
       else if (curr.includes('pdf')) acc['application/pdf'] = [];
       else if (curr.includes('csv')) acc['text/csv'] = [];
       else if (curr.includes('xlsx')) acc['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'] = [];
+      else if (curr.includes('video')) acc['video/*'] = [];
       return acc;
     }, {} as Record<string, string[]>),
     multiple

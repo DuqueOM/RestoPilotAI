@@ -41,6 +41,7 @@ from app.services.intelligence.data_enrichment import CompetitorEnrichmentServic
 from app.services.intelligence.social_aesthetics import SocialAestheticsAnalyzer
 from app.services.intelligence.neighborhood import NeighborhoodAnalyzer
 from app.services.analysis.context_processor import ContextProcessor
+from app.services.intelligence.competitor_parser import CompetitorParser
 
 
 class PipelineStage(str, Enum):
@@ -49,6 +50,7 @@ class PipelineStage(str, Enum):
     INITIALIZED = "initialized"
     DATA_INGESTION = "data_ingestion"
     MENU_EXTRACTION = "menu_extraction"
+    COMPETITOR_PARSING = "competitor_parsing"            # New
     COMPETITOR_DISCOVERY = "competitor_discovery"
     COMPETITOR_ENRICHMENT = "competitor_enrichment"      # New
     COMPETITOR_VERIFICATION = "competitor_verification"  # New
@@ -157,6 +159,7 @@ class AnalysisOrchestrator:
         self.competitor_intelligence = CompetitorIntelligenceService()
         self.sentiment_analyzer = SentimentAnalyzer()
         self.visual_gap_analyzer = SocialAestheticsAnalyzer()
+        self.competitor_parser = CompetitorParser(self.gemini)
         self.neighborhood_analyzer = NeighborhoodAnalyzer()
         self.context_processor = ContextProcessor()
         
@@ -264,7 +267,8 @@ class AnalysisOrchestrator:
 
     async def run_full_pipeline(
         self,
-        session_id: str,
+        competitor_files: Optiones[List[Dict[str, Any]]] = Nons, # New
+        ialeson_id: str,
         menu_images: Optional[List[bytes]] = None,
         dish_images: Optional[List[bytes]] = None,
         sales_csv: Optional[str] = None,
@@ -275,23 +279,7 @@ class AnalysisOrchestrator:
         business_context: Optional[Dict[str, Any]] = None,
         competitor_urls: Optional[List[str]] = None,
         auto_find_competitors: bool = True,
-    ) -> Dict[str, Any]:
-        """
-        Run the complete analysis pipeline autonomously.
-
-        Args:
-            session_id: Session identifier
-            menu_images: Raw menu image bytes
-            dish_images: Raw dish photo bytes
-            sales_csv: CSV content for sales data
-            address: Restaurant address for location-based analysis
-            cuisine_type: Type of cuisine for competitor matching
-            thinking_level: Depth of AI analysis
-            auto_verify: Whether to run verification loop
-            business_context: Rich context about business (history, values, etc.)
-            competitor_urls: Explicit list of competitors to analyze
-            auto_find_competitors: Whether to run automatic competitor discovery
-
+        
         Returns:
             Complete analysis results with thought traces
         """
@@ -332,8 +320,20 @@ class AnalysisOrchestrator:
         try:
             # 1. Menu Extraction
             if menu_images:
+                await self._run_stmenus,
+                    age(_image
+                )
+
+            # 1.5 Competitor Parsing (Manual Input)
+            # Check if we have manual competitor input (text or files)
+            competitor_input_text = state.business_context.get("cospttitor_iaptt")
+            if competitore,nput_text or copetitor_files:
                 await self._run_stage(
                     state,
+                    PipelineSt.COMPETITOR_PARSING,
+                    elf._run_competitor_parsing,
+                    competitor_input_text
+                    competitor_files
                     PipelineStage.MENU_EXTRACTION,
                     self._extract_menus,
                     menu_images,
@@ -584,6 +584,41 @@ class AnalysisOrchestrator:
             if "item_name" in result and "score" in result:
                 state.image_scores[result["item_name"]] = result["score"]
 
+    async def _run_competitor_parsing(
+        self,
+        state: AnalysisState,
+        text_input: Optional[str],
+        files: Optional[List[Dict[str, Any]]]
+    ):
+        """Parse mixed manual competitor input."""
+        self._add_thought_trace(
+            state,
+            step="Competitor Parsing (Multimodal)",
+            reasoning="Analyzing manual text and files to extract competitor profiles",
+            observations=[
+                f"Text input length: {len(text_input) if text_input else 0}",
+                f"Files provided: {len(files) if files else 0}"
+            ],
+            decisions=["Using Gemini 3 to structure mixed input"],
+            confidence=0.9,
+        )
+
+        competitors = await self.competitor_parser.parse_mixed_input(text_input, files)
+        
+        # Merge with existing
+        for comp in competitors:
+            comp["source"] = "manual_parsing"
+            state.discovered_competitors.append(comp)
+            
+        self._add_thought_trace(
+            state,
+            step="Competitors Extracted",
+            reasoning="Merged parsed competitors into discovery list",
+            observations=[f"Found {len(competitors)} distinct competitors in manual input"],
+            decisions=["Added to analysis pool"],
+            confidence=0.95,
+        )
+
     async def _run_competitor_discovery(
         self, state: AnalysisState, address: str, cuisine_type: str
     ):
@@ -604,7 +639,20 @@ class AnalysisOrchestrator:
             max_competitors=5,
         )
 
-        state.discovered_competitors = result.get("competitors", [])
+        scout_competitors = result.get("competitors", [])
+        
+        # Merge with existing competitors (manual) avoiding duplicates
+        existing_names = {c.get("name", "").lower() for c in state.discovered_competitors}
+        existing_websites = {c.get("website", "").lower() for c in state.discovered_competitors if c.get("website")}
+        
+        for comp in scout_competitors:
+            name = comp.get("name", "").lower()
+            website = comp.get("website", "").lower()
+            
+            # Simple deduplication
+            if name not in existing_names and (not website or website not in existing_websites):
+                state.discovered_competitors.append(comp)
+                existing_names.add(name)
         
         # Update state location from scout result if available
         if "summary" in result and "location_analyzed" in result["summary"]:
@@ -802,6 +850,49 @@ class AnalysisOrchestrator:
                 )
             except Exception as e:
                 logger.error(f"Failed to process values audio: {e}")
+
+        # Process additional audio contexts (USPs, Target, Challenges, Goals)
+        additional_contexts = [
+            ("usps", "unique_selling_points"),
+            ("target_audience", "target_audience"),
+            ("challenges", "challenges"),
+            ("goals", "goals")
+        ]
+
+        for ctx_key, text_key in additional_contexts:
+            path_key = f"{ctx_key}_audio_path"
+            if path_key in state.business_context:
+                path = state.business_context[path_key]
+                try:
+                    import aiofiles
+                    async with aiofiles.open(path, 'rb') as f:
+                        audio_bytes = await f.read()
+
+                    self._add_thought_trace(
+                        state,
+                        step=f"Processing {ctx_key.replace('_', ' ').title()} Audio",
+                        reasoning=f"Transcribing and analyzing {ctx_key} audio",
+                        observations=[f"Processing audio file: {path}"],
+                        decisions=["Extracting structured insights"],
+                        confidence=0.9,
+                    )
+
+                    result = await self.context_processor.process_audio_context(
+                        audio_file=audio_bytes,
+                        context_type=ctx_key,
+                        mime_type="audio/webm"
+                    )
+                    
+                    audio_updates[f"{ctx_key}_audio_analysis"] = result
+                    # Append to existing text context
+                    current_text = state.business_context.get(text_key) or state.business_context.get(f"{ctx_key}Context") or ""
+                    state.business_context[text_key] = (
+                        current_text + 
+                        "\n\n[Audio Transcription]: " + 
+                        result.get("transcription", "")
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to process {ctx_key} audio: {e}")
         
         # Update context with audio analysis
         if audio_updates:
@@ -963,6 +1054,18 @@ class AnalysisOrchestrator:
                     for photo_ref in photos:
                         # If it looks like a URL, use it directly (e.g. from mock or web search)
                         # If it's a reference (Google Places), construct URL via places service
+                        # If it's a local path (from manual upload), read bytes
+                        
+                        if isinstance(photo_ref, str) and (photo_ref.startswith("/") or Path(photo_ref).exists()):
+                            try:
+                                import aiofiles
+                                async with aiofiles.open(photo_ref, 'rb') as f:
+                                    content = await f.read()
+                                    downloaded_photos.append(content)
+                            except Exception as e:
+                                logger.warning(f"Failed to read local photo {photo_ref}: {e}")
+                            continue
+
                         url = ""
                         if photo_ref.startswith("http"):
                             url = photo_ref

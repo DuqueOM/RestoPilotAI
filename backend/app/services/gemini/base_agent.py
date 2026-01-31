@@ -1001,7 +1001,7 @@ Be critical and thorough."""
     async def _call_gemini_with_image(
         self, prompt: str, image_base64: str, mime_type: str = "image/jpeg"
     ) -> Any:
-        """Upload image and generate content."""
+        """Call Gemini with image/video content."""
         response = self.client.models.generate_content(
             model=self.MODEL_NAME,
             contents=[
@@ -1010,8 +1010,7 @@ Be critical and thorough."""
                         types.Part(text=prompt),
                         types.Part(
                             inline_data=types.Blob(
-                                mime_type=mime_type, 
-                                data=base64.b64decode(image_base64)
+                                mime_type=mime_type, data=base64.b64decode(image_base64)
                             )
                         ),
                     ]

@@ -29,6 +29,8 @@ export default function SetupPage() {
     // Business basics
     businessName: '',
     instagram: '',
+    facebook: '',
+    tiktok: '',
     website: '',
     
     // Files
@@ -47,18 +49,23 @@ export default function SetupPage() {
     // Context (audio)
     historyAudio: null as Blob | null,
     valuesAudio: null as Blob | null,
+    uspsAudio: null as Blob | null,
+    targetAudienceAudio: null as Blob | null,
+    challengesAudio: null as Blob | null,
+    goalsAudio: null as Blob | null,
     
     // Competitor info
-    competitorUrls: ['', '', ''],
+    competitorInput: '', // Text area for links/notes
+    competitorFiles: [] as File[], // Multimodal uploads
     autoFindCompetitors: true,
   });
   
   // Calculate completion score
   useEffect(() => {
     const fields = [
-      formData.location ? 25 : 0,  // Location = 25%
+      formData.location ? 25 : 0,
       formData.businessName ? 5 : 0,
-      formData.instagram ? 5 : 0,
+      formData.instagram || formData.facebook || formData.tiktok || formData.website ? 5 : 0,
       formData.menuFiles.length > 0 ? 10 : 0,
       formData.salesFiles.length > 0 ? 10 : 0,
       formData.photoFiles.length > 0 ? 10 : 0,
@@ -68,10 +75,10 @@ export default function SetupPage() {
       formData.targetAudienceContext ? 5 : 0,
       formData.challengesContext ? 5 : 0,
       formData.goalsContext ? 5 : 0,
-      formData.competitorUrls.filter(u => u).length > 0 ? 5 : 0,
+      (formData.competitorInput || formData.competitorFiles.length > 0) ? 5 : 0,
     ];
     
-    setCompletionScore(fields.reduce((a, b) => a + b, 0));
+    setCompletionScore(Math.min(100, fields.reduce((a, b) => a + b, 0)));
   }, [formData]);
   
   const handleSubmit = async () => {
@@ -80,32 +87,37 @@ export default function SetupPage() {
       
       // Basic info
       data.append('location', formData.location);
-      data.append('businessName', formData.businessName);
-      data.append('instagram', formData.instagram);
-      data.append('website', formData.website);
+      if (formData.businessName) data.append('businessName', formData.businessName);
+      if (formData.instagram) data.append('instagram', formData.instagram);
+      if (formData.facebook) data.append('facebook', formData.facebook);
+      if (formData.tiktok) data.append('tiktok', formData.tiktok);
+      if (formData.website) data.append('website', formData.website);
       
       // Context
-      data.append('historyContext', formData.historyContext);
-      data.append('valuesContext', formData.valuesContext);
-      data.append('uspsContext', formData.uspsContext);
-      data.append('targetAudienceContext', formData.targetAudienceContext);
-      data.append('challengesContext', formData.challengesContext);
-      data.append('goalsContext', formData.goalsContext);
+      if (formData.historyContext) data.append('historyContext', formData.historyContext);
+      if (formData.valuesContext) data.append('valuesContext', formData.valuesContext);
+      if (formData.uspsContext) data.append('uspsContext', formData.uspsContext);
+      if (formData.targetAudienceContext) data.append('targetAudienceContext', formData.targetAudienceContext);
+      if (formData.challengesContext) data.append('challengesContext', formData.challengesContext);
+      if (formData.goalsContext) data.append('goalsContext', formData.goalsContext);
       
       // Competitors
-      formData.competitorUrls.forEach(url => {
-        if (url) data.append('competitorUrls', url);
-      });
+      if (formData.competitorInput) data.append('competitorInput', formData.competitorInput);
       data.append('autoFindCompetitors', formData.autoFindCompetitors.toString());
       
       // Files
       formData.menuFiles.forEach(file => data.append('menuFiles', file));
       formData.salesFiles.forEach(file => data.append('salesFiles', file));
       formData.photoFiles.forEach(file => data.append('photoFiles', file));
+      formData.competitorFiles.forEach(file => data.append('competitorFiles', file));
       
       // Audio
       if (formData.historyAudio) data.append('historyAudio', formData.historyAudio, 'history.webm');
       if (formData.valuesAudio) data.append('valuesAudio', formData.valuesAudio, 'values.webm');
+      if (formData.uspsAudio) data.append('uspsAudio', formData.uspsAudio, 'usps.webm');
+      if (formData.targetAudienceAudio) data.append('targetAudienceAudio', formData.targetAudienceAudio, 'target_audience.webm');
+      if (formData.challengesAudio) data.append('challengesAudio', formData.challengesAudio, 'challenges.webm');
+      if (formData.goalsAudio) data.append('goalsAudio', formData.goalsAudio, 'goals.webm');
       
       // Start analysis
       const response = await fetch(`${API_BASE}/api/v1/analysis/start`, {
@@ -138,7 +150,6 @@ export default function SetupPage() {
               <ProgressBar 
                 value={completionScore} 
                 label={`${completionScore}% Complete`}
-                showPercentage
               />
             </div>
           </div>
@@ -204,14 +215,14 @@ export default function SetupPage() {
                   Basic Information
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Optional but recommended for better personalization
+                  Add your social media to help us analyze your current presence.
                 </p>
               </div>
               <InfoTooltip content="This helps us find your existing social media and online presence automatically." />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="col-span-1 md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Business Name
                 </label>
@@ -227,7 +238,7 @@ export default function SetupPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Instagram className="w-4 h-4" />
-                  Instagram Handle
+                  Instagram
                 </label>
                 <input
                   type="text"
@@ -235,6 +246,45 @@ export default function SetupPage() {
                   placeholder="@yourbusiness"
                   value={formData.instagram}
                   onChange={(e) => setFormData({...formData, instagram: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                   Facebook
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="facebook.com/yourbusiness"
+                  value={formData.facebook}
+                  onChange={(e) => setFormData({...formData, facebook: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                   TikTok
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="@yourbusiness"
+                  value={formData.tiktok}
+                  onChange={(e) => setFormData({...formData, tiktok: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                   Website
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="www.yourrestaurant.com"
+                  value={formData.website}
+                  onChange={(e) => setFormData({...formData, website: e.target.value})}
                 />
               </div>
             </div>
@@ -277,12 +327,12 @@ export default function SetupPage() {
               />
               
               <FileUpload
-                label="Dish Photos"
-                accept="image/*"
+                label="Visual Context"
+                accept="image/*,video/*"
                 multiple
                 icon={<Upload className="w-6 h-6 text-gray-400" />}
                 onChange={(files) => setFormData({...formData, photoFiles: files})}
-                tooltip="Photos of your dishes. We'll compare them to your competitors' visual quality."
+                tooltip="Upload ANY visual content: Dish photos, videos of the ambiance, screenshots of your social media, decor, or anything else. Gemini 3 will analyze it all for suggestions!"
                 compact
               />
             </div>

@@ -432,6 +432,8 @@ async def start_new_analysis(
     location: str = Form(...),
     businessName: Optional[str] = Form(None),
     instagram: Optional[str] = Form(None),
+    facebook: Optional[str] = Form(None),
+    tiktok: Optional[str] = Form(None),
     website: Optional[str] = Form(None),
     
     # Context (Text)
@@ -443,17 +445,23 @@ async def start_new_analysis(
     goalsContext: Optional[str] = Form(None),
     
     # Competitors
-    competitorUrls: Optional[List[str]] = Form(None),
+    competitorInput: Optional[str] = Form(None),
+    competitorUrls: Optional[List[str]] = Form(None), # Keep for backward compatibility or if parsed
     autoFindCompetitors: bool = Form(True),
     
     # Files
     menuFiles: List[UploadFile] = File(default=[]),
     salesFiles: List[UploadFile] = File(default=[]),
     photoFiles: List[UploadFile] = File(default=[]),
+    competitorFiles: List[UploadFile] = File(default=[]),
     
     # Audio
     historyAudio: Optional[UploadFile] = File(None),
     valuesAudio: Optional[UploadFile] = File(None),
+    uspsAudio: Optional[UploadFile] = File(None),
+    targetAudienceAudio: Optional[UploadFile] = File(None),
+    challengesAudio: Optional[UploadFile] = File(None),
+    goalsAudio: Optional[UploadFile] = File(None),
 ):
     """Start a new comprehensive analysis session from the setup wizard."""
     
@@ -469,6 +477,8 @@ async def start_new_analysis(
         "name": businessName,
         "location_query": location,
         "instagram": instagram,
+        "facebook": facebook,
+        "tiktok": tiktok,
         "website": website,
         "history": historyContext,
         "values": valuesContext,
@@ -476,6 +486,7 @@ async def start_new_analysis(
         "target_audience": targetAudienceContext,
         "challenges": challengesContext,
         "goals": goalsContext,
+        "competitor_input": competitorInput,
     }
     
     # 3. Process Files
@@ -486,6 +497,24 @@ async def start_new_analysis(
     dish_bytes = []
     for file in photoFiles:
         dish_bytes.append(await file.read())
+    
+    # Save competitor files to disk and prepare data structure
+    competitor_data = []
+    competitor_dir = upload_dir / "competitors"
+    competitor_dir.mkdir(exist_ok=True)
+    
+    for file in competitorFiles:
+        content = await file.read()
+        file_path = competitor_dir / file.filename
+        async with aiofiles.open(file_path, 'wb') as out_file:
+            await out_file.write(content)
+            
+        competitor_data.append({
+            "content": content,
+            "filename": file.filename,
+            "mime_type": file.content_type,
+            "path": str(file_path)
+        })
         
     sales_csv = None
     if salesFiles:
@@ -498,38 +527,37 @@ async def start_new_analysis(
             logger.warning("Could not decode sales file as UTF-8")
             
     # 4. Handle Audio (Save to disk)
-    import aiofiles
-    import os
-    from pathlib import Path
     
     upload_dir = Path(f"data/uploads/{session_id}")
     upload_dir.mkdir(parents=True, exist_ok=True)
     
-    if historyAudio:
-        file_path = upload_dir / f"history_audio_{historyAudio.filename}"
-        async with aiofiles.open(file_path, 'wb') as out_file:
-            content = await historyAudio.read()
+    async def save_audio(file: UploadFile, prefix: str):
+        if not file: return None
+        path = upload_dir / f"{prefix}_{file.filename}"
+        async with aiofiles.open(path, 'wb') as out_file:
+            content = await file.read()
             await out_file.write(content)
-        business_context["history_audio_path"] = str(file_path)
-        
-    if valuesAudio:
-        file_path = upload_dir / f"values_audio_{valuesAudio.filename}"
-        async with aiofiles.open(file_path, 'wb') as out_file:
-            content = await valuesAudio.read()
-            await out_file.write(content)
-        business_context["values_audio_path"] = str(file_path)
+        return str(path)
+
+    business_context["history_audio_path"] = await save_audio(historyAudio, "history")
+    business_context["values_audio_path"] = await save_audio(valuesAudio, "values")
+    business_context["usps_audio_path"] = await save_audio(uspsAudio, "usps")
+    business_context["target_audience_audio_path"] = await save_audio(targetAudienceAudio, "target")
+    business_context["challenges_audio_path"] = await save_audio(challengesAudio, "challenges")
+    business_context["goals_audio_path"] = await save_audio(goalsAudio, "goals")
 
     # 5. Start Pipeline
     try:
-        # Run in background via asyncio task
+        # Run in background via asyncio dasas tructureddata (cotnt, mime,enam)
         asyncio.create_task(orchestrator.run_full_pipeline(
             session_id=session_id,
             menu_images=menu_bytes,
             dish_images=dish_bytes,
+            competitor_files=competitor_bytes, # Pass new files
             sales_csv=sales_csv,
             address=location,
             business_context=business_context,
-            competitor_urls=competitorUrls,
+            competitor_urls=competitorUrls, # Still pass if any
             auto_find_competitors=autoFindCompetitors,
             thinking_level=ThinkingLevel.STANDARD,
             auto_verify=True

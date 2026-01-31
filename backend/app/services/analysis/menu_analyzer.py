@@ -457,7 +457,7 @@ class MenuExtractor:
 
 
 class DishImageAnalyzer:
-    """Analyzes dish photographs and videos for visual appeal metrics."""
+    """Analyzes visual content (photos, videos, screenshots) for business intelligence."""
 
     def __init__(self, agent: GeminiAgent):
         self.agent = agent
@@ -466,19 +466,20 @@ class DishImageAnalyzer:
         self, image_paths: List[str], menu_items: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
-        Analyze multiple dish images.
+        Analyze multiple images (dishes, decor, social).
 
         Args:
-            image_paths: List of paths to dish images
+            image_paths: List of paths to images
             menu_items: Optional list of item names to match with images
 
         Returns:
             Analysis results for each image
         """
 
-        results = await self.agent.analyze_dish_images(image_paths)
+        # Use the new generic multimodal analyzer
+        results = await self.agent.analyze_visual_context(image_paths)
 
-        # Try to match with menu items if provided
+        # Try to match with menu items if provided (only if content type is food)
         if menu_items:
             results = self._match_to_menu(results, menu_items)
 
@@ -491,16 +492,17 @@ class DishImageAnalyzer:
         self, video_paths: List[str], menu_items: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
-        Analyze dish videos using Gemini's video understanding capabilities.
+        Analyze videos using Gemini's multimodal capabilities.
 
         Args:
-            video_paths: List of paths to dish videos
+            video_paths: List of paths to videos
             menu_items: Optional list of item names to match
 
         Returns:
             Analysis results for each video
         """
-        results = await self.agent.analyze_dish_videos(video_paths)
+        # Reuse the generic analyzer which handles video mime types now
+        results = await self.agent.analyze_visual_context(video_paths)
 
         # Try to match with menu items if provided
         if menu_items:
@@ -514,14 +516,16 @@ class DishImageAnalyzer:
     def _match_to_menu(
         self, analyses: List[Dict[str, Any]], menu_items: List[str]
     ) -> List[Dict[str, Any]]:
-        """Attempt to match analyzed images to menu items."""
+        """Attempt to match analyzed content to menu items."""
 
-        # This is a simplified matching - in production would use
-        # more sophisticated matching or user input
         for analysis in analyses:
-            if "dish_name" in analysis:
-                # Find closest menu item match
-                dish_name = analysis["dish_name"].lower()
+            # Only match if it looks like a dish
+            if analysis.get("content_type") == "food" or "dish_name" in analysis:
+                dish_name = analysis.get("dish_name", "").lower()
+                # If using new generic format, name might be in description or key_elements
+                if not dish_name and "description" in analysis:
+                     dish_name = analysis["description"][:50].lower()
+
                 for item in menu_items:
                     if item.lower() in dish_name or dish_name in item.lower():
                         analysis["matched_menu_item"] = item
@@ -530,14 +534,24 @@ class DishImageAnalyzer:
         return analyses
 
     def _calculate_summary(self, analyses: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Calculate summary statistics across all images."""
+        """Calculate summary statistics across all visual content."""
 
         if not analyses:
             return {"avg_attractiveness": 0, "overall_quality": "unknown"}
 
-        attractiveness_scores = [a.get("attractiveness_score", 0.5) for a in analyses]
+        # Handle new generic structure vs old structure
+        scores = []
+        for a in analyses:
+            # New format
+            if "analysis" in a and "visual_appeal_score" in a["analysis"]:
+                scores.append(a["analysis"]["visual_appeal_score"])
+            # Old format fallback
+            elif "attractiveness_score" in a:
+                scores.append(a["attractiveness_score"])
+            else:
+                scores.append(0.5) # Default neutral
 
-        avg_score = sum(attractiveness_scores) / len(attractiveness_scores)
+        avg_score = sum(scores) / len(scores) if scores else 0
 
         quality = "poor"
         if avg_score >= 0.8:
@@ -550,8 +564,6 @@ class DishImageAnalyzer:
         return {
             "avg_attractiveness": round(avg_score, 2),
             "overall_quality": quality,
-            "best_image": max(analyses, key=lambda x: x.get("attractiveness_score", 0)),
-            "needs_improvement": [
-                a for a in analyses if a.get("attractiveness_score", 1) < 0.5
-            ],
+            "content_types": [a.get("content_type", "unknown") for a in analyses],
+            "best_content": max(analyses, key=lambda x: x.get("analysis", {}).get("visual_appeal_score", 0) if "analysis" in x else x.get("attractiveness_score", 0)) if analyses else None,
         }
