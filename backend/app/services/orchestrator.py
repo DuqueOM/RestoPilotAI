@@ -267,10 +267,10 @@ class AnalysisOrchestrator:
 
     async def run_full_pipeline(
         self,
-        competitor_files: Optiones[List[Dict[str, Any]]] = Nons, # New
-        ialeson_id: str,
+        session_id: str,
         menu_images: Optional[List[bytes]] = None,
         dish_images: Optional[List[bytes]] = None,
+        competitor_files: Optional[List[Dict[str, Any]]] = None,
         sales_csv: Optional[str] = None,
         address: Optional[str] = None,
         cuisine_type: str = "general",
@@ -279,7 +279,24 @@ class AnalysisOrchestrator:
         business_context: Optional[Dict[str, Any]] = None,
         competitor_urls: Optional[List[str]] = None,
         auto_find_competitors: bool = True,
-        
+    ) -> Dict[str, Any]:
+        """
+        Run the complete analysis pipeline autonomously.
+
+        Args:
+            session_id: Session identifier
+            menu_images: Raw menu image bytes
+            dish_images: Raw dish photo bytes
+            competitor_files: Structured competitor file data
+            sales_csv: CSV content for sales data
+            address: Restaurant address for location-based analysis
+            cuisine_type: Type of cuisine for competitor matching
+            thinking_level: Depth of AI analysis
+            auto_verify: Whether to run verification loop
+            business_context: Rich context about business (history, values, etc.)
+            competitor_urls: Explicit list of competitors to analyze
+            auto_find_competitors: Whether to run automatic competitor discovery
+
         Returns:
             Complete analysis results with thought traces
         """
@@ -320,23 +337,23 @@ class AnalysisOrchestrator:
         try:
             # 1. Menu Extraction
             if menu_images:
-                await self._run_stmenus,
-                    age(_image
+                await self._run_stage(
+                    state,
+                    PipelineStage.MENU_EXTRACTION,
+                    self._extract_menus,
+                    menu_images,
                 )
 
             # 1.5 Competitor Parsing (Manual Input)
             # Check if we have manual competitor input (text or files)
-            competitor_input_text = state.business_context.get("cospttitor_iaptt")
-            if competitore,nput_text or copetitor_files:
+            competitor_input_text = state.business_context.get("competitor_input")
+            if competitor_input_text or competitor_files:
                 await self._run_stage(
                     state,
-                    PipelineSt.COMPETITOR_PARSING,
-                    elf._run_competitor_parsing,
-                    competitor_input_text
+                    PipelineStage.COMPETITOR_PARSING,
+                    self._run_competitor_parsing,
+                    competitor_input_text,
                     competitor_files
-                    PipelineStage.MENU_EXTRACTION,
-                    self._extract_menus,
-                    menu_images,
                 )
 
             # 2. Competitor Discovery (Scout Agent)
@@ -786,70 +803,70 @@ class AnalysisOrchestrator:
         audio_updates = {}
         
         # History Audio
-        if "history_audio_path" in state.business_context:
-            path = state.business_context["history_audio_path"]
-            try:
-                # Read file bytes
-                import aiofiles
-                async with aiofiles.open(path, 'rb') as f:
-                    audio_bytes = await f.read()
-                
-                self._add_thought_trace(
-                    state,
-                    step="Processing History Audio",
-                    reasoning="Transcribing and analyzing history audio using Gemini Multimodal",
-                    observations=[f"Processing audio file: {path}"],
-                    decisions=["Extracting structured insights"],
-                    confidence=0.9,
-                )
-                
-                result = await self.context_processor.process_audio_context(
-                    audio_file=audio_bytes,
-                    context_type="history",
-                    mime_type="audio/webm" # Assumed from frontend MediaRecorder
-                )
-                
-                audio_updates["history_audio_analysis"] = result
-                # Merge text into main context for redundancy
-                state.business_context["history_text"] = (
-                    state.business_context.get("history_text", "") + 
-                    "\n\n[Audio Transcription]: " + 
-                    result.get("transcription", "")
-                )
-            except Exception as e:
-                logger.error(f"Failed to process history audio: {e}")
+        if "history_audio_paths" in state.business_context:
+            paths = state.business_context["history_audio_paths"]
+            for path in paths:
+                try:
+                    # Read file bytes
+                    import aiofiles
+                    async with aiofiles.open(path, 'rb') as f:
+                        audio_bytes = await f.read()
+                    
+                    self._add_thought_trace(
+                        state,
+                        step="Processing History Audio",
+                        reasoning="Transcribing and analyzing history audio using Gemini Multimodal",
+                        observations=[f"Processing audio file: {path}"],
+                        decisions=["Extracting structured insights"],
+                        confidence=0.9,
+                    )
+                    
+                    result = await self.context_processor.process_audio_context(
+                        audio_file=audio_bytes,
+                        context_type="history",
+                        mime_type="audio/webm" # Assumed from frontend MediaRecorder
+                    )
+                    
+                    # Merge text into main context for redundancy
+                    state.business_context["history_text"] = (
+                        state.business_context.get("history_text", "") + 
+                        "\n\n[Audio Transcription]: " + 
+                        result.get("transcription", "")
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to process history audio {path}: {e}")
 
         # Values Audio
-        if "values_audio_path" in state.business_context:
-            path = state.business_context["values_audio_path"]
-            try:
-                import aiofiles
-                async with aiofiles.open(path, 'rb') as f:
-                    audio_bytes = await f.read()
+        if "values_audio_paths" in state.business_context:
+            paths = state.business_context["values_audio_paths"]
+            for path in paths:
+                try:
+                    import aiofiles
+                    async with aiofiles.open(path, 'rb') as f:
+                        audio_bytes = await f.read()
 
-                self._add_thought_trace(
-                    state,
-                    step="Processing Values Audio",
-                    reasoning="Transcribing and analyzing values audio using Gemini Multimodal",
-                    observations=[f"Processing audio file: {path}"],
-                    decisions=["Extracting structured insights"],
-                    confidence=0.9,
-                )
+                    self._add_thought_trace(
+                        state,
+                        step="Processing Values Audio",
+                        reasoning="Transcribing and analyzing values audio using Gemini Multimodal",
+                        observations=[f"Processing audio file: {path}"],
+                        decisions=["Extracting structured insights"],
+                        confidence=0.9,
+                    )
 
-                result = await self.context_processor.process_audio_context(
-                    audio_file=audio_bytes,
-                    context_type="values",
-                    mime_type="audio/webm"
-                )
-                
-                audio_updates["values_audio_analysis"] = result
-                state.business_context["values_text"] = (
-                    state.business_context.get("values_text", "") + 
-                    "\n\n[Audio Transcription]: " + 
-                    result.get("transcription", "")
-                )
-            except Exception as e:
-                logger.error(f"Failed to process values audio: {e}")
+                    result = await self.context_processor.process_audio_context(
+                        audio_file=audio_bytes,
+                        context_type="values",
+                        mime_type="audio/webm"
+                    )
+                    
+                    state.business_context["values_text"] = (
+                        state.business_context.get("values_text", "") + 
+                        "\n\n[Audio Transcription]: " + 
+                        result.get("transcription", "")
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to process values audio {path}: {e}")
 
         # Process additional audio contexts (USPs, Target, Challenges, Goals)
         additional_contexts = [
@@ -860,39 +877,39 @@ class AnalysisOrchestrator:
         ]
 
         for ctx_key, text_key in additional_contexts:
-            path_key = f"{ctx_key}_audio_path"
+            path_key = f"{ctx_key}_audio_paths"
             if path_key in state.business_context:
-                path = state.business_context[path_key]
-                try:
-                    import aiofiles
-                    async with aiofiles.open(path, 'rb') as f:
-                        audio_bytes = await f.read()
+                paths = state.business_context[path_key]
+                for path in paths:
+                    try:
+                        import aiofiles
+                        async with aiofiles.open(path, 'rb') as f:
+                            audio_bytes = await f.read()
 
-                    self._add_thought_trace(
-                        state,
-                        step=f"Processing {ctx_key.replace('_', ' ').title()} Audio",
-                        reasoning=f"Transcribing and analyzing {ctx_key} audio",
-                        observations=[f"Processing audio file: {path}"],
-                        decisions=["Extracting structured insights"],
-                        confidence=0.9,
-                    )
+                        self._add_thought_trace(
+                            state,
+                            step=f"Processing {ctx_key.replace('_', ' ').title()} Audio",
+                            reasoning=f"Transcribing and analyzing {ctx_key} audio",
+                            observations=[f"Processing audio file: {path}"],
+                            decisions=["Extracting structured insights"],
+                            confidence=0.9,
+                        )
 
-                    result = await self.context_processor.process_audio_context(
-                        audio_file=audio_bytes,
-                        context_type=ctx_key,
-                        mime_type="audio/webm"
-                    )
-                    
-                    audio_updates[f"{ctx_key}_audio_analysis"] = result
-                    # Append to existing text context
-                    current_text = state.business_context.get(text_key) or state.business_context.get(f"{ctx_key}Context") or ""
-                    state.business_context[text_key] = (
-                        current_text + 
-                        "\n\n[Audio Transcription]: " + 
-                        result.get("transcription", "")
-                    )
-                except Exception as e:
-                    logger.error(f"Failed to process {ctx_key} audio: {e}")
+                        result = await self.context_processor.process_audio_context(
+                            audio_file=audio_bytes,
+                            context_type=ctx_key,
+                            mime_type="audio/webm"
+                        )
+                        
+                        # Append to existing text context
+                        current_text = state.business_context.get(text_key) or state.business_context.get(f"{ctx_key}Context") or ""
+                        state.business_context[text_key] = (
+                            current_text + 
+                            "\n\n[Audio Transcription]: " + 
+                            result.get("transcription", "")
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to process {ctx_key} audio {path}: {e}")
         
         # Update context with audio analysis
         if audio_updates:

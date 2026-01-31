@@ -456,12 +456,12 @@ async def start_new_analysis(
     competitorFiles: List[UploadFile] = File(default=[]),
     
     # Audio
-    historyAudio: Optional[UploadFile] = File(None),
-    valuesAudio: Optional[UploadFile] = File(None),
-    uspsAudio: Optional[UploadFile] = File(None),
-    targetAudienceAudio: Optional[UploadFile] = File(None),
-    challengesAudio: Optional[UploadFile] = File(None),
-    goalsAudio: Optional[UploadFile] = File(None),
+    historyAudio: List[UploadFile] = File(default=[]),
+    valuesAudio: List[UploadFile] = File(default=[]),
+    uspsAudio: List[UploadFile] = File(default=[]),
+    targetAudienceAudio: List[UploadFile] = File(default=[]),
+    challengesAudio: List[UploadFile] = File(default=[]),
+    goalsAudio: List[UploadFile] = File(default=[]),
 ):
     """Start a new comprehensive analysis session from the setup wizard."""
     
@@ -500,6 +500,9 @@ async def start_new_analysis(
     
     # Save competitor files to disk and prepare data structure
     competitor_data = []
+    upload_dir = Path(f"data/uploads/{session_id}")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
     competitor_dir = upload_dir / "competitors"
     competitor_dir.mkdir(exist_ok=True)
     
@@ -528,32 +531,32 @@ async def start_new_analysis(
             
     # 4. Handle Audio (Save to disk)
     
-    upload_dir = Path(f"data/uploads/{session_id}")
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    async def save_audio(file: UploadFile, prefix: str):
-        if not file: return None
-        path = upload_dir / f"{prefix}_{file.filename}"
-        async with aiofiles.open(path, 'wb') as out_file:
-            content = await file.read()
-            await out_file.write(content)
-        return str(path)
+    async def save_audio_files(files: List[UploadFile], prefix: str) -> List[str]:
+        saved_paths = []
+        for i, file in enumerate(files):
+            if not file: continue
+            path = upload_dir / f"{prefix}_{i}_{file.filename}"
+            async with aiofiles.open(path, 'wb') as out_file:
+                content = await file.read()
+                await out_file.write(content)
+            saved_paths.append(str(path))
+        return saved_paths
 
-    business_context["history_audio_path"] = await save_audio(historyAudio, "history")
-    business_context["values_audio_path"] = await save_audio(valuesAudio, "values")
-    business_context["usps_audio_path"] = await save_audio(uspsAudio, "usps")
-    business_context["target_audience_audio_path"] = await save_audio(targetAudienceAudio, "target")
-    business_context["challenges_audio_path"] = await save_audio(challengesAudio, "challenges")
-    business_context["goals_audio_path"] = await save_audio(goalsAudio, "goals")
+    business_context["history_audio_paths"] = await save_audio_files(historyAudio, "history")
+    business_context["values_audio_paths"] = await save_audio_files(valuesAudio, "values")
+    business_context["usps_audio_paths"] = await save_audio_files(uspsAudio, "usps")
+    business_context["target_audience_audio_paths"] = await save_audio_files(targetAudienceAudio, "target")
+    business_context["challenges_audio_paths"] = await save_audio_files(challengesAudio, "challenges")
+    business_context["goals_audio_paths"] = await save_audio_files(goalsAudio, "goals")
 
     # 5. Start Pipeline
     try:
-        # Run in background via asyncio dasas tructureddata (cotnt, mime,enam)
+        # Run in background via asyncio task
         asyncio.create_task(orchestrator.run_full_pipeline(
             session_id=session_id,
             menu_images=menu_bytes,
             dish_images=dish_bytes,
-            competitor_files=competitor_bytes, # Pass new files
+            competitor_files=competitor_data, # Pass structured data
             sales_csv=sales_csv,
             address=location,
             business_context=business_context,
@@ -847,32 +850,40 @@ async def run_advanced_analytics(session_id: str = Form(...)):
 
 @router.post("/chat", tags=["AI Chat"])
 async def chat_with_ai(
-    session_id: str = Form(...),
+    session_id: Optional[str] = Form(None),
     message: str = Form(...),
     context: str = Form("general"),
 ):
     """Interactive chat with Gemini AI."""
-    session = load_session(session_id)
-    if not session:
-        raise HTTPException(404, "Session not found")
+    session = None
+    if session_id:
+        session = load_session(session_id)
 
-    def _format_bcg(bcg):
-        if not bcg:
-            return "No BCG analysis."
-        counts = bcg.get("summary", {}).get("counts", {})
-        return f"Stars: {counts.get('star', 0)}, Dogs: {counts.get('dog', 0)}"
+    if session:
+        def _format_bcg(bcg):
+            if not bcg:
+                return "No BCG analysis."
+            counts = bcg.get("summary", {}).get("counts", {})
+            return f"Stars: {counts.get('star', 0)}, Dogs: {counts.get('dog', 0)}"
 
-    session_context = f"""
-    You are RestoPilotAI AI. 
-    Menu Items: {len(session.get('menu_items', []))}
-    BCG: {_format_bcg(session.get('bcg_analysis', {}))}
-    Context: {context}
-    """
+        session_context = f"""
+        You are RestoPilotAI AI. 
+        Menu Items: {len(session.get('menu_items', []))}
+        BCG: {_format_bcg(session.get('bcg_analysis', {}))}
+        Context: {context}
+        """
+    else:
+        session_context = """
+        You are RestoPilotAI, an expert restaurant consultant.
+        The user is currently setting up their analysis.
+        Help them understand what information to provide (History, Values, Competitors, Files).
+        Explain why each piece of information helps the AI generate better strategies.
+        """
 
     try:
         response = await agent.generate_response(
             prompt=f"{session_context}\n\nUser: {message}",
-            system_instruction="You are a helpful consultant.",
+            system_instruction="You are a helpful, professional, and encouraging restaurant consultant.",
         )
         return {"response": response, "session_id": session_id}
     except Exception as e:

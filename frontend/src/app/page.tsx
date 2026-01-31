@@ -47,16 +47,17 @@ export default function SetupPage() {
     goalsContext: '',
     
     // Context (audio)
-    historyAudio: null as Blob | null,
-    valuesAudio: null as Blob | null,
-    uspsAudio: null as Blob | null,
-    targetAudienceAudio: null as Blob | null,
-    challengesAudio: null as Blob | null,
-    goalsAudio: null as Blob | null,
+    historyAudio: [] as Blob[],
+    valuesAudio: [] as Blob[],
+    uspsAudio: [] as Blob[],
+    targetAudienceAudio: [] as Blob[],
+    challengesAudio: [] as Blob[],
+    goalsAudio: [] as Blob[],
     
     // Competitor info
-    competitorInput: '', // Text area for links/notes
-    competitorFiles: [] as File[], // Multimodal uploads
+    competitorInput: '', 
+    competitorAudio: [] as Blob[], // New for competitor audio
+    competitorFiles: [] as File[], 
     autoFindCompetitors: true,
   });
   
@@ -75,7 +76,7 @@ export default function SetupPage() {
       formData.targetAudienceContext ? 5 : 0,
       formData.challengesContext ? 5 : 0,
       formData.goalsContext ? 5 : 0,
-      (formData.competitorInput || formData.competitorFiles.length > 0) ? 5 : 0,
+      (formData.competitorInput || formData.competitorAudio.length > 0 || formData.competitorFiles.length > 0) ? 5 : 0,
     ];
     
     setCompletionScore(Math.min(100, fields.reduce((a, b) => a + b, 0)));
@@ -111,13 +112,25 @@ export default function SetupPage() {
       formData.photoFiles.forEach(file => data.append('photoFiles', file));
       formData.competitorFiles.forEach(file => data.append('competitorFiles', file));
       
-      // Audio
-      if (formData.historyAudio) data.append('historyAudio', formData.historyAudio, 'history.webm');
-      if (formData.valuesAudio) data.append('valuesAudio', formData.valuesAudio, 'values.webm');
-      if (formData.uspsAudio) data.append('uspsAudio', formData.uspsAudio, 'usps.webm');
-      if (formData.targetAudienceAudio) data.append('targetAudienceAudio', formData.targetAudienceAudio, 'target_audience.webm');
-      if (formData.challengesAudio) data.append('challengesAudio', formData.challengesAudio, 'challenges.webm');
-      if (formData.goalsAudio) data.append('goalsAudio', formData.goalsAudio, 'goals.webm');
+      // Audio (Handling arrays)
+      const appendAudio = (blobs: Blob[], fieldName: string) => {
+        blobs.forEach((blob, idx) => {
+          data.append(fieldName, blob, `${fieldName}_${idx}.webm`);
+        });
+      };
+
+      appendAudio(formData.historyAudio, 'historyAudio');
+      appendAudio(formData.valuesAudio, 'valuesAudio');
+      appendAudio(formData.uspsAudio, 'uspsAudio');
+      appendAudio(formData.targetAudienceAudio, 'targetAudienceAudio');
+      appendAudio(formData.challengesAudio, 'challengesAudio');
+      appendAudio(formData.goalsAudio, 'goalsAudio');
+      
+      // Append competitor audio as generic competitor files if API doesn't support specific field yet, 
+      // OR update API. Current API takes competitorFiles. We can treat these blobs as files.
+      formData.competitorAudio.forEach((blob, idx) => {
+        data.append('competitorFiles', blob, `competitor_audio_${idx}.webm`);
+      });
       
       // Start analysis
       const response = await fetch(`${API_BASE}/api/v1/analysis/start`, {
@@ -372,8 +385,9 @@ export default function SetupPage() {
                 value={formData.historyContext}
                 onChange={(value) => setFormData({...formData, historyContext: value})}
                 allowAudio
-                onAudioChange={(audio) => setFormData({...formData, historyAudio: audio})}
-                template="Tell us: How did your restaurant start? What's unique about your story?"
+                onAudioChange={(audios) => setFormData({...formData, historyAudio: audios})}
+                template="How did you start? What's the story behind your recipes? Any family traditions?"
+                detailedTemplate="Our restaurant was founded in 1985 by my grandmother, bringing authentic recipes from Oaxaca. We started as a small street cart and grew into a family gathering spot. Our signature mole sauce takes 3 days to prepare and has been in the family for 4 generations. We want to preserve this tradition while adapting to modern times."
               />
               
               <ContextInput
@@ -382,8 +396,9 @@ export default function SetupPage() {
                 value={formData.valuesContext}
                 onChange={(value) => setFormData({...formData, valuesContext: value})}
                 allowAudio
-                onAudioChange={(audio) => setFormData({...formData, valuesAudio: audio})}
-                template="What do you stand for? What makes you different?"
+                onAudioChange={(audios) => setFormData({...formData, valuesAudio: audios})}
+                template="What do you stand for? Sustainability? Community? Authenticity?"
+                detailedTemplate="We believe in 'Farm to Table' integrity. We source 80% of our ingredients from local farmers within 50 miles. We prioritize fair wages for our staff and zero-waste cooking practices. Our mission is to show that fast food can be healthy, sustainable, and deeply connected to the community."
               />
               
               <ContextInput
@@ -391,7 +406,10 @@ export default function SetupPage() {
                 placeholder="Example: Health-conscious millennials who value sustainability..."
                 value={formData.targetAudienceContext}
                 onChange={(value) => setFormData({...formData, targetAudienceContext: value})}
-                template="Who do you want to attract? Describe your ideal customer."
+                allowAudio
+                onAudioChange={(audios) => setFormData({...formData, targetAudienceAudio: audios})}
+                template="Who comes to your restaurant? Who do you WANT to come?"
+                detailedTemplate="Our core customers are young professionals (25-35) looking for quick but high-quality lunch options. We also attract health-conscious families on weekends. We are trying to reach more of the Gen Z crowd who value aesthetic food for social media, but we struggle to connect with them digitally."
               />
               
               <ContextInput
@@ -399,7 +417,10 @@ export default function SetupPage() {
                 placeholder="Example: Struggling to attract dinner crowd, mostly lunch customers..."
                 value={formData.challengesContext}
                 onChange={(value) => setFormData({...formData, challengesContext: value})}
-                template="What's not working? What keeps you up at night?"
+                allowAudio
+                onAudioChange={(audios) => setFormData({...formData, challengesAudio: audios})}
+                template="What keeps you up at night? Low traffic? High costs? Staffing?"
+                detailedTemplate="Our biggest challenge is the dinner service on weekdays (Mon-Thu), which is very slow compared to lunch. Food costs have risen 15% this year, squeezing our margins. We also find it hard to retain kitchen staff. We need marketing that drives evening traffic specifically."
               />
               
               <ContextInput
@@ -407,7 +428,10 @@ export default function SetupPage() {
                 placeholder="Example: Expand to 3 locations in next 2 years..."
                 value={formData.goalsContext}
                 onChange={(value) => setFormData({...formData, goalsContext: value})}
-                template="Where do you want to be in 1-2 years?"
+                allowAudio
+                onAudioChange={(audios) => setFormData({...formData, goalsAudio: audios})}
+                template="Where do you see the business in 1-2 years?"
+                detailedTemplate="We want to open a second location in the downtown area next year. To do that, we need to increase our monthly revenue by 20% and stabilize our operations manual. We also want to launch a packaged version of our signature hot sauce for retail sale."
               />
             </div>
           </section>
@@ -426,21 +450,31 @@ export default function SetupPage() {
               <InfoTooltip content="We'll automatically find 5-10 competitors near you. But if you know specific ones you want to track, add them here." />
             </div>
             
-            <div className="space-y-3">
-              {formData.competitorUrls.map((url, idx) => (
-                <input
-                  key={idx}
-                  type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`Competitor ${idx + 1} (Instagram, website, or address)`}
-                  value={url}
-                  onChange={(e) => {
-                    const newUrls = [...formData.competitorUrls];
-                    newUrls[idx] = e.target.value;
-                    setFormData({...formData, competitorUrls: newUrls});
-                  }}
-                />
-              ))}
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 text-sm text-blue-800">
+                <strong>New:</strong> You can now upload competitor menus, photos, or paste mixed links and notes!
+              </div>
+
+              <ContextInput
+                label="Competitor Notes & Links"
+                placeholder="Paste Instagram links, website URLs, or record audio notes about your competitors..."
+                value={formData.competitorInput}
+                onChange={(value) => setFormData({...formData, competitorInput: value})}
+                allowAudio
+                onAudioChange={(audios) => setFormData({...formData, competitorAudio: audios})}
+                template="Mention specific competitors by name, their strengths/weaknesses, or paste their URLs."
+                detailedTemplate="Our main competitor is 'Taco King' across the street. They have cheaper prices ($2 tacos) but lower quality. Another one is 'Mezcal Bar' which steals our Friday night crowd because they have live music. I want to know how to position against these two specifically."
+              />
+              
+              <FileUpload
+                label="Competitor Menus & Photos"
+                accept=".pdf,image/*,video/*"
+                multiple
+                icon={<Upload className="w-6 h-6 text-gray-400" />}
+                onChange={(files) => setFormData({...formData, competitorFiles: files})}
+                tooltip="Upload menus, food photos, or videos of your competitors. We'll extract the data."
+                compact
+              />
             </div>
           </section>
           
@@ -475,6 +509,8 @@ export default function SetupPage() {
         </div>
         
       </main>
+      
+      <GeminiChat />
     </div>
   );
 }
