@@ -339,38 +339,110 @@ class CompetitorEnrichmentService:
         return profile
 
     async def _get_place_details(self, place_id: str) -> Optional[Dict[str, Any]]:
-        """Obtener detalles completos de Google Maps Place Details API."""
+        """Obtener detalles completos usando Google Places API (New)."""
 
         if not self.google_api_key:
             logger.warning("No Google Maps API key configured")
             return None
 
         try:
-            url = "https://maps.googleapis.com/maps/api/place/details/json"
-            params = {
-                "place_id": place_id,
-                "fields": (
-                    "name,formatted_address,formatted_phone_number,international_phone_number,"
-                    "website,rating,user_ratings_total,price_level,opening_hours,reviews,"
-                    "photos,types,geometry,url,business_status,editorial_summary"
-                ),
-                "key": self.google_api_key,
-                "language": "es",
+            # V1 API Endpoint
+            url = f"https://places.googleapis.com/v1/places/{place_id}"
+            
+            # FieldMask for V1
+            fields = [
+                "id", "displayName", "formattedAddress", "nationalPhoneNumber",
+                "websiteUri", "rating", "userRatingCount", "priceLevel",
+                "regularOpeningHours", "reviews", "photos", "types",
+                "location", "googleMapsUri", "businessStatus", "editorialSummary"
+            ]
+            
+            headers = {
+                "Content-Type": "application/json",
+                "X-Goog-Api-Key": self.google_api_key,
+                "X-Goog-FieldMask": ",".join([f"places.{f}" for f in fields]),
+                "X-Goog-LanguageCode": "es"
             }
 
-            response = await self.http_client.get(url, params=params)
-            data = response.json()
+            response = await self.http_client.get(url, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                logger.info(f"Got place details for {place_id} (V1)")
+                
+                # Map V1 response to legacy structure for compatibility
+                result = {
+                    "place_id": data.get("id"),
+                    "name": data.get("displayName", {}).get("text"),
+                    "formatted_address": data.get("formattedAddress"),
+                    "formatted_phone_number": data.get("nationalPhoneNumber"),
+                    "website": data.get("websiteUri"),
+                    "rating": data.get("rating"),
+                    "user_ratings_total": data.get("userRatingCount"),
+                    "price_level": self._map_price_level_v1(data.get("priceLevel")),
+                    "types": data.get("types", []),
+                    "geometry": {
+                        "location": {
+                            "lat": data.get("location", {}).get("latitude"),
+                            "lng": data.get("location", {}).get("longitude")
+                        }
+                    },
+                    "url": data.get("googleMapsUri"),
+                    "business_status": data.get("businessStatus"),
+                    "editorial_summary": data.get("editorialSummary", {}).get("text")
+                }
 
-            if data.get("status") == "OK":
-                logger.info(f"Got place details for {place_id}")
-                return data.get("result", {})
+                # Map Opening Hours
+                if "regularOpeningHours" in data:
+                    oh = data["regularOpeningHours"]
+                    result["opening_hours"] = {
+                        "open_now": oh.get("openNow", False),
+                        "periods": oh.get("periods", []),
+                        "weekday_text": oh.get("weekdayDescriptions", [])
+                    }
+
+                # Map Photos (V1 uses 'name' as reference)
+                if "photos" in data:
+                    result["photos"] = [
+                        {
+                            "photo_reference": p["name"], # store resource name as ref
+                            "height": p.get("heightPx"),
+                            "width": p.get("widthPx"),
+                            "html_attributions": [p.get("authorAttributions", [{}])[0].get("displayName", "")]
+                        }
+                        for p in data["photos"]
+                    ]
+
+                # Map Reviews
+                if "reviews" in data:
+                    result["reviews"] = [
+                        {
+                            "author_name": r.get("authorAttribution", {}).get("displayName"),
+                            "rating": r.get("rating"),
+                            "text": r.get("text", {}).get("text"),
+                            "time": r.get("publishTime"),
+                            "relative_time_description": r.get("relativePublishTimeDescription")
+                        }
+                        for r in data["reviews"]
+                    ]
+
+                return result
             else:
-                logger.error(f"Place Details API error: {data.get('status')}")
+                logger.error(f"Place Details API error: {response.status_code} - {response.text}")
                 return None
 
         except Exception as e:
             logger.error(f"Failed to get place details: {e}")
             return None
+
+    def _map_price_level_v1(self, level: str) -> Optional[int]:
+        mapping = {
+            "PRICE_LEVEL_INEXPENSIVE": 1,
+            "PRICE_LEVEL_MODERATE": 2,
+            "PRICE_LEVEL_EXPENSIVE": 3,
+            "PRICE_LEVEL_VERY_EXPENSIVE": 4
+        }
+        return mapping.get(level)
 
     async def _cross_reference_web_search(
         self,
@@ -580,7 +652,15 @@ Responde en JSON:
             for photo in photos[:5]:
                 photo_ref = photo.get("photo_reference")
                 if photo_ref:
-                    photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={photo_ref}&key={self.google_api_key}"
+                    # Check if it's a V1 resource name or legacy reference
+                    if "photos/" in photo_ref:
+                        # V1 Format: places/PLACE_ID/photos/PHOTO_ID
+                        # URL: https://places.googleapis.com/v1/{name}/media?key=KEY&maxWidthPx=...
+                        photo_url = f"https://places.googleapis.com/v1/{photo_ref}/media?key={self.google_api_key}&maxWidthPx=800"
+                    else:
+                        # Legacy Format Fallback
+                        photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={photo_ref}&key={self.google_api_key}"
+                    
                     photo_urls.append(photo_url)
 
             if not photo_urls:
