@@ -96,47 +96,50 @@ RestoPilotAI relies on a robust **Agentic Architecture** powered by FastAPI and 
 
 ## 🚀 Getting Started
 
-### **Prerequisites**
+### **Option A: Quick Start with Docker (Recommended)**
+
+Run the entire stack (Backend, Frontend, Database, Redis) with a single command:
+
+```bash
+# 1. Configure Environment
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY and GOOGLE_PLACES_API_KEY
+
+# 2. Build and Run
+docker-compose up --build
+```
+
+- Frontend: `http://localhost:3000`
+- Backend Docs: `http://localhost:8000/docs`
+
+### **Option B: Manual Setup**
+
+#### **Prerequisites**
 - Python 3.11+
-- Node.js 18+
-- Google Gemini API Key
-- Google Maps/Places API Key (Optional, mocks available)
+- Node.js 20+
+- PostgreSQL & Redis (running locally)
 
-### **Installation**
+#### **1. Backend Setup**
+For detailed instructions, see [backend/README.md](./backend/README.md).
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/DuqueOM/RestoPilotAI.git
-   cd RestoPilotAI
-   ```
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env  # Configure keys
+uvicorn app.main:app --reload
+```
 
-2. **Backend Setup**
-   ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # or venv\Scripts\activate on Windows
-   pip install -r requirements.txt
-   
-   # Configure Environment
-   cp .env.example .env
-   # Edit .env and add your GEMINI_API_KEY
-   
-   # Run Server
-   uvicorn app.main:app --reload
-   ```
+#### **2. Frontend Setup**
+For detailed instructions, see [frontend/README.md](./frontend/README.md).
 
-3. **Frontend Setup**
-   ```bash
-   cd frontend
-   npm install
-   
-   # Run Client
-   npm run dev
-   ```
-
-4. **Access**
-   - Frontend: `http://localhost:3000`
-   - Backend Docs: `http://localhost:8000/docs`
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
+```
 
 ---
 
