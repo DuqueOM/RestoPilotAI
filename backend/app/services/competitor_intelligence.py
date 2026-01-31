@@ -498,7 +498,13 @@ Extract all menu items with prices. Return JSON:
                 },
             )
 
-    # ... (rest of the code remains the same)
+    def _parse_direct_data(
+        self,
+        source: CompetitorSource,
+    ) -> Optional[CompetitorMenu]:
+        """Parse directly provided competitor data."""
+        try:
+            if isinstance(source.value, str):
                 data = json.loads(source.value)
             else:
                 data = source.value
