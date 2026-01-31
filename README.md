@@ -1,178 +1,136 @@
-# 🍽️ RestoPilotAI
+# 🧠 RestoPilotAI
 
-**AI-Powered Competitive Intelligence & Menu Optimization for Restaurants**
+> **Intelligence That Sees, Hears, and Thinks Like a Consultant.**
+>
+> An autonomous, multimodal market intelligence agent for the restaurant industry, powered by **Google Gemini 3**.
 
 [![Powered by Gemini 3](https://img.shields.io/badge/Powered%20by-Gemini%203-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Status: Hackathon Ready](https://img.shields.io/badge/Status-Hackathon%20Ready-success?style=for-the-badge)]()
-
-> **"Give us your address. We'll give you competitive intelligence that would cost $5,000 and 2 months with a consultant."**
-
-RestoPilotAI is an autonomous AI intelligence platform that uses **Google Gemini 3's multimodal capabilities** to gather, analyze, and synthesize competitive data for restaurants. No spreadsheets. No manual research. Just your location—and our Agents do the rest.
+[![Tech Stack: FastAPI + Next.js](https://img.shields.io/badge/Stack-FastAPI%20%7C%20Next.js%20%7C%20Docker-success?style=for-the-badge&logo=docker)]()
+[![Status: Operational](https://img.shields.io/badge/Status-Operational-green?style=for-the-badge)]()
 
 ---
 
-## 🎯 The Problem We Solve
+## 🚀 The Vision
 
-**Traditional Competitive Analysis:**
-- ❌ Hire consultant: $5,000+
-- ❌ Wait 2 months for report
-- ❌ Manual data collection from dozens of sources
-- ❌ Static insights, outdated by publication
+RestoPilotAI replaces expensive, slow consultancy with an **Autonomous AI Agent** that works in real-time. By simply providing a location, the system orchestrates a fleet of specialized AI agents to:
 
-**RestoPilotAI:**
-- ✅ Enter your address: Instant Start
-- ✅ **Real-time Agentic Analysis** in < 5 minutes
-- ✅ **Scout Agent** autonomously gathers data from Google Maps, Instagram, reviews, and menus
-- ✅ **Multimodal Vision** analyzes dish quality, ambiance, and social aesthetic
-- ✅ **Live Thinking Stream** shows the AI's reasoning process as it happens
+1.  **Scout** the neighborhood and competitors physically and digitally.
+2.  **See** and critique food presentation using computer vision.
+3.  **Listen** to business owners' verbal context and goals.
+4.  **Predict** sales trends using machine learning (XGBoost).
+5.  **Strategize** actionable marketing campaigns based on BCG matrix analysis.
+
+No spreadsheets. No manual data entry. Just actionable intelligence generated in minutes.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Capabilities (Verified & Implemented)
 
-### **1. Autonomous Intelligence Gathering ("Scout Agent 2.0")**
-Unlike traditional tools where you input data manually, RestoPilotAI's **Scout Agent** acts as an autonomous field researcher:
-- **Geospatial Discovery**: Integrates with Google Maps/Places API to identify relevant competitors within a dynamic radius.
-- **Neighborhood Profiling**: Analyzes nearby businesses (universities, offices) to determine demographic opportunities.
-- **Social Intelligence**: Uses `SocialScraper` to extract and analyze Instagram content (captions + images) for aesthetic and engagement benchmarking.
+### 1. 🤖 Multimodal "Marathon Agent" Orchestrator
+At the core is a state-managed orchestrator (`AnalysisOrchestrator`) that runs a resilient 9-stage analysis pipeline. It is not a simple linear script but a persistent workflow engine that maintains context, handles failures, and manages state across:
+- **Location & Demographics Analysis**
+- **Competitor Discovery & Enrichment**
+- **Multimodal Content Processing (Audio/Image)**
+- **Strategic Verification Loops**
 
-### **2. True Multimodal Intelligence (Gemini 3 Vision)**
-We don't just read text. We see what your customers see:
-- **📸 Visual Gap Analysis**: Compares your dish photography against competitors using high-resolution vision. Scores lighting, composition, and "appetite appeal".
-- **🍽️ Menu Extraction**: Extracts items, prices, and descriptions from raw menu photos or PDFs.
-- **🎨 Aesthetic Benchmarking**: Analyzes color palettes and filter styles of top-performing competitors.
+### 2. 👁️ Gemini 3 Vision: "The Food Critic"
+We don't just scrape text; we analyze the *visual* appeal of the market using **Gemini 3's native multimodal capabilities**.
+- **Visual Gap Analysis**: The agent downloads competitor menu photos and uses Gemini Vision to score them on lighting, plating, and "appetite appeal".
+- **Aesthetic Benchmarking**: Identifies the visual style (colors, vibe) winning in the local market.
+- **Dish Video Analysis**: Capable of processing video content to understand dynamic food presentation.
 
-### **3. Strategic Business Intelligence**
-- **Enhanced BCG Matrix**: Combines sales data with visual quality scores and sentiment to classify items (Star, Cash Cow, Dog, Question Mark).
-- **Price Elasticity**: Estimates price sensitivity based on neighborhood demographics and competitor positioning.
-- **Campaign Generation**: Synthesizes all intelligence to generate actionable marketing campaigns (e.g., "Student Tuesday" based on university proximity).
+### 3. 👂 Audio-Native Context Injection
+Business isn't just data; it's about the owner's story.
+- **Voice-to-Strategy**: Owners can record voice notes about their history, values, or challenges.
+- **Semantic Integration**: The `ContextProcessor` transcribes audio and injects these qualitative insights directly into quantitative models (e.g., adjusting campaign tone based on the owner's actual voice and values).
 
-### **4. Real-Time Reasoning Engine**
-- **Thinking Stream UI**: Watch the AI "think" in real-time via WebSockets. See it formulate hypotheses, verify data, and cross-reference sources.
-- **Marathon Agent Architecture**: Orchestrates a 9-stage analysis pipeline with fault tolerance and state persistence.
+### 4. 🕵️ Autonomous Scout & Social Intelligence
+- **Deep Competitor Profiling**: Integrates **Google Places API (New)** for verified business data, reviews, and operational details.
+- **Social Reconnaissance**: Uses a custom `SocialScraper` (powered by Instaloader) to extract real engagement metrics, hashtags, and visual trends from public Instagram profiles.
+- **Neighborhood Vibe**: Analyzes the surrounding area for demand drivers (offices, universities, nightlife) to determine the "Urban Personality" of the location.
+
+### 5. 📈 Hybrid Intelligence (AI + ML)
+We combine Generative AI with traditional Machine Learning for precision:
+- **Sales Prediction Engine**: Uses **XGBoost** to forecast sales trends based on historical data, pricing, seasonality, and local events.
+- **BCG Matrix Classification**: Automatically categorizes menu items into **Stars**, **Cash Cows**, **Dogs**, and **Question Marks**.
+- **Strategic Campaign Generator**: Synthesizes ML predictions + BCG data + Owner Context to generate ready-to-launch marketing campaigns (social posts, emails, in-store promos).
 
 ---
 
 ## 🏗️ Technical Architecture
 
-RestoPilotAI relies on a robust **Agentic Architecture** powered by FastAPI and Next.js.
+The project follows a modern **Agentic Microservices** architecture:
 
 ### **Backend (`/backend`)**
-- **Framework**: FastAPI (Python 3.11+)
-- **Core Agents**:
-  - `AnalysisOrchestrator`: Manages the full pipeline state.
-  - `ScoutAgent`: Discovers and enriches location/competitor data.
-  - `CompetitorIntelligenceService`: Price comparison & menu analysis.
-  - `VisualGapAnalyzer`: Gemini Vision aesthetic comparison.
-  - `NeighborhoodAnalyzer`: Demographic & traffic analysis.
-  - `SocialScraper`: Instagram data extraction.
-- **AI Engine**: Google Gemini 3 (Flash & Pro) via `google-genai`.
-- **Infrastructure**:
-  - WebSocketManager for real-time streaming.
-  - Async/Await for parallel agent execution.
-  - Pydantic for strict schema validation.
+Built with **Python 3.11** and **FastAPI**.
+*   **Intelligence Layer**:
+    *   `ScoutAgent`: Geospatial discovery & data enrichment.
+    *   `ContextProcessor`: Gemini 3 Audio/Text processing.
+    *   `VisualGapAnalyzer`: Gemini 3 Vision analysis.
+    *   `SalesPredictor`: Scikit-learn/XGBoost forecasting pipelines.
+    *   `MenuExtractor`: Hybrid OCR + Gemini Vision for PDF/Image menu digitizing.
+*   **Infrastructure**:
+    *   **Redis**: Caching & Task Queues for async agent operations.
+    *   **PostgreSQL**: Structured data persistence (AsyncPG).
+    *   **Docker**: Containerized deployment.
 
 ### **Frontend (`/frontend`)**
-- **Framework**: Next.js 14 (App Router)
-- **UI/UX**:
-  - **Vertical Progressive Flow**: Conversational, step-by-step interface.
-  - **ThinkingStream**: Real-time visualization of backend agent thought traces.
-  - **Interactive Dashboards**: Recharts for data visualization, Google Maps integration.
-- **Styling**: Tailwind CSS, Lucide Icons, Shadcn/UI.
-
-### **Pipeline Stages**
-1. **Ingestion**: Upload images/CSV or define location.
-2. **Scout**: Geocode -> Find Competitors -> Profile Neighborhood.
-3. **Menu Extraction**: OCR + Multimodal parsing.
-4. **Competitor Analysis**: Scraping -> Price Comparison.
-5. **Visual Analysis**: Dish scoring -> Gap identification.
-6. **Sentiment**: Review analysis.
-7. **Business Logic**: Sales prediction -> BCG Matrix.
-8. **Strategy**: Campaign generation.
-9. **Verification**: "Vibe Check" self-correction loop.
+Built with **Next.js 14 (App Router)** and **TypeScript**.
+*   **Thinking Stream**: Real-time WebSocket connection visualizing the agent's "thought process" as it works (Chain-of-Thought visualization).
+*   **Progressive UX**: A vertical, conversational flow that reveals insights step-by-step, mimicking a consultant interview.
+*   **Interactive Dashboards**: Dynamic charts (Recharts) and Google Maps integration for spatial data.
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Getting Started
 
-### **Option A: Quick Start with Docker (Recommended)**
-
-Run the entire stack (Backend, Frontend, Database, Redis) with a single command:
+### **Option A: Quick Start (Docker)**
+The easiest way to run the full stack (Backend, Frontend, DB, Redis).
 
 ```bash
-# 1. Configure Environment
+# 1. Environment Setup
 cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY and GOOGLE_PLACES_API_KEY
+# Edit .env: Add GEMINI_API_KEY and GOOGLE_PLACES_API_KEY
 
-# 2. Build and Run
+# 2. Launch
 docker-compose up --build
 ```
+Access the app at `http://localhost:3000`.
 
-- Frontend: `http://localhost:3000`
-- Backend Docs: `http://localhost:8000/docs`
+### **Option B: Manual Development**
 
-### **Option B: Manual Setup**
-
-#### **Prerequisites**
-- Python 3.11+
-- Node.js 20+
-- PostgreSQL & Redis (running locally)
-
-#### **1. Backend Setup**
-For detailed instructions, see [backend/README.md](./backend/README.md).
-
+**Backend:**
+See [backend/README.md](./backend/README.md) for detailed setup.
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # Configure keys
 uvicorn app.main:app --reload
 ```
+*Docs available at: `http://localhost:8000/docs`*
 
-#### **2. Frontend Setup**
-For detailed instructions, see [frontend/README.md](./frontend/README.md).
-
+**Frontend:**
+See [frontend/README.md](./frontend/README.md) for detailed setup.
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
 ---
 
-## 🧠 How Gemini 3 Powers RestoPilotAI
+## 🧠 Why Gemini 3?
 
-RestoPilotAI showcases the advanced capabilities of Gemini 3:
+RestoPilotAI was built specifically to exploit the **native multimodal** capabilities of Gemini 3:
 
-| Feature | Gemini Capability | Implementation |
-|---------|-------------------|----------------|
-| **Visual Gap Analyzer** | Multimodal Vision | Analyzes dish plating, lighting, and composition to score "Instagram-worthiness". |
-| **Scout Agent** | Function Calling | Autonomously calls Maps/Search APIs to find and filter relevant competitors. |
-| **Extraction Engine** | Long Context Window | Processes full PDF menus and dozens of social posts in a single pass. |
-| **Reasoning Stream** | Chain-of-Thought | Generates transparent "thought traces" to explain strategic recommendations. |
-
----
-
-## 🏆 Hackathon Status
-
-**Completed Modules:**
-- [x] **Geocoding & Places**: Google Maps integration + Mock fallbacks.
-- [x] **Scout Agent**: Autonomous discovery & enrichment.
-- [x] **Social Intelligence**: Real Instagram scraping & analysis.
-- [x] **Visual AI**: High-res dish analysis.
-- [x] **Orchestrator**: 9-stage resilient pipeline.
-- [x] **Real-time UI**: WebSocket streaming & Thinking components.
-- [x] **Documentation**: Comprehensive architecture guide.
+| Feature | Legacy AI Approach | RestoPilotAI (Gemini 3) |
+| :--- | :--- | :--- |
+| **Input** | Text/CSV only | **Audio, Images, Video, Text** |
+| **Context** | Short context window | **Long Context (Full PDF Menus + History)** |
+| **Reasoning** | Single-shot answers | **Chain-of-Thought "Thinking" Loops** |
+| **Speed** | Slow, multi-model piping | **Native Multimodal Latency** |
 
 ---
 
 ## 📜 License
-
-MIT License - See [LICENSE](./LICENSE) for details.
-
----
-
-**Built with ❤️ by the RestoPilotAI Team for the Gemini 3 Hackathon.**
+MIT License. Built for the Gemini 3 Developer Competition.

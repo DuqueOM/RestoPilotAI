@@ -1,6 +1,6 @@
-# 🧠 MenuPilot Backend
+# 🧠 RestoPilotAI Backend
 
-El backend de MenuPilot es una API robusta construida con **FastAPI** y **Python 3.11**, diseñada para orquestar análisis de inteligencia de mercado utilizando **Google Gemini 3 Multimodal** y **Google Places API**.
+El backend de RestoPilotAI es una API robusta construida con **FastAPI** y **Python 3.11**, diseñada para orquestar análisis de inteligencia de mercado utilizando **Google Gemini 3 Multimodal** y **Google Places API**.
 
 ## 🛠 Tech Stack
 

@@ -1,6 +1,6 @@
-# 🎨 MenuPilot Frontend
+# 🎨 RestoPilotAI Frontend
 
-El frontend de MenuPilot es una aplicación moderna construida con **Next.js 14** (App Router), diseñada para ofrecer una experiencia fluida y progresiva ("Single Page Application flow") para el análisis de menús y competidores.
+El frontend de RestoPilotAI es una aplicación moderna construida con **Next.js 14** (App Router), diseñada para ofrecer una experiencia fluida y progresiva ("Single Page Application flow") para el análisis de menús y competidores.
 
 ## 🛠 Tech Stack
 
