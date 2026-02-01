@@ -1,100 +1,114 @@
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { formatCheckpointTime } from '@/lib/utils/checkpoint-manager';
+
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Checkpoint } from '@/types/marathon-agent';
-import { ChevronDown, ChevronRight, Database } from 'lucide-react';
+import { ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { useState } from 'react';
 
 interface CheckpointViewerProps {
   checkpoints: Checkpoint[];
-  className?: string;
-  onRecover?: (checkpointId: string) => void;
+  onRestore?: (checkpointId: string) => void;
 }
 
-export function CheckpointViewer({ checkpoints, className, onRecover }: CheckpointViewerProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+export function CheckpointViewer({ checkpoints, onRestore }: CheckpointViewerProps) {
+  const [expandedCheckpoint, setExpandedCheckpoint] = useState<string | null>(null);
 
   if (!checkpoints || checkpoints.length === 0) {
     return (
-      <div className={cn("text-center p-4 text-gray-500 text-sm border rounded-lg border-dashed", className)}>
-        No checkpoints available
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Checkpoints</CardTitle>
+          <CardDescription>No checkpoints saved yet</CardDescription>
+        </CardHeader>
+      </Card>
     );
   }
 
-  // Sort by timestamp desc
-  const sortedCheckpoints = [...checkpoints].sort((a, b) => 
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
-
   return (
-    <div className={cn("space-y-4", className)}>
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-        <Database className="w-4 h-4 mr-2" />
-        Checkpoints & State Snapshots
-      </h3>
-      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-        {sortedCheckpoints.map((cp) => (
-          <div 
-            key={cp.checkpoint_id} 
-            className="border rounded-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200"
-          >
-            <div 
-              className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
-              onClick={() => setExpandedId(expandedId === cp.checkpoint_id ? null : cp.checkpoint_id)}
-            >
-              <div className="flex items-center space-x-3">
-                {expandedId === cp.checkpoint_id ? (
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                )}
-                <div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    Step Index: {cp.step_index + 1}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatCheckpointTime(cp.timestamp)}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className={cn(
-                  "text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"
-                )}>
-                  Checkpoint
-                </span>
-              </div>
-            </div>
-
-            {expandedId === cp.checkpoint_id && (
-              <div className="p-3 border-t bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-                <div className="mb-3">
-                  <h4 className="text-xs font-semibold uppercase text-gray-500 mb-1">State Snapshot</h4>
-                  <pre className="text-xs font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto text-gray-700 dark:text-gray-300">
-                    {JSON.stringify(cp.state_snapshot, null, 2)}
-                  </pre>
-                </div>
-                {onRecover && (
-                  <div className="flex justify-end">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRecover(cp.checkpoint_id);
-                      }}
-                    >
-                      Recover to this state
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Save className="h-4 w-4" />
+              Checkpoints ({checkpoints.length})
+            </CardTitle>
+            <CardDescription>Automatic save points for recovery</CardDescription>
           </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-3">
+        {checkpoints.map((checkpoint, index) => (
+          <Collapsible
+            key={checkpoint.checkpoint_id}
+            open={expandedCheckpoint === checkpoint.checkpoint_id}
+            onOpenChange={(isOpen) =>
+              setExpandedCheckpoint(isOpen ? checkpoint.checkpoint_id : null)
+            }
+          >
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline">Step {checkpoint.step_index}</Badge>
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-gray-900">
+                        Checkpoint #{checkpoints.length - index}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {new Date(checkpoint.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  {expandedCheckpoint === checkpoint.checkpoint_id ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                  )}
+                </div>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent>
+                <div className="p-3 bg-gray-50 border-t border-gray-200 space-y-3">
+                  {/* Results Summary */}
+                  <div>
+                    <p className="text-xs font-medium text-gray-700 mb-2">Accumulated Results:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(checkpoint.accumulated_results).map(([key, value]) => (
+                        <div key={key} className="p-2 bg-white rounded border border-gray-200">
+                          <p className="text-xs text-gray-600">{key}</p>
+                          <p className="text-xs font-medium text-gray-900 truncate">
+                            {typeof value === 'object' ? 'Object' : String(value)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Restore Button */}
+                  {onRestore && (
+                    <Button
+                      onClick={() => onRestore(checkpoint.checkpoint_id)}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Restore from this checkpoint
+                    </Button>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
         ))}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

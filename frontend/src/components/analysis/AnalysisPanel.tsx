@@ -1,6 +1,7 @@
 'use client'
 
-import { WebSocketMessage, wsManager } from '@/lib/api/websocket'
+import { useWebSocket } from '@/hooks/useWebSocket'
+import { WebSocketMessage } from '@/lib/api/websocket'
 import axios from 'axios'
 import {
     BarChart3,
@@ -19,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import ThinkingStream, { ThoughtStep } from '../common/ProgressTracker'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1'
 
 interface AnalysisPanelProps {
   sessionId: string
@@ -137,13 +139,14 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
   }, [])
 
   // WebSocket Connection
+  const { lastMessage } = useWebSocket(sessionId ? `${WS_URL}/ws/analysis/${sessionId}` : null)
+
   useEffect(() => {
-    if (!sessionId) return
+    if (!lastMessage) return
 
-    // Connect to WebSocket
-    wsManager.connect(sessionId)
+    try {
+      const msg: WebSocketMessage = JSON.parse(lastMessage)
 
-    const handleMessage = (msg: WebSocketMessage) => {
       // 1. Handle Thoughts
       if (msg.type === 'thought' && msg.thought) {
         const backendStep = msg.thought.step || ''
@@ -215,16 +218,10 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
         }
         setIsLoading(false)
       }
+    } catch (e) {
+      console.error("Failed to parse WebSocket message", e)
     }
-
-    const unsubscribe = wsManager.subscribe(handleMessage)
-
-    return () => {
-      unsubscribe()
-      // We don't necessarily disconnect here to allow background updates, 
-      // but good practice if component unmounts completely
-    }
-  }, [sessionId, currentStep, addThought, onComplete])
+  }, [lastMessage, currentStep, addThought, onComplete, setIsLoading])
 
   // Orchestrator Execution (Full Pipeline)
   const runFullPipeline = async () => {

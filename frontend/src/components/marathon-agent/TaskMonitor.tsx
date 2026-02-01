@@ -87,7 +87,11 @@ export function TaskMonitor({ taskId, className, onTaskComplete }: TaskMonitorPr
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <PipelineProgress task={taskState} />
+        <PipelineProgress 
+          taskState={taskState} 
+          onCancel={cancelTask}
+          onRecover={handleRecover}
+        />
         
         {isFailed && (
           <RecoveryPanel 
@@ -100,11 +104,10 @@ export function TaskMonitor({ taskId, className, onTaskComplete }: TaskMonitorPr
         <div className="grid gap-6 md:grid-cols-2">
           <StepTimeline 
             steps={taskState.steps} 
-            currentStepIndex={taskState.current_step - 1} 
           />
           <CheckpointViewer 
             checkpoints={taskState.checkpoints} 
-            onRecover={handleRecover}
+            onRestore={handleRecover}
           />
         </div>
       </CardContent>

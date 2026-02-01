@@ -1,10 +1,10 @@
-import React from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { cn } from '@/lib/utils';
 import { Wifi, WifiOff } from 'lucide-react';
 
 export function WebSocketIndicator({ sessionId, className }: { sessionId: string | null, className?: string }) {
-  const { isConnected } = useWebSocket(sessionId);
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1';
+  const { isConnected } = useWebSocket(sessionId ? `${wsUrl}/ws/analysis/${sessionId}` : null);
 
   return (
     <div className={cn("flex items-center space-x-2 text-xs font-medium", className)}>

@@ -1,42 +1,89 @@
-import { WebSocketMessage, wsManager } from '@/lib/api/websocket';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-export function useWebSocket(sessionId: string | null) {
+interface UseWebSocketResult {
+  lastMessage: string | null;
+  isConnected: boolean;
+  error: Error | null;
+  send: (message: string) => void;
+}
+
+export function useWebSocket(url: string | null): UseWebSocketResult {
+  const [lastMessage, setLastMessage] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
-  
-  // Use a ref to track if we've already subscribed to avoid double subscriptions in strict mode
-  const isSubscribed = useRef(false);
+  const [error, setError] = useState<Error | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!sessionId) return;
+    if (!url) {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      return;
+    }
 
-    // Connect to WebSocket
-    wsManager.connect(sessionId);
-    setIsConnected(true); // Optimistic, ideally wsManager exposes connection state
+    const connect = () => {
+      try {
+        const ws = new WebSocket(url);
 
-    // Subscribe to messages
-    const unsubscribe = wsManager.subscribe((message) => {
-      setLastMessage(message);
-    });
-    isSubscribed.current = true;
+        ws.onopen = () => {
+          console.log('WebSocket connected:', url);
+          setIsConnected(true);
+          setError(null);
+        };
+
+        ws.onmessage = (event) => {
+          setLastMessage(event.data);
+        };
+
+        ws.onerror = (event) => {
+          console.error('WebSocket error:', event);
+          setError(new Error('WebSocket connection error'));
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket disconnected');
+          setIsConnected(false);
+
+          // Attempt to reconnect after 3 seconds
+          reconnectTimeoutRef.current = setTimeout(() => {
+            console.log('Attempting to reconnect...');
+            connect();
+          }, 3000);
+        };
+
+        wsRef.current = ws;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to connect'));
+      }
+    };
+
+    connect();
 
     return () => {
-      unsubscribe();
-      isSubscribed.current = false;
-      // We don't necessarily disconnect on unmount if we want to keep the connection alive 
-      // for other components, but for this hook it might be cleaner to let the manager handle it.
-      // wsManager.disconnect(); // Only disconnect if we are sure no one else is using it
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
-  }, [sessionId]);
+  }, [url]);
 
-  const sendMessage = useCallback((type: string, data: any) => {
-    wsManager.sendMessage(type, data);
-  }, []);
+  const send = (message: string) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(message);
+    } else {
+      console.warn('WebSocket not connected, message not sent');
+    }
+  };
 
   return {
-    isConnected,
     lastMessage,
-    sendMessage
+    isConnected,
+    error,
+    send,
   };
 }

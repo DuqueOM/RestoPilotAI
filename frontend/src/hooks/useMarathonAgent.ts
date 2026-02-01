@@ -32,13 +32,23 @@ export function useMarathonAgent(initialTaskId?: string | null): UseMarathonAgen
     }
   }, [initialTaskId]);
 
+  const refreshStatus = useCallback(async () => {
+    if (!currentTaskId) return;
+
+    try {
+      const status = await marathonAPI.getTaskStatus(currentTaskId);
+      setTaskState(status);
+    } catch (err) {
+      console.error('Failed to refresh status:', err);
+    }
+  }, [currentTaskId]);
+
   // Handle WebSocket messages
   useEffect(() => {
     if (!lastMessage) return;
 
     try {
-      // Handle both string and object messages if parsed by hook
-      const update = typeof lastMessage === 'string' ? JSON.parse(lastMessage) : lastMessage;
+      const update = JSON.parse(lastMessage);
       
       if (update.type === 'progress_update' && update.data) {
         setTaskState((prev) => {
@@ -59,18 +69,7 @@ export function useMarathonAgent(initialTaskId?: string | null): UseMarathonAgen
     } catch (err) {
       console.error('Failed to parse WebSocket message:', err);
     }
-  }, [lastMessage]);
-
-  const refreshStatus = useCallback(async () => {
-    if (!currentTaskId) return;
-
-    try {
-      const status = await marathonAPI.getTaskStatus(currentTaskId);
-      setTaskState(status);
-    } catch (err) {
-      console.error('Failed to refresh status:', err);
-    }
-  }, [currentTaskId]);
+  }, [lastMessage, refreshStatus]);
 
   const startTask = useCallback(async (config: MarathonTaskConfig): Promise<string> => {
     setError(null);

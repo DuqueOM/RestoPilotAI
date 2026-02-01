@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useWebSocket } from './useWebSocket';
 
 export function useRealTimeProgress(sessionId: string) {
@@ -7,28 +7,35 @@ export function useRealTimeProgress(sessionId: string) {
   const [message, setMessage] = useState<string>('');
   const [isComplete, setIsComplete] = useState(false);
 
-  const { lastMessage } = useWebSocket(sessionId);
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1';
+  const { lastMessage } = useWebSocket(sessionId ? `${wsUrl}/ws/analysis/${sessionId}` : null);
 
   useEffect(() => {
     if (!lastMessage) return;
 
-    if (lastMessage.type === 'progress_update') {
-      if (typeof lastMessage.progress === 'number') {
-        setProgress(lastMessage.progress);
-        if (lastMessage.progress >= 100) {
-          setIsComplete(true);
+    try {
+      const data = typeof lastMessage === 'string' ? JSON.parse(lastMessage) : lastMessage;
+
+      if (data.type === 'progress_update') {
+        if (typeof data.progress === 'number') {
+          setProgress(data.progress);
+          if (data.progress >= 100) {
+            setIsComplete(true);
+          }
         }
+        if (data.stage) {
+          setStage(data.stage);
+        }
+        if (data.message) {
+          setMessage(data.message);
+        }
+      } else if (data.type === 'analysis_complete') {
+        setProgress(100);
+        setIsComplete(true);
+        setStage('completed');
       }
-      if (lastMessage.stage) {
-        setStage(lastMessage.stage);
-      }
-      if (lastMessage.message) {
-        setMessage(lastMessage.message);
-      }
-    } else if (lastMessage.type === 'analysis_complete') {
-      setProgress(100);
-      setIsComplete(true);
-      setStage('completed');
+    } catch (err) {
+      console.error('Failed to parse WebSocket message:', err);
     }
   }, [lastMessage]);
 
