@@ -6,7 +6,7 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Optional, List, Dict, Any
 
-from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Integer, String, Text, LargeBinary
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -115,6 +115,11 @@ class Campaign(Base):
         String(500), nullable=True
     )
 
+    # Relationships
+    assets: Mapped[List["CampaignAsset"]] = relationship(
+        "CampaignAsset", back_populates="campaign", cascade="all, delete-orphan"
+    )
+
     # Predictions
     expected_uplift_percent: Mapped[float] = mapped_column(Float)
     expected_revenue_increase: Mapped[Optional[float]] = mapped_column(
@@ -128,6 +133,37 @@ class Campaign(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class CampaignAsset(Base):
+    """Visual asset generated for a campaign."""
+
+    __tablename__ = "campaign_assets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    campaign_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("campaigns.id"), index=True
+    )
+
+    asset_type: Mapped[str] = mapped_column(
+        String(50)
+    )  # instagram_post, story, banner, flyer
+    format: Mapped[str] = mapped_column(String(50))  # 1080x1080, etc.
+
+    # Content
+    image_data: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
+    image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+    # Metadata
+    reasoning: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    concept: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    language: Mapped[str] = mapped_column(String(10), default="es")
+    variant_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    campaign: Mapped["Campaign"] = relationship("Campaign", back_populates="assets")
 
 
 class SentimentSource(str, Enum):

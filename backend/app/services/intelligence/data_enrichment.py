@@ -343,7 +343,7 @@ class CompetitorEnrichmentService:
 
     async def _get_place_details(self, place_id: str) -> Optional[Dict[str, Any]]:
         """Obtener detalles completos usando Google Places API (New)."""
-eck for custom/manual place ID
+        # Check for custom/manual place ID
         if not self.google_api_key:
             logger.warning("No Google Maps API key configured")
             return None

@@ -554,7 +554,36 @@ Extract all menu items with prices. Return JSON:
 
         competitor_data = [menu.to_dict() for menu in competitor_menus]
 
-        # Run analysis
+        # Try running with grounding (Feature #3)
+        try:
+            if hasattr(self.reasoning, "analyze_competitive_position_with_grounding"):
+                logger.info("Running grounded competitive analysis with Google Search")
+                result_data = await self.reasoning.analyze_competitive_position_with_grounding(
+                    restaurant_data=our_menu_data,
+                    competitors=competitor_data,
+                    thinking_level=thinking_level,
+                )
+                
+                analysis = result_data.get("analysis", {})
+                sources = result_data.get("sources", [])
+                
+                # Handle fallback case where analysis might be a ReasoningResult object
+                if not isinstance(analysis, dict) and hasattr(analysis, "analysis"):
+                    analysis = analysis.analysis
+                
+                # Inject sources into metadata
+                if sources:
+                    if "metadata" not in analysis:
+                        analysis["metadata"] = {}
+                    analysis["metadata"]["grounding_sources"] = sources
+                    logger.info(f"Analysis enriched with {len(sources)} grounding sources")
+                
+                return analysis
+
+        except Exception as e:
+            logger.warning(f"Grounded analysis failed, falling back to standard: {e}")
+
+        # Standard analysis fallback
         result = await self.reasoning.analyze_competitive_position(
             our_menu=our_menu_data,
             competitor_menus=competitor_data,

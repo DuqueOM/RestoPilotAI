@@ -162,7 +162,7 @@ RESPOND WITH VALID JSON:
 }}"""
 
         try:
-            response = await self._generate_content(
+            response = await self.generate(
                 prompt=prompt,
                 temperature=config["temperature"],
                 max_output_tokens=2048,
@@ -317,7 +317,7 @@ RESPOND WITH VALID JSON:
 Think step-by-step. Be specific with numbers and item names."""
 
         try:
-            response = await self._generate_content(
+            response = await self.generate(
                 prompt=prompt,
                 temperature=config["temperature"],
                 max_output_tokens=config["max_tokens"],
@@ -358,6 +358,88 @@ Think step-by-step. Be specific with numbers and item names."""
                 confidence=0,
                 processing_time_ms=int((time.time() - start_time) * 1000),
             )
+
+    async def analyze_competitive_position_with_grounding(
+        self,
+        restaurant_data: Dict[str, Any],
+        competitors: List[Dict[str, Any]],
+        thinking_level: ThinkingLevel = ThinkingLevel.DEEP,
+    ) -> Dict[str, Any]:
+        """
+        Análisis competitivo con datos en TIEMPO REAL.
+        
+        DIFERENCIADOR: Usa Google Search grounding para obtener:
+        - Precios actuales de competidores
+        - Reviews recientes
+        - Tendencias del mercado local
+        - Eventos relevantes (festivales, cierres, etc.)
+        """
+        from google.genai import types
+
+        prompt = f"""
+        Analiza la posición competitiva de {restaurant_data.get('name', 'Our Restaurant')} considerando:
+        
+        DATOS DEL RESTAURANTE:
+        {json.dumps(restaurant_data, indent=2, default=str)}
+        
+        COMPETIDORES IDENTIFICADOS:
+        {json.dumps(competitors, indent=2, default=str)}
+        
+        INVESTIGACIÓN REQUERIDA (usa Google Search):
+        1. Busca los menús y precios actuales de cada competidor
+        2. Revisa las reviews más recientes (últimos 30 días) en Google
+        3. Identifica tendencias gastronómicas en la zona
+        4. Busca eventos o factores externos que afecten el sector
+        
+        Devuelve un análisis comparativo detallado con:
+        - Posicionamiento relativo en precio
+        - Gaps en la oferta del mercado
+        - Oportunidades detectadas
+        - Amenazas competitivas
+        
+        CITA tus fuentes para cada afirmación.
+        
+        Respond in JSON format compatible with CompetitiveAnalysisResult structure.
+        """
+        
+        try:
+            # Direct client call to enable Grounding (since base agent generate() returns string)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    tools=[types.Tool(google_search=types.GoogleSearch())],
+                    response_mime_type="application/json",
+                    temperature=0.7
+                )
+            )
+            
+            # Extract sources if available (GenAI SDK specific)
+            sources = []
+            if hasattr(response, 'grounding_metadata') and response.grounding_metadata:
+                 if hasattr(response.grounding_metadata, 'grounding_chunks'):
+                     sources = [c.web.uri for c in response.grounding_metadata.grounding_chunks if c.web]
+
+            analysis = json.loads(response.text)
+            
+            return {
+                "analysis": analysis,
+                "sources": sources
+            }
+
+        except Exception as e:
+            logger.error(f"Grounded competitive analysis failed: {e}")
+            # Fallback to standard analysis without grounding
+            fallback = await self.analyze_competitive_position(
+                our_menu=restaurant_data,
+                competitor_menus=competitors,
+                thinking_level=thinking_level
+            )
+            return {
+                "analysis": fallback.analysis,
+                "sources": [],
+                "error": str(e)
+            }
 
     async def analyze_competitive_position(
         self,
@@ -472,7 +554,7 @@ RESPOND WITH VALID JSON:
 Be specific with competitor names, prices, and item references."""
 
         try:
-            response = await self._generate_content(
+            response = await self.generate(
                 prompt=prompt,
                 temperature=config["temperature"],
                 max_output_tokens=config["max_tokens"],
@@ -652,7 +734,7 @@ RESPOND WITH VALID JSON:
 Be specific, actionable, and data-driven."""
 
         try:
-            response = await self._generate_content(
+            response = await self.generate(
                 prompt=prompt,
                 temperature=config["temperature"],
                 max_output_tokens=config["max_tokens"],
@@ -758,7 +840,7 @@ FORMAT REQUIREMENTS:
 Write the executive summary now:"""
 
         try:
-            response = await self._generate_content(
+            response = await self.generate(
                 prompt=prompt,
                 temperature=0.6,
                 max_output_tokens=config["max_tokens"],

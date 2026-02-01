@@ -1,13 +1,126 @@
 from app.services.gemini.base_agent import GeminiBaseAgent
 from typing import List, Dict, Any
 import json
+from datetime import datetime
+import base64
+from google.genai import types
 
 class SocialAestheticsAnalyzer(GeminiBaseAgent):
     """
     Compares visual aesthetics of social media presence.
     Provides actionable feedback on photography, color schemes, composition.
     """
-    
+
+    async def predict_instagram_performance(
+        self,
+        dish_photo: bytes,
+        restaurant_category: str,
+        posting_time: datetime
+    ) -> Dict[str, Any]:
+        """
+        Predice el performance de una foto en Instagram.
+        
+        ANÁLISIS MULTIMODAL:
+        - Composición visual
+        - Iluminación
+        - Apetitosidad del plato
+        - Contexto de posting (hora, día)
+        - Tendencias actuales (grounded search)
+        """
+        
+        prompt = f"""
+        Analiza esta foto de plato de restaurante y predice su performance en Instagram.
+        
+        CONTEXTO:
+        - Categoría del restaurante: {restaurant_category}
+        - Hora de publicación planeada: {posting_time.strftime('%H:%M, %A')}
+        
+        INVESTIGACIÓN (usa Google Search):
+        1. Busca las tendencias actuales de food photography en Instagram
+        2. Identifica qué estilos están generando más engagement este mes
+        3. Revisa ejemplos de posts exitosos en la categoría {restaurant_category}
+        
+        ANÁLISIS DE LA FOTO:
+        Evalúa en escala 0-10:
+        1. COMPOSICIÓN
+           - Regla de tercios
+           - Balance visual
+           - Punto focal claro
+        
+        2. ILUMINACIÓN
+           - Calidad de luz
+           - Sombras apropiadas
+           - Brillo general
+        
+        3. APETITOSIDAD
+           - Colores vibrantes
+           - Textura visible
+           - Presentación del plato
+        
+        4. "INSTAGRAMABILIDAD"
+           - Estética trending
+           - Elementos visuales únicos
+           - Potencial de compartir
+        
+        5. TIMING
+           - ¿Es buena hora para este tipo de contenido?
+           - ¿Qué día de la semana funciona mejor?
+        
+        PREDICCIÓN:
+        Devuelve JSON con:
+        {{
+            "predicted_performance": {{
+                "likes_estimate": "rango estimado de likes",
+                "engagement_rate": "% estimado",
+                "virality_score": 0-10,
+                "confidence": 0-1
+            }},
+            "scores": {{
+                "composition": 0-10,
+                "lighting": 0-10,
+                "appetizing": 0-10,
+                "instagramability": 0-10,
+                "timing": 0-10
+            }},
+            "improvements": [
+                {{
+                    "issue": "problema detectado",
+                    "suggestion": "cómo mejorarlo",
+                    "impact": "alto|medio|bajo"
+                }}
+            ],
+            "optimal_posting_time": "mejor hora/día para publicar",
+            "trending_hashtags": ["#hashtag1", "#hashtag2", ...],
+            "comparison_to_trends": "cómo se compara con tendencias actuales"
+        }}
+        """
+        
+        try:
+            # We use the client directly to enable Google Search tool
+            response = self.client.models.generate_content(
+                model=self.model_name, # Inherited from GeminiBaseAgent
+                contents=[
+                    types.Content(parts=[
+                        types.Part(text=prompt),
+                        types.Part(inline_data=types.Blob(
+                            mime_type="image/jpeg",
+                            data=dish_photo
+                        ))
+                    ])
+                ],
+                config=types.GenerateContentConfig(
+                    tools=[types.Tool(google_search=types.GoogleSearch())],
+                    response_mime_type="application/json",
+                    temperature=0.7
+                )
+            )
+            
+            return json.loads(response.text)
+            
+        except Exception as e:
+            # Fallback to standard generation if tool/client fails or image issue
+            return {"error": str(e)}
+
     async def compare_visual_aesthetics(
         self,
         user_photos: List[bytes],

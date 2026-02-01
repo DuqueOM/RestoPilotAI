@@ -36,6 +36,7 @@ from app.services.analysis.sentiment import SentimentAnalyzer
 from app.services.campaigns.generator import CampaignGenerator
 from app.services.gemini.base_agent import GeminiAgent, ThinkingLevel
 from app.services.gemini.verification import VerificationAgent
+from app.services.gemini.vibe_engineering import VibeEngineeringAgent
 from app.services.intelligence.competitor_finder import ScoutAgent
 from app.services.intelligence.data_enrichment import CompetitorEnrichmentService
 from app.services.intelligence.social_aesthetics import SocialAestheticsAnalyzer
@@ -153,6 +154,7 @@ class AnalysisOrchestrator:
         self.sales_predictor = SalesPredictor()
         self.campaign_generator = CampaignGenerator(self.gemini)
         self.verification_agent = VerificationAgent()
+        self.vibe_agent = VibeEngineeringAgent()
 
         # New Intelligence Services
         self.scout_agent = ScoutAgent()
@@ -1186,6 +1188,33 @@ class AnalysisOrchestrator:
             state.image_scores,
         )
 
+        # FEATURE #2: VIBE ENGINEERING - Autonomous Verification Loop
+        if state.auto_verify:
+            verified_analysis = await self.vibe_agent.verify_and_improve_analysis(
+                analysis_type="bcg_classification",
+                analysis_result=result,
+                source_data={
+                    "menu_items_count": len(state.menu_items),
+                    "sales_data_count": len(state.sales_data)
+                },
+                auto_improve=True
+            )
+            
+            result = verified_analysis['final_analysis']
+            
+            # Add trace for verification
+            self._add_thought_trace(
+                state,
+                step="BCG Vibe Verification",
+                reasoning="Autonomous verification and improvement of BCG analysis",
+                observations=[
+                    f"Quality Score: {verified_analysis.get('quality_achieved', 0):.2f}",
+                    f"Iterations: {verified_analysis.get('iterations_required', 0)}"
+                ],
+                decisions=["Analysis refined based on critical audit"],
+                confidence=verified_analysis.get('quality_achieved', 0.9),
+            )
+
         state.bcg_analysis = result
 
         classifications = result.get("products", [])
@@ -1268,6 +1297,29 @@ class AnalysisOrchestrator:
         )
 
         state.campaigns = campaigns.get("campaigns", [])
+
+        # FEATURE #2: VIBE ENGINEERING - Autonomous Campaign Verification
+        if state.auto_verify:
+            verified_count = 0
+            for camp in state.campaigns:
+                if "assets" in camp and camp["assets"]:
+                    verification = await self.vibe_agent.verify_campaign_assets(
+                         campaign_assets=camp["assets"],
+                         brand_guidelines=state.business_context.get("brand_guidelines", {}),
+                         auto_improve=True
+                    )
+                    camp["assets"] = verification["verified_assets"]
+                    verified_count += len(verification["verified_assets"])
+            
+            if verified_count > 0:
+                self._add_thought_trace(
+                    state,
+                    step="Campaign Vibe Verification",
+                    reasoning="Autonomous visual verification of campaign assets",
+                    observations=[f"Verified {verified_count} visual assets"],
+                    decisions=["Improved assets where quality was below threshold"],
+                    confidence=0.9,
+                )
 
         self._add_thought_trace(
             state,

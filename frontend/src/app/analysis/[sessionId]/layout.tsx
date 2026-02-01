@@ -1,7 +1,7 @@
 'use client';
 
 import { api } from '@/lib/api';
-import { BarChart3, Brain, ChefHat, Megaphone, MessageSquare, Sparkles, Target, TrendingUp } from 'lucide-react';
+import { BarChart3, Brain, ChefHat, Megaphone, MessageSquare, Palette, Sparkles, Target, TrendingUp } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, use, useEffect, useState } from 'react';
 
@@ -12,6 +12,7 @@ interface AnalysisLayoutProps {
 
 const tabs = [
   { value: 'overview', label: 'Overview', href: '', icon: Sparkles },
+  { value: 'creative', label: 'Creative Studio', href: '/creative', icon: Palette },
   { value: 'menu', label: 'Menu', href: '/menu', icon: ChefHat },
   { value: 'bcg', label: 'BCG Matrix', href: '/bcg', icon: BarChart3 },
   { value: 'competitors', label: 'Competitors', href: '/competitors', icon: Target },

@@ -16,6 +16,7 @@ from loguru import logger
 from app import __version__
 from app.api.routes.analysis import router as analysis_router
 from app.api.routes.business import router as business_router
+from app.api.routes.creative import router as creative_router
 from app.api.routes.progress import router as progress_router
 from app.core.config import get_settings
 from app.models.database import init_db
@@ -94,6 +95,7 @@ app.add_middleware(
 # Include API routes
 app.include_router(business_router, prefix="/api/v1")
 app.include_router(analysis_router, prefix="/api/v1")
+app.include_router(creative_router, prefix="/api/v1")
 app.include_router(progress_router, prefix="/api/v1", tags=["WebSocket"])
 
 # Serve static files for uploads if they exist

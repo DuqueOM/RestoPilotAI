@@ -387,6 +387,45 @@ class RestoPilotAIAPI {
       headers: {},
     });
   }
+
+  // ==================== Creative Studio Endpoints ====================
+
+  async transformMenuStyle(file: File, targetStyle: string): Promise<{
+    transformed_menu_base64: string;
+    style_applied: string;
+    original_preserved: boolean;
+  }> {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('target_style', targetStyle);
+
+    return this.request<{
+      transformed_menu_base64: string;
+      style_applied: string;
+      original_preserved: boolean;
+    }>('/api/v1/creative/menu-transform', {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+  }
+
+  async predictInstagramEngagement(
+    file: File,
+    category: string,
+    postingTime: string
+  ): Promise<any> {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('restaurant_category', category);
+    formData.append('posting_time_iso', postingTime);
+
+    return this.request<any>('/api/v1/creative/instagram-prediction', {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+  }
 }
 
 // ==================== Advanced Analytics Types ====================
