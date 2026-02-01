@@ -1,6 +1,6 @@
 'use client'
 
-import { WebSocketMessage, wsManager } from '@/lib/websocket'
+import { WebSocketMessage, wsManager } from '@/lib/api/websocket'
 import axios from 'axios'
 import {
     BarChart3,

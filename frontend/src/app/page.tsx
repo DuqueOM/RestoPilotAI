@@ -10,6 +10,7 @@ import { TemplateSelector } from '@/components/setup/TemplateSelector';
 import {
     FileText,
     Instagram,
+    Loader2,
     MapPin,
     Mic,
     Sparkles,

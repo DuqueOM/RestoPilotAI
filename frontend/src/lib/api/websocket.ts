@@ -30,17 +30,30 @@ export class AnalysisWebSocket {
     this.baseUrl = baseUrl;
   }
 
-  connect(sessionId: string) {
-    if (this.sessionId === sessionId && this.ws?.readyState === WebSocket.OPEN) {
-      return;
-    }
+  connect(urlOrId: string) {
+    let wsUrl: string;
 
-    this.sessionId = sessionId;
-    const wsUrl = `${this.baseUrl}/ws/analysis/${sessionId}`;
+    // Check if it's a full URL (ws:// or wss://)
+    if (urlOrId.includes('://')) {
+      wsUrl = urlOrId;
+      // Extract something as ID or just use the URL as ID for tracking
+      this.sessionId = urlOrId;
+    } else {
+      // Treat as session ID
+      if (this.sessionId === urlOrId && this.ws?.readyState === WebSocket.OPEN) {
+        return;
+      }
+      this.sessionId = urlOrId;
+      wsUrl = `${this.baseUrl}/ws/analysis/${urlOrId}`;
+    }
     
     console.log(`Connecting to WebSocket: ${wsUrl}`);
     
     try {
+      if (this.ws) {
+        this.ws.close();
+      }
+
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
