@@ -4,10 +4,55 @@ from pydantic import BaseModel
 
 from app.services.orchestrator import orchestrator, PipelineStage, AnalysisState
 from app.services.gemini.base_agent import ThinkingLevel
-from app.core.websocket_manager import manager
 from loguru import logger
 
-router = APIRouter()
+"""
+Marathon Agent API Routes - Long-running task execution with checkpoints.
+
+Includes WebSocket support for real-time progress updates.
+"""
+
+router = APIRouter(tags=["Marathon Agent"])
+
+# === WEBSOCKET CONNECTION MANAGER ===
+
+class ConnectionManager:
+    """
+    Manages WebSocket connections for Marathon Agent progress updates.
+    
+    Allows multiple clients to monitor different tasks simultaneously.
+    """
+    
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}
+    
+    async def connect(self, task_id: str, websocket: WebSocket):
+        """Accept and register a WebSocket connection."""
+        await websocket.accept()
+        self.active_connections[task_id] = websocket
+        logger.info(f"WebSocket connected for task {task_id}")
+    
+    def disconnect(self, task_id: str):
+        """Unregister a WebSocket connection."""
+        if task_id in self.active_connections:
+            del self.active_connections[task_id]
+            logger.info(f"WebSocket disconnected for task {task_id}")
+    
+    async def send_progress(self, task_id: str, message: dict):
+        """
+        Send progress update to connected client.
+        
+        Falls back gracefully if connection is lost.
+        """
+        if task_id in self.active_connections:
+            try:
+                await self.active_connections[task_id].send_json(message)
+            except Exception as e:
+                logger.warning(f"Failed to send WebSocket message to {task_id}: {e}")
+                self.disconnect(task_id)
+
+# Global connection manager instance
+manager = ConnectionManager()
 
 class MarathonTaskConfig(BaseModel):
     task_type: str  # 'full_analysis', 'competitive_intel', 'campaign_generation'
