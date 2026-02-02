@@ -25,11 +25,12 @@ from app.core.config import get_settings
 
 
 class GeminiModel(str, Enum):
-    """Supported Gemini models."""
+    """Supported Gemini 3 models - CRÍTICO: Solo usar Gemini 3."""
 
-    FLASH = "gemini-2.0-flash-exp"
-    PRO = "gemini-3-flash-preview"  # Using 3 preview as PRO for now
-    ULTRA = "gemini-3-flash-preview"  # Placeholder
+    FLASH = "gemini-3-flash-preview"  # Modelo principal rápido
+    PRO = "gemini-3-pro-preview"  # Modelo avanzado para multimodal
+    VISION = "gemini-3-pro-preview"  # Análisis de imágenes
+    IMAGE_GEN = "gemini-3-pro-image-preview"  # Generación de imágenes
 
 
 class ThinkingLevel(str, Enum):
@@ -132,6 +133,7 @@ class GeminiBaseAgent:
         self.api_key = settings.gemini_api_key
         self.client = genai.Client(api_key=self.api_key)
         self.model_name = model_name or self.MODEL_NAME
+        self.settings = settings  # Store settings for easy access
         self.call_count = 0
         self.total_tokens = 0
         
@@ -145,6 +147,25 @@ class GeminiBaseAgent:
 
         # Define available tools for function calling
         self.tools = self._define_tools()
+    
+    def get_model_for_task(self, task_type: str = "general") -> str:
+        """
+        Get appropriate Gemini 3 model based on task type.
+        
+        Args:
+            task_type: Type of task (general, vision, reasoning, image_gen)
+            
+        Returns:
+            Model name string
+        """
+        if task_type == "vision" or task_type == "multimodal":
+            return self.settings.gemini_model_vision
+        elif task_type == "reasoning" or task_type == "analysis":
+            return self.settings.gemini_model_reasoning
+        elif task_type == "image_gen":
+            return self.settings.gemini_model_image_gen
+        else:
+            return self.settings.gemini_model_primary
 
     async def generate_response(
         self,
@@ -214,22 +235,46 @@ class GeminiBaseAgent:
                         )
                     )
             
-            # Map thinking level to config
-            config_kwargs = {
-                "temperature": 0.7,
-                "max_output_tokens": 4096
-            }
-            if thinking_level == "DEEP" or thinking_level == "EXHAUSTIVE":
-                config_kwargs["temperature"] = 0.8 
+            # Map thinking level to config using settings
+            settings = get_settings()
+            
+            # Configure based on thinking level
+            if thinking_level == "QUICK":
+                config_kwargs = {
+                    "temperature": settings.thinking_level_quick_temp,
+                    "max_output_tokens": settings.thinking_level_quick_tokens
+                }
+            elif thinking_level == "STANDARD":
+                config_kwargs = {
+                    "temperature": settings.thinking_level_standard_temp,
+                    "max_output_tokens": settings.thinking_level_standard_tokens
+                }
+            elif thinking_level == "DEEP":
+                config_kwargs = {
+                    "temperature": settings.thinking_level_deep_temp,
+                    "max_output_tokens": settings.thinking_level_deep_tokens
+                }
+            elif thinking_level == "EXHAUSTIVE":
+                config_kwargs = {
+                    "temperature": settings.thinking_level_exhaustive_temp,
+                    "max_output_tokens": settings.thinking_level_exhaustive_tokens
+                }
+            else:
+                # Default to STANDARD
+                config_kwargs = {
+                    "temperature": settings.thinking_level_standard_temp,
+                    "max_output_tokens": settings.thinking_level_standard_tokens
+                } 
             
             # Extract internal parameters that shouldn't go to API config
             feature = kwargs.pop("feature", None)
             
             config_kwargs.update(kwargs)
 
-            # Get timeout from settings
-            settings = get_settings()
-            timeout = settings.gemini_timeout_seconds
+            # Get timeout based on task type (settings already loaded above)
+            # Use marathon timeout for EXHAUSTIVE thinking or if explicitly requested
+            is_long_task = thinking_level in ["EXHAUSTIVE", "DEEP"] or feature == "marathon"
+            timeout = settings.gemini_marathon_timeout_seconds if is_long_task else settings.gemini_timeout_seconds
 
             # Generate
             def _sync_generate():
