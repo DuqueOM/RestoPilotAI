@@ -129,7 +129,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
       setSalesUploaded(true)
     } catch (err: any) {
       const msg = err.response?.data?.detail || err.message
-      alert(`Sales upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
+      toast.error(`Sales upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
       stopUploading('sales')
     }
