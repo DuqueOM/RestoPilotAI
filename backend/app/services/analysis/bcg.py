@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 from app.core.config import get_settings
+from app.core.cache import cached, get_cache_manager
 from app.services.gemini.base_agent import GeminiAgent
 from loguru import logger
 
@@ -82,6 +83,7 @@ class BCGClassifier:
     ) -> Dict[str, Any]:
         """
         Classify all menu items according to BCG matrix.
+        Results are cached for 1 hour to improve performance.
 
         Args:
             menu_items: List of menu items with price and cost
@@ -91,6 +93,15 @@ class BCGClassifier:
         Returns:
             Complete BCG analysis with classifications and insights
         """
+        # Generate cache key based on input data
+        cache_manager = await get_cache_manager()
+        cache_key = f"bcg_analysis:{len(menu_items)}:{len(sales_data)}:{hash(str(sorted([item.get('name', '') for item in menu_items])))}"
+        
+        # Try to get from cache
+        cached_result = await cache_manager.get(cache_key)
+        if cached_result is not None:
+            logger.info(f"BCG analysis cache hit for {len(menu_items)} items")
+            return cached_result
 
         logger.info(
             f"Classifying {len(menu_items)} items with {len(sales_data)} sales records"
@@ -119,13 +130,19 @@ class BCGClassifier:
         # Calculate portfolio summary
         summary = self._calculate_portfolio_summary(classifications)
 
-        return {
+        result = {
             "classifications": classifications,
             "thresholds": thresholds,
             "summary": summary,
             "ai_insights": ai_insights,
             "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
         }
+        
+        # Cache the result for 1 hour
+        await cache_manager.set(cache_key, result, l1_ttl=3600, l2_ttl=3600, tags=["bcg_analysis"])
+        logger.info(f"BCG analysis cached for {len(menu_items)} items")
+        
+        return result
 
     def _calculate_item_metrics(
         self, menu_items: List[Dict[str, Any]], sales_data: List[Dict[str, Any]]

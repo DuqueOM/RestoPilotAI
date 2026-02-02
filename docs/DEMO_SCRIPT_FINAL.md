@@ -68,7 +68,7 @@
 
 ---
 
-## 🎨 Part 3: Creative Autopilot (1:50 - 2:40)
+## 🎨 Part 4: Creative Autopilot (2:15 - 2:40)
 
 **Visual:** Switch to **"Creative Studio"** tab.
 

@@ -1,10 +1,8 @@
 'use client';
 
-import { GeminiChat } from '@/components/chat/GeminiChat';
 import { ContextInput } from '@/components/setup/ContextInput';
 import { FileUpload } from '@/components/setup/FileUpload';
 import { InfoTooltip } from '@/components/setup/InfoTooltip';
-import { LocationInput } from '@/components/setup/LocationInput';
 import { ProgressBar } from '@/components/setup/ProgressBar';
 import { TemplateSelector } from '@/components/setup/TemplateSelector';
 import {
@@ -17,8 +15,12 @@ import {
     Upload
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { lazy, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+// Lazy load heavy components
+const GeminiChat = lazy(() => import('@/components/chat/GeminiChat').then(mod => ({ default: mod.GeminiChat })));
+const LocationInput = lazy(() => import('@/components/setup/LocationInput').then(mod => ({ default: mod.LocationInput })));
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -217,12 +219,18 @@ export default function SetupPage() {
               <InfoTooltip content="We'll use this to find competitors, analyze your neighborhood, and understand local market dynamics. The more specific, the better!" />
             </div>
             
-            <LocationInput
-              value={formData.location}
-              onChange={(value) => setFormData({...formData, location: value})}
-              placeholder="123 Main St, New York, NY 10001"
-              autoFocus
-            />
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              </div>
+            }>
+              <LocationInput
+                value={formData.location}
+                onChange={(value) => setFormData({...formData, location: value})}
+                placeholder="123 Main St, New York, NY 10001"
+                autoFocus
+              />
+            </Suspense>
           </section>
           
           {/* SECTION 2: Basic Info (Compact) */}
@@ -527,7 +535,9 @@ export default function SetupPage() {
         
       </main>
       
-      <GeminiChat />
+      <Suspense fallback={null}>
+        <GeminiChat />
+      </Suspense>
     </div>
   );
 }

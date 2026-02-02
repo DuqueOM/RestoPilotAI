@@ -102,55 +102,60 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
   }
 
   // Normalize data from backend (handles both legacy BCG and new Menu Engineering formats)
-  const rawItems = data.items || data.classifications || []
-  
-  const normalizedItems = rawItems.map((item: any) => {
-    // Map Menu Engineering categories to BCG equivalents for UI compatibility
-    let category = (item.category || item.bcg_class || '').toLowerCase()
-    if (category === 'plowhorse') category = 'cash_cow'
-    if (category === 'puzzle') category = 'question_mark'
+  // Memoized to prevent recalculation on every render
+  const normalizedItems = useMemo(() => {
+    const rawItems = data.items || data.classifications || []
     
-    // Map metrics for chart (X=Popularity, Y=CM)
-    // If it's new format (Menu Engineering), use popularity_pct and cm_unitario
-    // If it's legacy format, use market_share and growth_rate
-    const x = item.popularity_pct !== undefined ? item.popularity_pct : (item.market_share || 0) * 100
-    const y = item.cm_unitario !== undefined ? item.cm_unitario : (item.growth_rate || 0) * 100
-    
-    return {
-      ...item,
-      name: item.name,
-      bcg_class: category,
-      bcg_label: item.category_label || item.bcg_label || category,
-      x,
-      y,
-      // Ensure metrics exist for display
-      price: item.price || 0,
-      margin: item.margin_pct ? item.margin_pct / 100 : item.margin || 0,
-      growth_rate: item.growth_rate || 0,
-      market_share: item.market_share || 0,
-      overall_score: item.overall_score || 0,
-      strategy: item.strategy
-    }
-  })
+    return rawItems.map((item: any) => {
+      // Map Menu Engineering categories to BCG equivalents for UI compatibility
+      let category = (item.category || item.bcg_class || '').toLowerCase()
+      if (category === 'plowhorse') category = 'cash_cow'
+      if (category === 'puzzle') category = 'question_mark'
+      
+      // Map metrics for chart (X=Popularity, Y=CM)
+      // If it's new format (Menu Engineering), use popularity_pct and cm_unitario
+      // If it's legacy format, use market_share and growth_rate
+      const x = item.popularity_pct !== undefined ? item.popularity_pct : (item.market_share || 0) * 100
+      const y = item.cm_unitario !== undefined ? item.cm_unitario : (item.growth_rate || 0) * 100
+      
+      return {
+        ...item,
+        name: item.name,
+        bcg_class: category,
+        bcg_label: item.category_label || item.bcg_label || category,
+        x,
+        y,
+        // Ensure metrics exist for display
+        price: item.price || 0,
+        margin: item.margin_pct ? item.margin_pct / 100 : item.margin || 0,
+        growth_rate: item.growth_rate || 0,
+        market_share: item.market_share || 0,
+        overall_score: item.overall_score || 0,
+        strategy: item.strategy
+      }
+    })
+  }, [data.items, data.classifications])
 
-  // Group items by normalized category
-  const groupedItems = normalizedItems.reduce((acc: any, item: any) => {
-    const category = item.bcg_class
-    if (!acc[category]) acc[category] = []
+  // Group items by normalized category - memoized
+  const groupedItems = useMemo(() => {
+    return normalizedItems.reduce((acc: any, item: any) => {
+      const category = item.bcg_class
+      if (!acc[category]) acc[category] = []
     acc[category].push(item)
     return acc
   }, {} as Record<string, any[]>)
+  }, [normalizedItems])
 
-  // Calculate summary counts if not present
-  const counts = data.summary?.counts || {
+  // Calculate summary counts if not present - memoized
+  const counts = useMemo(() => data.summary?.counts || {
     star: groupedItems['star']?.length || 0,
     cash_cow: groupedItems['cash_cow']?.length || 0,
     question_mark: groupedItems['question_mark']?.length || 0,
     dog: groupedItems['dog']?.length || 0
-  }
+  }, [data.summary?.counts, groupedItems])
 
-  // Calculate health score if not present (simple weighted average of good categories)
-  const calculateHealthScore = () => {
+  // Calculate health score if not present (simple weighted average of good categories) - memoized
+  const healthScore = useMemo(() => {
     if (data.summary?.portfolio_health_score !== undefined) return data.summary.portfolio_health_score
     
     const total = normalizedItems.length
@@ -162,13 +167,17 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
     
     // Stars & Cows are good (1.0), Puzzles okay (0.5), Dogs bad (0)
     return ((stars + cows) * 1.0 + puzzles * 0.5) / total
-  }
+  }, [data.summary?.portfolio_health_score, normalizedItems.length, groupedItems])
 
-  const healthScore = calculateHealthScore()
-
-  // Calculate averages for reference lines
-  const avgX = normalizedItems.reduce((sum: number, i: any) => sum + i.x, 0) / (normalizedItems.length || 1)
-  const avgY = normalizedItems.reduce((sum: number, i: any) => sum + i.y, 0) / (normalizedItems.length || 1)
+  // Calculate averages for reference lines - memoized
+  const avgX = useMemo(() => 
+    normalizedItems.reduce((sum: number, i: any) => sum + i.x, 0) / (normalizedItems.length || 1),
+    [normalizedItems]
+  )
+  const avgY = useMemo(() => 
+    normalizedItems.reduce((sum: number, i: any) => sum + i.y, 0) / (normalizedItems.length || 1),
+    [normalizedItems]
+  )
 
   // Get top item from each category
   const getTopItem = (category: string) => {

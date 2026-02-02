@@ -1,18 +1,20 @@
 'use client';
 
-import { CheckpointViewer } from '@/components/marathon-agent/CheckpointViewer';
-import { PipelineProgress } from '@/components/marathon-agent/PipelineProgress';
-import { StepTimeline } from '@/components/marathon-agent/StepTimeline';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AutoVerifyToggle } from '@/components/vibe-engineering/AutoVerifyToggle';
-import { VerificationPanel } from '@/components/vibe-engineering/VerificationPanel';
 import { useMarathonAgent } from '@/hooks/useMarathonAgent';
 import { useVibeEngineering } from '@/hooks/useVibeEngineering';
 import { api } from '@/lib/api';
 import { Loader2, PlayCircle } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
+
+// Lazy load heavy components for better performance
+const VerificationPanel = lazy(() => import('@/components/vibe-engineering/VerificationPanel').then(mod => ({ default: mod.VerificationPanel })));
+const CheckpointViewer = lazy(() => import('@/components/marathon-agent/CheckpointViewer').then(mod => ({ default: mod.CheckpointViewer })));
+const PipelineProgress = lazy(() => import('@/components/marathon-agent/PipelineProgress').then(mod => ({ default: mod.PipelineProgress })));
+const StepTimeline = lazy(() => import('@/components/marathon-agent/StepTimeline').then(mod => ({ default: mod.StepTimeline })));
 
 export default function AnalysisPage() {
   const params = useParams();
@@ -135,14 +137,18 @@ export default function AnalysisPage() {
         {/* Pipeline Progress Tab */}
         <TabsContent value="progress" className="space-y-6">
           {taskState ? (
-            <>
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            }>
               <PipelineProgress
                 taskState={taskState}
                 onCancel={cancelTask}
                 onRecover={() => recoverTask(taskState.task_id)}
               />
               <StepTimeline steps={taskState.steps} />
-            </>
+            </Suspense>
           ) : (
             <div className="text-center py-12 text-gray-500 border-2 border-dashed rounded-lg">
               No active pipeline. Click "Start Full Analysis" to begin.
@@ -152,7 +158,13 @@ export default function AnalysisPage() {
 
         {/* Verification Tab */}
         <TabsContent value="verification">
-          <VerificationPanel state={vibeState} isVerifying={isVerifying} />
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          }>
+            <VerificationPanel state={vibeState} isVerifying={isVerifying} />
+          </Suspense>
           {!vibeState && !isVerifying && (
             <div className="text-center py-12 text-gray-500 border-2 border-dashed rounded-lg">
               No verification data available yet.
@@ -163,14 +175,20 @@ export default function AnalysisPage() {
         {/* Checkpoints Tab */}
         <TabsContent value="checkpoints">
           {taskState ? (
-            <CheckpointViewer
-              checkpoints={taskState.checkpoints}
-              onRestore={(checkpointId) => {
-                console.log('Restore from checkpoint:', checkpointId);
-                // Currently triggering general recovery for the task
-                recoverTask(taskState.task_id);
-              }}
-            />
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            }>
+              <CheckpointViewer
+                checkpoints={taskState.checkpoints}
+                onRestore={(checkpointId) => {
+                  console.log('Restore from checkpoint:', checkpointId);
+                  // Currently triggering general recovery for the task
+                  recoverTask(taskState.task_id);
+                }}
+              />
+            </Suspense>
           ) : (
             <div className="text-center py-12 text-gray-500 border-2 border-dashed rounded-lg">
               No checkpoints available yet.
