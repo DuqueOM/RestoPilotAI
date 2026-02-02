@@ -101,6 +101,8 @@ class ReasoningAgent(GeminiBaseAgent):
         **kwargs,
     ):
         super().__init__(model_name=model, **kwargs)
+        # Use reasoning model from settings
+        self.model_name = self.settings.gemini_model_reasoning
         self.thought_traces: List[ThoughtTrace] = []
 
     async def process(self, *args, **kwargs) -> Any:
@@ -198,7 +200,9 @@ RESPOND WITH VALID JSON:
         products: List[Dict[str, Any]],
         sales_data: Optional[List[Dict[str, Any]]] = None,
         bcg_classifications: Optional[Dict[str, Any]] = None,
-        thinking_level: ThinkingLevel = ThinkingLevel.STANDARD,
+        restaurant_location: Optional[str] = None,
+        thinking_level: ThinkingLevel = ThinkingLevel.DEEP,
+        enable_grounding: bool = True,
         **kwargs,
     ) -> ReasoningResult:
         """
@@ -226,7 +230,26 @@ RESPOND WITH VALID JSON:
             thinking_level=thinking_level,
         )
 
-        prompt = f"""You are a senior restaurant business strategist using the BCG Matrix framework.
+        # Enhanced prompt with grounding instructions
+        location_context = f" in {restaurant_location}" if restaurant_location else ""
+        grounding_instructions = ""
+        
+        if enable_grounding and self.settings.enable_grounding:
+            grounding_instructions = f"""
+
+INVESTIGACIÓN DE MERCADO REQUERIDA (usa Google Search):
+1. Busca tendencias gastronómicas actuales{location_context}
+2. Identifica qué tipos de platos están en auge vs. declive
+3. Investiga rangos de precios competitivos para cada categoría
+4. Encuentra benchmarks de rotación de inventario del sector
+5. Busca datos de crecimiento del mercado gastronómico local
+
+CITA tus fuentes para cada afirmación de mercado.
+"""
+
+        prompt = f"""Eres un CONSULTOR DE ESTRATEGIA EMPRESARIAL especializado en industria gastronómica.
+
+RESTAURANTE: {restaurant_location or 'Location not specified'}
 
 PRODUCT DATA ({len(products)} items):
 {json.dumps(products[:30], indent=2, default=str)}
@@ -234,6 +257,7 @@ PRODUCT DATA ({len(products)} items):
 {"SALES DATA (sample):" + chr(10) + json.dumps(sales_data[:50] if sales_data else [], indent=2, default=str) if sales_data else "No historical sales data available."}
 
 {"CURRENT BCG CLASSIFICATIONS:" + chr(10) + json.dumps(bcg_classifications, indent=2, default=str) if bcg_classifications else ""}
+{grounding_instructions}
 
 Perform a {config['reasoning_depth']} BCG strategic analysis:
 
@@ -317,14 +341,30 @@ RESPOND WITH VALID JSON:
 Think step-by-step. Be specific with numbers and item names."""
 
         try:
-            response = await self.generate(
-                prompt=prompt,
-                temperature=config["temperature"],
-                max_output_tokens=config["max_tokens"],
-                feature="bcg_strategy",
-            )
-
-            analysis = self._parse_json_response(response)
+            # Use generate_with_thought_signature for transparency
+            if enable_grounding and self.settings.enable_grounding:
+                # Use grounding for market data
+                response = await self.generate_with_grounding(
+                    prompt=prompt,
+                    enable_grounding=True,
+                    thinking_level=thinking_level.value.upper()
+                )
+                
+                analysis = self._parse_json_response(response["answer"])
+                analysis["grounding_sources"] = response.get("grounding_metadata", {}).get("grounding_chunks", [])
+                analysis["grounded"] = response.get("grounded", False)
+            else:
+                # Standard analysis without grounding
+                response_text = await self.generate(
+                    prompt=prompt,
+                    temperature=config["temperature"],
+                    max_output_tokens=config["max_tokens"],
+                    thinking_level=thinking_level.value.upper(),
+                    feature="bcg_strategy",
+                )
+                
+                analysis = self._parse_json_response(response_text)
+                analysis["grounded"] = False
 
             # Record thought trace
             trace = ThoughtTrace(
@@ -359,86 +399,143 @@ Think step-by-step. Be specific with numbers and item names."""
                 processing_time_ms=int((time.time() - start_time) * 1000),
             )
 
-    async def analyze_competitive_position_with_grounding(
+    async def analyze_competitive_intelligence(
         self,
-        restaurant_data: Dict[str, Any],
-        competitors: List[Dict[str, Any]],
+        restaurant_name: str,
+        location: str,
+        menu_items: List[Dict[str, Any]],
         thinking_level: ThinkingLevel = ThinkingLevel.DEEP,
     ) -> Dict[str, Any]:
         """
-        Análisis competitivo con datos en TIEMPO REAL.
+        Inteligencia competitiva con Google Search REAL.
         
-        DIFERENCIADOR: Usa Google Search grounding para obtener:
-        - Precios actuales de competidores
-        - Reviews recientes
-        - Tendencias del mercado local
-        - Eventos relevantes (festivales, cierres, etc.)
+        CRÍTICO HACKATHON: Datos verificables del mercado actual.
+        
+        Args:
+            restaurant_name: Name of the restaurant
+            location: Location for competitive search
+            menu_items: Our menu items for comparison
+            thinking_level: Depth of analysis
+            
+        Returns:
+            Competitive intelligence with real market data
         """
-        from google.genai import types
+        prompt = f"""Actúa como ANALISTA DE INTELIGENCIA COMPETITIVA para el sector gastronómico.
 
-        prompt = f"""
-        Analiza la posición competitiva de {restaurant_data.get('name', 'Our Restaurant')} considerando:
-        
-        DATOS DEL RESTAURANTE:
-        {json.dumps(restaurant_data, indent=2, default=str)}
-        
-        COMPETIDORES IDENTIFICADOS:
-        {json.dumps(competitors, indent=2, default=str)}
-        
-        INVESTIGACIÓN REQUERIDA (usa Google Search):
-        1. Busca los menús y precios actuales de cada competidor
-        2. Revisa las reviews más recientes (últimos 30 días) en Google
-        3. Identifica tendencias gastronómicas en la zona
-        4. Busca eventos o factores externos que afecten el sector
-        
-        Devuelve un análisis comparativo detallado con:
-        - Posicionamiento relativo en precio
-        - Gaps en la oferta del mercado
-        - Oportunidades detectadas
-        - Amenazas competitivas
-        
-        CITA tus fuentes para cada afirmación.
-        
-        Respond in JSON format compatible with CompetitiveAnalysisResult structure.
-        """
+RESTAURANTE: {restaurant_name}
+UBICACIÓN: {location}
+
+INVESTIGACIÓN REQUERIDA (Google Search):
+
+1. IDENTIFICAR COMPETIDORES DIRECTOS
+   - Busca restaurantes similares en {location}
+   - Analiza sus menús (si disponibles en web)
+   - Identifica sus precios
+   - Revisa sus reviews en Google Maps
+
+2. ANÁLISIS DE PRECIOS
+   - Compara precios de platos similares
+   - Identifica gaps de precio
+   - Determina estrategia de pricing de competidores
+
+3. ANÁLISIS DE REVIEWS
+   - Busca reviews recientes (últimos 30 días)
+   - Identifica quejas comunes de competidores
+   - Detecta oportunidades no cubiertas
+
+4. TENDENCIAS DEL MERCADO LOCAL
+   - Nuevas aperturas en el área
+   - Cierres recientes
+   - Cambios en preferencias de consumidores
+
+NUESTRO MENÚ (para comparación):
+{json.dumps(menu_items[:10], indent=2, default=str)}
+
+Devuelve JSON detallado con:
+{{
+    "competitors_found": [
+        {{
+            "name": "Competitor name",
+            "location": "Address",
+            "price_range": "$$",
+            "rating": 4.5,
+            "review_count": 250,
+            "source": "URL where found"
+        }}
+    ],
+    "price_comparison": [
+        {{
+            "item_category": "Tacos",
+            "our_avg_price": 85,
+            "market_avg_price": 75,
+            "price_gap_percent": 13,
+            "sources": ["URL1", "URL2"]
+        }}
+    ],
+    "market_gaps": [
+        {{
+            "gap": "Vegan options underserved",
+            "opportunity": "Add vegan menu section",
+            "evidence": "Reviews mention lack of options",
+            "sources": ["URL"]
+        }}
+    ],
+    "competitive_threats": [
+        {{
+            "threat": "New competitor opening nearby",
+            "severity": "high",
+            "source": "URL"
+        }}
+    ],
+    "market_trends": [
+        {{
+            "trend": "Increasing demand for delivery",
+            "impact": "high",
+            "sources": ["URL"]
+        }}
+    ],
+    "actionable_insights": [
+        {{
+            "insight": "Specific recommendation",
+            "priority": "high",
+            "expected_impact": "15% revenue increase"
+        }}
+    ]
+}}
+
+IMPORTANTE: CITA las fuentes para cada afirmación."""
         
         try:
-            # Direct client call to enable Grounding (since base agent generate() returns string)
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    tools=[types.Tool(google_search=types.GoogleSearch())],
-                    response_mime_type="application/json",
-                    temperature=0.7
-                )
+            # Use base_agent's generate_with_grounding method
+            response = await self.generate_with_grounding(
+                prompt=prompt,
+                enable_grounding=True,
+                thinking_level=thinking_level.value.upper()
             )
             
-            # Extract sources if available (GenAI SDK specific)
-            sources = []
-            if hasattr(response, 'grounding_metadata') and response.grounding_metadata:
-                 if hasattr(response.grounding_metadata, 'grounding_chunks'):
-                     sources = [c.web.uri for c in response.grounding_metadata.grounding_chunks if c.web]
-
-            analysis = json.loads(response.text)
+            intelligence = self._parse_json_response(response["answer"])
             
             return {
-                "analysis": analysis,
-                "sources": sources
+                "intelligence": intelligence,
+                "grounding_metadata": response.get("grounding_metadata", {}),
+                "grounded": response.get("grounded", False),
+                "search_queries_used": response.get("grounding_metadata", {}).get("search_queries", []),
+                "sources_cited": [
+                    chunk.get("uri") 
+                    for chunk in response.get("grounding_metadata", {}).get("grounding_chunks", [])
+                    if chunk.get("uri")
+                ],
+                "analyzed_at": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:
-            logger.error(f"Grounded competitive analysis failed: {e}")
-            # Fallback to standard analysis without grounding
-            fallback = await self.analyze_competitive_position(
-                our_menu=restaurant_data,
-                competitor_menus=competitors,
-                thinking_level=thinking_level
-            )
+            logger.error(f"Competitive intelligence analysis failed: {e}")
             return {
-                "analysis": fallback.analysis,
-                "sources": [],
-                "error": str(e)
+                "intelligence": {},
+                "error": str(e),
+                "grounded": False,
+                "sources_cited": [],
+                "analyzed_at": datetime.now(timezone.utc).isoformat()
             }
 
     async def analyze_competitive_position(
@@ -467,25 +564,54 @@ Think step-by-step. Be specific with numbers and item names."""
 
         start_time = time.time()
 
-        # If grounding is enabled and we have basic data, try grounded analysis first
-        if enable_grounding:
+        # If grounding is enabled, use grounding for real market data
+        if enable_grounding and self.settings.enable_grounding:
             try:
-                # Map inputs to grounded method structure
-                grounded_result = await self.analyze_competitive_position_with_grounding(
-                    restaurant_data=our_menu,
-                    competitors=competitor_menus,
-                    thinking_level=thinking_level
+                # Build grounding prompt
+                location = our_menu.get("location", "unknown location")
+                restaurant_name = our_menu.get("name", "Our Restaurant")
+                
+                grounding_prompt = f"""Analiza la posición competitiva de {restaurant_name} en {location}.
+
+NUESTRO MENÚ:
+{json.dumps(our_menu, indent=2, default=str)[:5000]}
+
+COMPETIDORES CONOCIDOS:
+{json.dumps(competitor_menus, indent=2, default=str)[:5000]}
+
+INVESTIGACIÓN REQUERIDA (Google Search):
+1. Busca menús y precios actuales de competidores en {location}
+2. Revisa reviews recientes (últimos 30 días)
+3. Identifica tendencias gastronómicas en la zona
+4. Busca eventos o factores externos que afecten el sector
+
+Devuelve análisis comparativo con:
+- Posicionamiento relativo en precio
+- Gaps en la oferta del mercado  
+- Oportunidades detectadas
+- Amenazas competitivas
+
+CITA tus fuentes para cada afirmación.
+
+Respond in JSON format matching the competitive_landscape structure."""
+                
+                response = await self.generate_with_grounding(
+                    prompt=grounding_prompt,
+                    enable_grounding=True,
+                    thinking_level=thinking_level.value.upper()
                 )
                 
-                # Check if we got a valid analysis
-                if grounded_result.get("analysis") and not grounded_result.get("error"):
-                    analysis = grounded_result["analysis"]
-                    sources = grounded_result.get("sources", [])
+                if response.get("grounded"):
+                    analysis = self._parse_json_response(response["answer"])
+                    sources = [
+                        chunk.get("uri")
+                        for chunk in response.get("grounding_metadata", {}).get("grounding_chunks", [])
+                        if chunk.get("uri")
+                    ]
                     
-                    # Add sources to analysis for visibility
                     analysis["grounding_sources"] = sources
+                    analysis["grounded"] = True
                     
-                    # Create thought trace for grounded execution
                     trace = ThoughtTrace(
                         step="Competitive Position Analysis (Grounded)",
                         reasoning="Performed grounded analysis using Google Search to validate market position and trends.",
@@ -496,7 +622,7 @@ Think step-by-step. Be specific with numbers and item names."""
                             r.get("recommendation", "")
                             for r in analysis.get("strategic_recommendations", [])[:3]
                         ],
-                        confidence=analysis.get("confidence", 0.8), # Higher confidence with grounding
+                        confidence=analysis.get("confidence", 0.85),
                     )
                     self.thought_traces.append(trace)
                     
@@ -506,7 +632,7 @@ Think step-by-step. Be specific with numbers and item names."""
                         analysis=analysis,
                         thought_traces=self.thought_traces.copy(),
                         thinking_level=thinking_level,
-                        confidence=analysis.get("confidence", 0.8),
+                        confidence=analysis.get("confidence", 0.85),
                         processing_time_ms=processing_time,
                     )
             except Exception as e:
