@@ -19,6 +19,7 @@ from app.api.routes.business import router as business_router
 from app.api.routes.creative import router as creative_router
 from app.api.routes.progress import router as progress_router
 from app.api.routes.vibe import router as vibe_router
+from app.api.routes.vibe_engineering import router as vibe_engineering_router
 from app.api.routes.marathon import router as marathon_router
 from app.core.config import get_settings
 from app.models.database import init_db
@@ -103,6 +104,7 @@ app.include_router(analysis_router, prefix="/api/v1")
 app.include_router(creative_router, prefix="/api/v1")
 app.include_router(progress_router, prefix="/api/v1", tags=["WebSocket"])
 app.include_router(vibe_router, prefix="/api/v1")
+app.include_router(vibe_engineering_router, prefix="/api/v1")
 app.include_router(marathon_router, prefix="/api/v1")
 
 # Serve static files for uploads if they exist
