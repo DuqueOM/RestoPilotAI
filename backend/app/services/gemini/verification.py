@@ -1,7 +1,30 @@
 from app.services.gemini.base_agent import GeminiBaseAgent
 from app.core.logging_config import logger
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import json
+from dataclasses import dataclass, field
+from enum import Enum
+
+class VerificationStatus(str, Enum):
+    VERIFIED = "verified"
+    NEEDS_REVISION = "needs_revision"
+    REJECTED = "rejected"
+
+@dataclass
+class VerificationCheck:
+    check_name: str
+    passed: bool
+    score: float
+    feedback: str
+
+@dataclass
+class VerificationResult:
+    status: VerificationStatus
+    overall_score: float
+    checks: List[VerificationCheck]
+    final_recommendation: str
+    iterations_used: int = 0
+    improvements_made: List[str] = field(default_factory=list)
 
 class VerificationAgent(GeminiBaseAgent):
     """
@@ -9,6 +32,90 @@ class VerificationAgent(GeminiBaseAgent):
     Prevents hallucinations and logical errors.
     """
     
+    async def verify_analysis(
+        self,
+        analysis_data: Dict[str, Any],
+        thinking_level: str = "STANDARD",
+        auto_improve: bool = False
+    ) -> VerificationResult:
+        """
+        Verify the complete analysis package (BCG, Predictions, Campaigns).
+        """
+        prompt = f"""
+        You are a Chief Strategy Officer auditing a restaurant analysis report.
+        
+        ANALYSIS DATA:
+        {json.dumps(analysis_data, indent=2, default=str)[:10000]} # Truncate if too large
+        
+        Verify the following dimensions:
+        1. **Completeness**: Are all required sections (BCG, Predictions, Campaigns) present and populated?
+        2. **Consistency**: Do the campaigns align with the BCG classification? (e.g. Star products getting investment)
+        3. **Viability**: Are the sales predictions realistic given the context?
+        4. **Actionability**: Are the recommendations specific and executable?
+        
+        Provide a structured verification report.
+        
+        RESPONSE JSON FORMAT:
+        {{
+            "status": "verified" | "needs_revision" | "rejected",
+            "overall_score": 0.9,
+            "final_recommendation": "Ready for implementation",
+            "checks": [
+                {{
+                    "name": "Strategy Alignment",
+                    "passed": true,
+                    "score": 0.95,
+                    "feedback": "Campaigns perfectly match BCG strategy."
+                }},
+                {{
+                    "name": "Data Completeness",
+                    "passed": true,
+                    "score": 1.0,
+                    "feedback": "All sections populated."
+                }}
+            ],
+            "improvements_made": [] 
+        }}
+        """
+        
+        response = await self.generate(prompt, thinking_level=thinking_level)
+        
+        try:
+            if "```json" in response:
+                response = response.split("```json")[1].split("```")[0].strip()
+            elif "```" in response:
+                response = response.split("```")[1].split("```")[0].strip()
+                
+            data = json.loads(response)
+            
+            checks = [
+                VerificationCheck(
+                    check_name=c["name"],
+                    passed=c["passed"],
+                    score=c["score"],
+                    feedback=c["feedback"]
+                ) for c in data.get("checks", [])
+            ]
+            
+            return VerificationResult(
+                status=VerificationStatus(data.get("status", "needs_revision")),
+                overall_score=data.get("overall_score", 0.0),
+                checks=checks,
+                final_recommendation=data.get("final_recommendation", ""),
+                iterations_used=1, # Mock for single pass
+                improvements_made=data.get("improvements_made", [])
+            )
+            
+        except Exception as e:
+            logger.error(f"Verification parsing failed: {e}")
+            # Fallback result
+            return VerificationResult(
+                status=VerificationStatus.NEEDS_REVISION,
+                overall_score=0.0,
+                checks=[VerificationCheck("Parsing", False, 0.0, f"Error: {str(e)}")],
+                final_recommendation="Verification failed due to technical error."
+            )
+
     async def verify_competitor_data(
         self, 
         competitor_data: List[Dict[str, Any]]

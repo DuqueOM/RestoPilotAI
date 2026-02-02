@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Upload, Instagram, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
 import { FileUpload } from '@/components/setup/FileUpload';
+import { AlertCircle, Instagram, Loader2, TrendingUp, Upload } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function InstagramPredictor() {
   const [file, setFile] = useState<File | null>(null);
@@ -12,7 +13,10 @@ export function InstagramPredictor() {
   const [prediction, setPrediction] = useState<any | null>(null);
 
   const handlePredict = async () => {
-    if (!file) return;
+    if (!file) {
+      toast.error("Please upload an image first.");
+      return;
+    }
 
     setIsAnalyzing(true);
     const formData = new FormData();
@@ -30,9 +34,10 @@ export function InstagramPredictor() {
 
       const data = await response.json();
       setPrediction(data);
+      toast.success("Engagement prediction complete!");
     } catch (error) {
       console.error('Error predicting performance:', error);
-      alert('Failed to analyze image. Please try again.');
+      toast.error('Failed to analyze image. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }

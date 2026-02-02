@@ -43,6 +43,8 @@ from app.services.intelligence.social_aesthetics import SocialAestheticsAnalyzer
 from app.services.intelligence.neighborhood import NeighborhoodAnalyzer
 from app.services.analysis.context_processor import ContextProcessor
 from app.services.intelligence.competitor_parser import CompetitorParser
+from app.models.analysis import MarathonCheckpoint
+from app.models.database import AsyncSessionLocal
 
 
 class PipelineStage(str, Enum):
@@ -126,7 +128,8 @@ class AnalysisState:
     predictions: Optional[Dict[str, Any]] = None
     campaigns: List[Dict[str, Any]] = field(default_factory=list)
     verification_result: Optional[Dict[str, Any]] = None
-    verification_history: List[Dict[str, Any]] = field(default_factory=list) # New
+    verification_history: List[Dict[str, Any]] = field(default_factory=list)
+    vibe_status: Optional[Dict[str, Any]] = None # Store the most recent Vibe loop result
 
     thinking_level: ThinkingLevel = ThinkingLevel.STANDARD
     auto_verify: bool = True
@@ -174,6 +177,7 @@ class AnalysisOrchestrator:
 
         self.active_sessions: Dict[str, AnalysisState] = {}
         self.completed_sessions: Dict[str, AnalysisState] = {}
+        self._checkpointer_tasks: Dict[str, asyncio.Task] = {} # Track periodic checkpoint tasks
 
         self.storage_dir = Path("data/sessions")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
@@ -270,8 +274,8 @@ class AnalysisOrchestrator:
     async def run_full_pipeline(
         self,
         session_id: str,
-        menu_images: Optional[List[bytes]] = None,
-        dish_images: Optional[List[bytes]] = None,
+        menu_images: Optional[List[str]] = None,
+        dish_images: Optional[List[str]] = None,
         competitor_files: Optional[List[Dict[str, Any]]] = None,
         sales_csv: Optional[str] = None,
         address: Optional[str] = None,
@@ -287,8 +291,8 @@ class AnalysisOrchestrator:
 
         Args:
             session_id: Session identifier
-            menu_images: Raw menu image bytes
-            dish_images: Raw dish photo bytes
+            menu_images: List of file paths to menu images
+            dish_images: List of file paths to dish photos
             competitor_files: Structured competitor file data
             sales_csv: CSV content for sales data
             address: Restaurant address for location-based analysis
@@ -322,6 +326,13 @@ class AnalysisOrchestrator:
         # Update context
         if business_context:
             state.business_context = business_context
+        
+        # Fallback to state context for recovery if args are missing
+        if not address and state.business_context.get("address"):
+            address = state.business_context.get("address")
+        if cuisine_type == "general" and state.business_context.get("cuisine_type"):
+            cuisine_type = state.business_context.get("cuisine_type")
+            
         if competitor_urls:
             state.competitor_urls = competitor_urls
             # Add to discovered competitors immediately as manually added
@@ -505,7 +516,7 @@ class AnalysisOrchestrator:
         except Exception as e:
             logger.error(f"Pipeline failed: {e}")
             state.current_stage = PipelineStage.FAILED
-            self._save_checkpoint(state, success=False, error=str(e))
+            await self._save_checkpoint(state, success=False, error=str(e))
             self._save_session_to_disk(state)
             return {"error": str(e), "last_checkpoint": state.current_stage.value}
 
@@ -517,8 +528,29 @@ class AnalysisOrchestrator:
         *args,
     ):
         """Run a pipeline stage with checkpointing."""
+        # CHECKPOINT RECOVERY: Check if stage is already completed
+        for cp in state.checkpoints:
+            if cp.stage == stage and cp.success:
+                logger.info(f"Skipping already completed stage: {stage.value}")
+                # Broadcast restoration to keep frontend in sync
+                await send_stage_complete(
+                    session_id=state.session_id,
+                    stage=stage.value,
+                    result={"status": "restored_from_checkpoint", "skipped": True},
+                )
+                return
+
         state.current_stage = stage
         start_time = datetime.now(timezone.utc)
+
+        # Start periodic checkpointing if not already running for this session
+        # We can use a simple asyncio.create_task for this specific stage execution context 
+        # or better, manage a global background task per session.
+        # For simplicity and robustness within the stage context, we'll rely on the 
+        # explicit _save_checkpoint calls at the end of stages, PLUS the periodic task logic below.
+        
+        # Ensure periodic checkpointer is running
+        self._ensure_periodic_checkpointer(state.session_id)
 
         logger.info(f"Running stage: {stage.value}")
 
@@ -538,7 +570,7 @@ class AnalysisOrchestrator:
             )
             state.total_thinking_time_ms += elapsed_ms
 
-            self._save_checkpoint(state, success=True)
+            await self._save_checkpoint(state, success=True)
 
             # Broadcast stage completion
             await send_stage_complete(
@@ -549,7 +581,7 @@ class AnalysisOrchestrator:
 
         except Exception as e:
             logger.error(f"Stage {stage.value} failed: {e}")
-            self._save_checkpoint(state, success=False, error=str(e))
+            await self._save_checkpoint(state, success=False, error=str(e))
 
             # Broadcast error
             await send_error(
@@ -558,6 +590,50 @@ class AnalysisOrchestrator:
                 error=str(e),
             )
             raise
+    
+    def _ensure_periodic_checkpointer(self, session_id: str):
+        """Ensure a background task is running to checkpoint this session periodically."""
+        if session_id not in self._checkpointer_tasks:
+            logger.info(f"Starting periodic checkpointer for session {session_id}")
+            self._checkpointer_tasks[session_id] = asyncio.create_task(self._checkpoint_loop(session_id))
+
+    async def _checkpoint_loop(self, session_id: str):
+        """Background loop to save checkpoints every 60s."""
+        try:
+            while True:
+                await asyncio.sleep(60)
+                
+                # Check if session is still active
+                state = self.active_sessions.get(session_id)
+                if not state:
+                    logger.info(f"Session {session_id} not active, stopping checkpointer.")
+                    break
+                
+                if state.current_stage in [PipelineStage.COMPLETED, PipelineStage.FAILED]:
+                    logger.info(f"Session {session_id} finished ({state.current_stage}), stopping checkpointer.")
+                    break
+                
+                # Save checkpoint
+                logger.debug(f"Periodic checkpoint for session {session_id}")
+                # We use a special error code or msg to indicate it's an auto-checkpoint if needed, 
+                # but generic success=True is fine for state persistence.
+                await self._save_checkpoint(state, success=True) 
+                
+        except asyncio.CancelledError:
+            logger.info(f"Checkpointer for session {session_id} cancelled.")
+        except Exception as e:
+            logger.error(f"Error in periodic checkpointer for {session_id}: {e}")
+        finally:
+            self._checkpointer_tasks.pop(session_id, None)
+
+    def _cleanup_checkpointer(self, session_id: str):
+        """Cancel the periodic checkpointer for a session."""
+        if session_id in self._checkpointer_tasks:
+            self._checkpointer_tasks[session_id].cancel()
+            # We don't pop here immediately, let the finally block in the loop handle it
+            # or pop it if we are sure.
+            # Pop it to be clean.
+            self._checkpointer_tasks.pop(session_id, None)
 
     async def _extract_menus(self, state: AnalysisState, menu_images: List[bytes]):
         """Extract menu items from images."""
@@ -1005,7 +1081,33 @@ class AnalysisOrchestrator:
             thinking_level=state.thinking_level,
         )
 
-        state.competitor_analysis = result.to_dict()
+        # FEATURE #2: VIBE ENGINEERING - Autonomous Verification
+        if state.auto_verify:
+            verified_analysis = await self.vibe_agent.verify_and_improve_analysis(
+                analysis_type="competitor_analysis",
+                analysis_result=result.to_dict(),
+                source_data={
+                    "competitors_count": len(sources),
+                    "our_items_count": len(state.menu_items)
+                },
+                auto_improve=True
+            )
+            state.competitor_analysis = verified_analysis['final_analysis']
+            state.vibe_status = verified_analysis
+            
+            self._add_thought_trace(
+                state,
+                step="Competitor Vibe Verification",
+                reasoning="Autonomous verification of competitor intelligence",
+                observations=[
+                    f"Quality Score: {verified_analysis.get('quality_achieved', 0):.2f}",
+                    f"Iterations: {verified_analysis.get('iterations_required', 0)}"
+                ],
+                decisions=["Competitor analysis verified"],
+                confidence=verified_analysis.get('quality_achieved', 0.9),
+            )
+        else:
+            state.competitor_analysis = result.to_dict()
 
     async def _run_sentiment_analysis(self, state: AnalysisState):
         """Run sentiment analysis on discovered reviews."""
@@ -1031,7 +1133,32 @@ class AnalysisOrchestrator:
             bcg_data=state.bcg_analysis,
         )
 
-        state.sentiment_analysis = result.to_dict()
+        # FEATURE #2: VIBE ENGINEERING - Autonomous Verification
+        if state.auto_verify:
+            verified_analysis = await self.vibe_agent.verify_and_improve_analysis(
+                analysis_type="sentiment_analysis",
+                analysis_result=result.to_dict(),
+                source_data={
+                    "reviews_count": len(reviews),
+                    "menu_items_count": len(state.menu_items)
+                },
+                auto_improve=True
+            )
+            state.sentiment_analysis = verified_analysis['final_analysis']
+            state.vibe_status = verified_analysis
+
+            self._add_thought_trace(
+                state,
+                step="Sentiment Vibe Verification",
+                reasoning="Autonomous verification of sentiment analysis",
+                observations=[
+                    f"Quality Score: {verified_analysis.get('quality_achieved', 0):.2f}"
+                ],
+                decisions=["Sentiment analysis verified"],
+                confidence=verified_analysis.get('quality_achieved', 0.9),
+            )
+        else:
+            state.sentiment_analysis = result.to_dict()
 
     async def _run_visual_gap_analysis(
         self, state: AnalysisState, dish_images: List[bytes]
@@ -1201,6 +1328,7 @@ class AnalysisOrchestrator:
             )
             
             result = verified_analysis['final_analysis']
+            state.vibe_status = verified_analysis # Store for frontend visibility
             
             # Add trace for verification
             self._add_thought_trace(
@@ -1272,7 +1400,32 @@ class AnalysisOrchestrator:
             scenarios=scenarios,
         )
 
-        state.predictions = predictions
+        # FEATURE #2: VIBE ENGINEERING - Autonomous Verification
+        if state.auto_verify:
+            verified_analysis = await self.vibe_agent.verify_and_improve_analysis(
+                analysis_type="sales_prediction",
+                analysis_result=predictions,
+                source_data={
+                    "sales_records": len(state.sales_data),
+                    "scenarios_count": len(scenarios)
+                },
+                auto_improve=True
+            )
+            state.predictions = verified_analysis['final_analysis']
+            state.vibe_status = verified_analysis
+
+            self._add_thought_trace(
+                state,
+                step="Prediction Vibe Verification",
+                reasoning="Autonomous verification of sales forecasts",
+                observations=[
+                    f"Quality Score: {verified_analysis.get('quality_achieved', 0):.2f}"
+                ],
+                decisions=["Predictions verified"],
+                confidence=verified_analysis.get('quality_achieved', 0.9),
+            )
+        else:
+            state.predictions = predictions
 
     async def _generate_campaigns(
         self, state: AnalysisState, thinking_level: ThinkingLevel
@@ -1290,7 +1443,7 @@ class AnalysisOrchestrator:
             confidence=0.82,
         )
 
-        campaigns = await self.campaign_generator.generate(
+        campaigns = await self.campaign_generator.generate_campaigns(
             bcg_analysis=state.bcg_analysis,
             predictions=state.predictions,
             num_campaigns=3,
@@ -1460,27 +1613,100 @@ class AnalysisOrchestrator:
         except Exception as e:
             logger.warning(f"Failed to broadcast thought trace: {e}")
 
-    def _save_checkpoint(
+    async def _save_checkpoint(
         self,
         state: AnalysisState,
         success: bool,
         error: Optional[str] = None,
     ):
-        """Save a checkpoint for the current stage."""
+        """Save a checkpoint for the current stage to DB and disk."""
+        checkpoint_data = {
+            "menu_items_count": len(state.menu_items),
+            "sales_records_count": len(state.sales_data),
+            "campaigns_count": len(state.campaigns),
+        }
+        
+        # In-memory checkpoint
         checkpoint = PipelineCheckpoint(
             stage=state.current_stage,
             timestamp=datetime.now(timezone.utc),
-            data={
-                "menu_items_count": len(state.menu_items),
-                "sales_records_count": len(state.sales_data),
-                "campaigns_count": len(state.campaigns),
-            },
+            data=checkpoint_data,
             thought_trace=[t.step for t in state.thought_traces],
             success=success,
             error=error,
         )
         state.checkpoints.append(checkpoint)
+        
+        # Save to Disk (Legacy/Backup)
         self._save_session_to_disk(state)
+        
+        # Save to Database (Marathon Persistence)
+        try:
+            async with AsyncSessionLocal() as db:
+                db_checkpoint = MarathonCheckpoint(
+                    session_id=state.session_id,
+                    stage=state.current_stage.value,
+                    status="completed" if success else "failed",
+                    state_data=json.loads(json.dumps(asdict(state), default=str)),
+                    thought_trace=[t.step for t in state.thought_traces],
+                    error=error
+                )
+                db.add(db_checkpoint)
+                await db.commit()
+        except Exception as e:
+            logger.error(f"Failed to save marathon checkpoint to DB: {e}")
+
+    async def _load_last_checkpoint_from_db(self, session_id: str) -> Optional[AnalysisState]:
+        """Load the most recent checkpoint from the database."""
+        from sqlalchemy import select
+        
+        try:
+            async with AsyncSessionLocal() as db:
+                result = await db.execute(
+                    select(MarathonCheckpoint)
+                    .where(MarathonCheckpoint.session_id == session_id)
+                    .order_by(MarathonCheckpoint.timestamp.desc())
+                    .limit(1)
+                )
+                last_cp = result.scalar_one_or_none()
+                
+                if not last_cp:
+                    return None
+                
+                data = last_cp.state_data
+                
+                # Reconstruct datetime objects and Enums
+                if "current_stage" in data:
+                    data["current_stage"] = PipelineStage(data["current_stage"])
+                if "thinking_level" in data:
+                    data["thinking_level"] = ThinkingLevel(data["thinking_level"])
+
+                if "started_at" in data:
+                    data["started_at"] = datetime.fromisoformat(data["started_at"])
+                if data.get("completed_at"):
+                    data["completed_at"] = datetime.fromisoformat(data["completed_at"])
+
+                # Reconstruct checkpoints list
+                checkpoints = []
+                for cp_data in data.get("checkpoints", []):
+                    cp_data["stage"] = PipelineStage(cp_data["stage"])
+                    cp_data["timestamp"] = datetime.fromisoformat(cp_data["timestamp"])
+                    checkpoints.append(PipelineCheckpoint(**cp_data))
+                data["checkpoints"] = checkpoints
+
+                # Reconstruct thought traces
+                traces = []
+                for t_data in data.get("thought_traces", []):
+                    t_data["timestamp"] = datetime.fromisoformat(t_data["timestamp"])
+                    traces.append(ThoughtTrace(**t_data))
+                data["thought_traces"] = traces
+
+                state = AnalysisState(**data)
+                return state
+                
+        except Exception as e:
+            logger.error(f"Failed to load checkpoint from DB for {session_id}: {e}")
+            return None
 
     def _build_final_response(self, state: AnalysisState) -> Dict[str, Any]:
         """Build the final response from the analysis state."""
@@ -1497,6 +1723,7 @@ class AnalysisOrchestrator:
             "predictions": state.predictions,
             "campaigns": state.campaigns,
             "verification": state.verification_result,
+            "vibe_status": state.vibe_status, # Expose Vibe status
             "thought_signature": {
                 "traces": [
                     {
@@ -1529,23 +1756,59 @@ class AnalysisOrchestrator:
 
     async def resume_session(
         self, session_id: str, **kwargs
-    ) -> Optional[Dict[str, Any]]:
-        """Resume a session from its last checkpoint."""
-        state = self.active_sessions.get(session_id) or self._load_session_from_disk(
-            session_id
-        )
+    ) -> bool:
+        """Resume a session from its last checkpoint (DB or Disk)."""
+        # Try loading from active memory first
+        state = self.active_sessions.get(session_id)
+        
+        # If not active, try loading from DB (preferred persistence)
+        if not state:
+            state = await self._load_last_checkpoint_from_db(session_id)
+            
+        # Fallback to disk if DB fails or empty
+        if not state:
+            state = self._load_session_from_disk(session_id)
 
         if not state:
-            return None
+            logger.warning(f"Could not resume session {session_id}: Not found.")
+            return False
 
-        # Ensure it's in active_sessions if loaded from disk
+        # Ensure it's in active_sessions
         if session_id not in self.active_sessions and state.current_stage not in [
             PipelineStage.COMPLETED,
             PipelineStage.FAILED,
         ]:
             self.active_sessions[session_id] = state
-
-        return await self.run_full_pipeline(session_id=session_id, **kwargs)
+            
+        # Determine where to resume
+        logger.info(f"Resuming session {session_id} from stage {state.current_stage}")
+        
+        # Re-run pipeline logic but skip completed stages
+        # Ideally, run_full_pipeline should be smart enough to skip.
+        # But run_full_pipeline logic is sequential. 
+        # We need to adapt run_full_pipeline to check state.checkpoints to skip.
+        
+        # For now, we will simply call run_full_pipeline. 
+        # The Orchestrator implementation needs to be robust enough to skip done work.
+        # CURRENTLY, run_full_pipeline runs EVERYTHING. This is a limitation.
+        # Ideally we should refactor run_full_pipeline to look at 'state.current_stage'
+        # and jump to that point. 
+        
+        # HACK: For hackathon speed, we assume run_full_pipeline will just re-run 
+        # potentially some steps, OR we trust the "checkpoints" list to skip.
+        # Let's modify run_full_pipeline slightly to respect current_stage.
+        
+        # Actually, let's just trigger it. The state is restored.
+        # We might need to run it in background if called from API.
+        
+        # Since this method returns success bool, we assume caller handles the task execution.
+        # But wait, run_full_pipeline is NOT checking 'if stage done'.
+        # We need to ensure we don't double-process.
+        
+        # For this implementation, we will just return True indicating state is loaded.
+        # The caller (API) invokes run_full_pipeline.
+        
+        return True
 
 
 # Global orchestrator instance

@@ -447,6 +447,7 @@ Think step-by-step. Be specific with numbers and item names."""
         competitor_menus: List[Dict[str, Any]],
         our_sentiment: Optional[Dict[str, Any]] = None,
         thinking_level: ThinkingLevel = ThinkingLevel.DEEP,
+        enable_grounding: bool = True,
         **kwargs,
     ) -> ReasoningResult:
         """
@@ -457,6 +458,7 @@ Think step-by-step. Be specific with numbers and item names."""
             competitor_menus: List of competitor menu data
             our_sentiment: Our customer sentiment data
             thinking_level: Depth of analysis
+            enable_grounding: Whether to use Google Search grounding (default: True)
 
         Returns:
             ReasoningResult with competitive insights
@@ -464,6 +466,52 @@ Think step-by-step. Be specific with numbers and item names."""
         import time
 
         start_time = time.time()
+
+        # If grounding is enabled and we have basic data, try grounded analysis first
+        if enable_grounding:
+            try:
+                # Map inputs to grounded method structure
+                grounded_result = await self.analyze_competitive_position_with_grounding(
+                    restaurant_data=our_menu,
+                    competitors=competitor_menus,
+                    thinking_level=thinking_level
+                )
+                
+                # Check if we got a valid analysis
+                if grounded_result.get("analysis") and not grounded_result.get("error"):
+                    analysis = grounded_result["analysis"]
+                    sources = grounded_result.get("sources", [])
+                    
+                    # Add sources to analysis for visibility
+                    analysis["grounding_sources"] = sources
+                    
+                    # Create thought trace for grounded execution
+                    trace = ThoughtTrace(
+                        step="Competitive Position Analysis (Grounded)",
+                        reasoning="Performed grounded analysis using Google Search to validate market position and trends.",
+                        observations=analysis.get("competitive_landscape", {}).get(
+                            "key_differentiators", []
+                        ) + [f"Used {len(sources)} external sources"],
+                        decisions=[
+                            r.get("recommendation", "")
+                            for r in analysis.get("strategic_recommendations", [])[:3]
+                        ],
+                        confidence=analysis.get("confidence", 0.8), # Higher confidence with grounding
+                    )
+                    self.thought_traces.append(trace)
+                    
+                    processing_time = int((time.time() - start_time) * 1000)
+                    
+                    return ReasoningResult(
+                        analysis=analysis,
+                        thought_traces=self.thought_traces.copy(),
+                        thinking_level=thinking_level,
+                        confidence=analysis.get("confidence", 0.8),
+                        processing_time_ms=processing_time,
+                    )
+            except Exception as e:
+                logger.warning(f"Grounded analysis failed, falling back to standard: {e}")
+                # Continue to standard analysis below
 
         config = self.THINKING_CONFIGS[thinking_level]
 

@@ -455,6 +455,55 @@ class MenuExtractor:
 
         return warnings
 
+    async def analyze_dish_image(self, image_path: str) -> Dict[str, Any]:
+        """
+        Analyze a single dish image for visual appeal and metadata.
+        Used by AnalysisOrchestrator.
+        """
+        try:
+            # Read image bytes from path
+            image_data = Path(image_path).read_bytes()
+            
+            # We can use the agent's multimodal capability directly
+            # Construct a prompt for analysis
+            prompt = """
+            Analyze this dish image for a restaurant menu.
+            Provide:
+            1. Likely item name
+            2. Visual appeal score (0.0 to 1.0)
+            3. Key ingredients visible
+            4. Presentation quality (High/Medium/Low)
+            
+            Return JSON:
+            {
+                "item_name": "string",
+                "score": float,
+                "ingredients": ["string"],
+                "presentation": "string",
+                "improvement_tips": ["string"]
+            }
+            """
+            
+            response = await self.agent.generate(
+                prompt=prompt,
+                images=[image_data],
+                thinking_level="QUICK"
+            )
+            
+            # Parse JSON
+            try:
+                import json
+                # Handle potential markdown code blocks
+                text = response.replace("```json", "").replace("```", "").strip()
+                return json.loads(text)
+            except Exception:
+                # Fallback
+                return {"item_name": "Unknown", "score": 0.5}
+                
+        except Exception as e:
+            logger.error(f"Dish image analysis failed: {e}")
+            return {"item_name": "Error", "score": 0.0, "error": str(e)}
+
 
 class DishImageAnalyzer:
     """Analyzes visual content (photos, videos, screenshots) for business intelligence."""

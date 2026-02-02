@@ -84,12 +84,15 @@ app = FastAPI(
 
 # CORS middleware for frontend integration
 settings = get_settings()
+# Parse origins from settings, but ensure localhost:3000 is included for dev
 origins = [origin.strip() for origin in settings.cors_origins.split(",")]
+if "http://localhost:3000" not in origins:
+    origins.append("http://localhost:3000")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=False,  # Disable credentials to allow wildcard '*' origin
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

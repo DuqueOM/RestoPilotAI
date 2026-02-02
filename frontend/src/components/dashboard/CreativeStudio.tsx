@@ -1,12 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { MenuTransformation } from '@/components/creative/MenuTransformation';
+import { CreativeAutopilot } from '@/components/creative/CreativeAutopilot';
 import { InstagramPredictor } from '@/components/creative/InstagramPredictor';
-import { Palette, TrendingUp, Sparkles } from 'lucide-react';
+import { MenuTransformation } from '@/components/creative/MenuTransformation';
+import { Palette, Rocket, Sparkles, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
 
-export function CreativeStudio() {
-  const [activeTab, setActiveTab] = useState<'transform' | 'predict'>('transform');
+interface CreativeStudioProps {
+  sessionId: string;
+}
+
+export function CreativeStudio({ sessionId }: CreativeStudioProps) {
+  const [activeTab, setActiveTab] = useState<'autopilot' | 'transform' | 'predict'>('autopilot');
 
   return (
     <div className="space-y-8">
@@ -17,15 +22,30 @@ export function CreativeStudio() {
           Creative Studio
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl">
-          Use Gemini 3's multimodal capabilities to reimagine your menu and predict social media success before you post.
+          Use Gemini 3's multimodal capabilities to reimagine your menu, predict social success, and auto-generate campaigns.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-200">
+      <div className="flex gap-4 border-b border-gray-200 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('autopilot')}
+          className={`pb-4 px-2 flex items-center gap-2 font-medium transition-colors relative whitespace-nowrap ${
+            activeTab === 'autopilot'
+              ? 'text-indigo-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Rocket className="w-5 h-5" />
+          Creative Autopilot
+          {activeTab === 'autopilot' && (
+            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-t-full" />
+          )}
+        </button>
+
         <button
           onClick={() => setActiveTab('transform')}
-          className={`pb-4 px-2 flex items-center gap-2 font-medium transition-colors relative ${
+          className={`pb-4 px-2 flex items-center gap-2 font-medium transition-colors relative whitespace-nowrap ${
             activeTab === 'transform'
               ? 'text-purple-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -40,7 +60,7 @@ export function CreativeStudio() {
 
         <button
           onClick={() => setActiveTab('predict')}
-          className={`pb-4 px-2 flex items-center gap-2 font-medium transition-colors relative ${
+          className={`pb-4 px-2 flex items-center gap-2 font-medium transition-colors relative whitespace-nowrap ${
             activeTab === 'predict'
               ? 'text-pink-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -56,7 +76,11 @@ export function CreativeStudio() {
 
       {/* Content */}
       <div className="min-h-[600px]">
-        {activeTab === 'transform' ? (
+        {activeTab === 'autopilot' ? (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <CreativeAutopilot sessionId={sessionId} />
+          </div>
+        ) : activeTab === 'transform' ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <MenuTransformation />
           </div>

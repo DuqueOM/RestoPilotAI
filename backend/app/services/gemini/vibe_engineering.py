@@ -43,12 +43,18 @@ class VibeEngineeringAgent:
            c. Volver a paso 1
         3. Continuar hasta alcanzar threshold o max_iterations
         """
+        import time
+        from datetime import datetime
         
+        start_time = time.time()
         iteration = 0
         current_analysis = analysis_result
         verification_history = []
+        improvement_iterations = []
         
         while iteration < self.max_iterations:
+            iter_start = time.time()
+            
             # VERIFICACIÓN AUTÓNOMA
             verification = await self._autonomous_verify(
                 analysis_type,
@@ -57,32 +63,59 @@ class VibeEngineeringAgent:
             )
             
             verification_history.append(verification)
+            quality_score = verification.get('quality_score', 0)
             
             # Si la calidad es suficiente, terminar
-            if verification.get('quality_score', 0) >= self.quality_threshold:
+            if quality_score >= self.quality_threshold:
                 break
             
             # Si no hay auto-improve, devolver con advertencia
             if not auto_improve:
                 break
             
+            # Si es la última iteración, no intentamos mejorar para no desperdiciar tokens sin re-verificar
+            if iteration == self.max_iterations - 1:
+                break
+
             # MEJORA AUTÓNOMA
+            identified_issues = verification.get('identified_issues', [])
             improved_analysis = await self._autonomous_improve(
                 analysis_type,
                 current_analysis,
-                verification.get('identified_issues', []),
+                identified_issues,
                 source_data
             )
             
+            # Record improvement metrics
+            iter_duration = (time.time() - iter_start) * 1000
+            improvement_iterations.append({
+                "iteration": iteration + 1,
+                "timestamp": datetime.now().isoformat(),
+                "quality_before": quality_score,
+                "quality_after": 0, # Will be updated in next loop or final check
+                "issues_fixed": [i.get('issue', 'Issue') for i in identified_issues],
+                "duration_ms": iter_duration
+            })
+            
             current_analysis = improved_analysis
             iteration += 1
+        
+        # Update final quality score in last improvement iteration if we verified it
+        if improvement_iterations and verification_history:
+             last_quality = verification_history[-1].get('quality_score', 0)
+             # This is an approximation as we verified 'current_analysis' which IS 'improved_analysis' from previous step
+             improvement_iterations[-1]['quality_after'] = last_quality
+
+        total_duration = (time.time() - start_time) * 1000
         
         return {
             "final_analysis": current_analysis,
             "verification_history": verification_history,
             "iterations_required": iteration + 1,
             "quality_achieved": verification_history[-1].get('quality_score', 0) if verification_history else 0,
-            "auto_improved": auto_improve and iteration > 0
+            "auto_improved": auto_improve and iteration > 0,
+            "improvement_iterations": improvement_iterations,
+            "total_duration_ms": total_duration
         }
     
     async def _autonomous_verify(

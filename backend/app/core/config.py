@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     gemini_rate_limit_tpm: int = 1000000
     gemini_cache_ttl_seconds: int = 3600
     gemini_timeout_seconds: int = 60 
+    gemini_enable_grounding: bool = True
+    gemini_enable_streaming: bool = True
 
     # ==================== External APIs ====================
     places_rate_limit: int = 100

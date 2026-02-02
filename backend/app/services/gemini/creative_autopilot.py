@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 import asyncio
+import json
 from google import genai
 from google.genai import types
 from loguru import logger
@@ -18,9 +19,7 @@ class CreativeAutopilotAgent:
         settings = get_settings()
         self.api_key = settings.gemini_api_key
         self.client = genai.Client(api_key=self.api_key)
-        self.image_model = "gemini-3-pro-image-preview" # Or appropriate model name for imaging if available via genai
-        # Note: As of now, image generation might be via specific model or tool. 
-        # Using the model name provided in user snippet.
+        self.image_model = "gemini-3-pro-image-preview" 
         self.reasoning_model = "gemini-3-flash-preview"
     
     async def generate_full_campaign(
@@ -211,102 +210,64 @@ class CreativeAutopilotAgent:
         
         assets = []
         
-        # Asset 1: Post de Instagram con texto español legible
-        instagram_post = await self._generate_instagram_post(
-            concept,
-            brand_guidelines
-        )
+        # Asset 1: Post de Instagram (1:1)
+        instagram_post = await self._generate_instagram_post(concept, brand_guidelines)
         assets.append(instagram_post)
         
-        # Asset 2: Story de Instagram (formato vertical)
-        instagram_story = await self._generate_instagram_story(
-            concept,
-            brand_guidelines
-        )
+        # Asset 2: Story de Instagram (9:16)
+        instagram_story = await self._generate_instagram_story(concept, brand_guidelines)
         assets.append(instagram_story)
         
-        # Asset 3: Banner web con CTA
-        web_banner = await self._generate_web_banner(
-            concept,
-            brand_guidelines
-        )
+        # Asset 3: Banner web (Landscape)
+        web_banner = await self._generate_web_banner(concept, brand_guidelines)
         assets.append(web_banner)
         
-        # Asset 4: Flyer imprimible en alta resolución
-        printable_flyer = await self._generate_printable_flyer(
-            concept,
-            brand_guidelines
-        )
+        # Asset 4: Flyer (A4/Print)
+        printable_flyer = await self._generate_printable_flyer(concept, brand_guidelines)
         assets.append(printable_flyer)
         
         return assets
     
-    async def _generate_instagram_post(
+    async def _generate_image_asset(
         self,
         concept: Dict,
-        brand_guidelines: Dict = None
+        format_name: str,
+        dimensions: str,
+        asset_type: str,
+        prompt_template: str,
+        brand_guidelines: Dict = None,
+        language: str = "es"
     ) -> Dict:
         """
-        Genera post de Instagram profesional con:
-        - Texto legible en español (capacidad exclusiva de Nano Banana Pro)
-        - Composición según tendencias actuales (grounded con Google Search)
-        - Consistencia de marca (multi-reference images)
+        Método genérico para generar assets visuales con Nano Banana Pro.
         """
-        
-        # Preparar referencias de marca si existen
+        # Preparar referencias de marca
         reference_images = []
         if brand_guidelines and 'logo_path' in brand_guidelines:
-            # Cargar logo y paleta de colores como referencias
             reference_images.append({
                 "path": brand_guidelines['logo_path'],
                 "type": "logo"
             })
-        
-        prompt = f"""
-        Crea un post de Instagram profesional para un restaurante con las siguientes especificaciones:
-        
-        CONCEPTO CREATIVO:
-        {concept.get('visual_description', '')}
-        
-        MENSAJE PRINCIPAL:
-        {concept.get('main_message', '')}
-        
-        REQUISITOS TÉCNICOS:
-        - Formato: 1080x1080px (cuadrado perfecto para Instagram)
-        - Incluir el texto "{concept.get('headline', '')}" en español con tipografía moderna y legible
-        - Usar los colores: {brand_guidelines.get('colors', 'cálidos y apetitosos') if brand_guidelines else 'cálidos y apetitosos'}
-        - Estilo fotográfico: {concept.get('photo_style', 'food photography profesional')}
-        - Incluir elementos visuales que representen: {concept.get('key_elements', '')}
-        
-        CONTEXTO ACTUALIZADO:
-        Investiga las tendencias actuales de food photography en Instagram y aplica
-        técnicas contemporáneas de iluminación, composición y estilo.
-        
-        IMPORTANTE:
-        - El texto debe estar perfectamente integrado en la composición
-        - Usar profundidad de campo para destacar el plato principal
-        - Mantener espacio negativo para que el diseño "respire"
-        - El resultado debe verse profesional, no generado por AI
-        """
+            
+        headline = concept.get('headline', '')
+        if language != "es" and "translated_headlines" in concept and language in concept["translated_headlines"]:
+             headline = concept["translated_headlines"][language]
+
+        # Construir prompt final
+        prompt = prompt_template.format(
+            visual_description=concept.get('visual_description', ''),
+            main_message=concept.get('main_message', ''),
+            headline=headline,
+            colors=brand_guidelines.get('colors', 'cálidos y apetitosos') if brand_guidelines else 'cálidos y apetitosos',
+            photo_style=concept.get('photo_style', 'food photography profesional'),
+            key_elements=concept.get('key_elements', '')
+        )
         
         try:
-            # Generar imagen con Nano Banana Pro
-            # KEY: Activar grounding con Google Search
-            chat = self.client.chats.create(
-                model=self.image_model,
-                config=types.GenerateContentConfig(
-                    response_modalities=['IMAGE', 'TEXT'],
-                    tools=[{"google_search": {}}],  # GROUNDING ACTIVADO
-                    temperature=0.7,
-                    top_p=0.9
-                )
-            )
-            
-            # Si hay imágenes de referencia, incluirlas
+            # Construir contenido para Gemini
             content_parts = [{"text": prompt}]
-            for ref_img in reference_images[:14]:  # Máximo 14 referencias
+            for ref_img in reference_images[:5]: # Limit refs
                 try:
-                    # Cargar y convertir imagen a base64
                     img_data = self._load_image_as_base64(ref_img['path'])
                     content_parts.append({
                         "inline_data": {
@@ -315,79 +276,170 @@ class CreativeAutopilotAgent:
                         }
                     })
                 except Exception as e:
-                    logger.warning(f"Could not load reference image {ref_img['path']}: {e}")
+                    logger.warning(f"Could not load ref image {ref_img['path']}: {e}")
+
+            # Llamada al modelo
+            response = self.client.models.generate_content(
+                model=self.image_model,
+                contents=content_parts,
+                config=types.GenerateContentConfig(
+                    response_modalities=['IMAGE', 'TEXT'],
+                    temperature=0.7,
+                    top_p=0.9
+                )
+            )
             
-            response = chat.send_message(content_parts)
-            
-            # Extraer imagen generada
+            # Extraer resultados
             generated_image = None
             reasoning = None
             sources = self._extract_sources(response)
             
-            for part in response.parts:
-                if part.inline_data:
-                    generated_image = part.inline_data.data
-                elif part.text:
-                    reasoning = part.text
+            parts = []
+            if hasattr(response, 'parts'):
+                parts = response.parts
+            elif hasattr(response, 'candidates') and response.candidates:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
+                    parts = candidate.content.parts
             
+            if parts:
+                for part in parts:
+                    if part.inline_data:
+                        generated_image = part.inline_data.data
+                    elif part.text:
+                        reasoning = part.text
+                        
             return {
-                "type": "instagram_post",
-                "format": "1080x1080",
+                "type": asset_type,
+                "format": dimensions,
                 "image_data": generated_image,
                 "reasoning": reasoning,
-                "concept": concept.get('headline'),
-                "grounding_sources": sources
+                "concept": headline,
+                "grounding_sources": sources,
+                "language": language
             }
+            
         except Exception as e:
-            logger.error(f"Image generation failed: {e}")
+            logger.error(f"Failed to generate {asset_type}: {e}")
             return {
-                "type": "instagram_post",
-                "format": "1080x1080",
+                "type": asset_type,
+                "format": dimensions,
                 "image_data": None,
-                "reasoning": f"Failed: {str(e)}",
-                "concept": concept.get('headline'),
-                "grounding_sources": []
+                "reasoning": f"Error: {str(e)}",
+                "concept": headline,
+                "language": language
             }
+
+    async def _generate_instagram_post(self, concept: Dict, brand_guidelines: Dict = None) -> Dict:
+        prompt = """
+        Crea un POST DE INSTAGRAM (Cuadrado 1:1) profesional:
+        
+        DESCRIPCIÓN VISUAL: {visual_description}
+        MENSAJE: {main_message}
+        
+        REQUISITOS:
+        - Formato cuadrado perfecto.
+        - TEXTO EN LA IMAGEN: "{headline}" (Tipografía moderna, legible, integrada).
+        - Colores: {colors}.
+        - Estilo: {photo_style}.
+        - Elementos clave: {key_elements}.
+        
+        Usa composición centrada o regla de tercios. El texto debe ser el héroe junto al plato.
+        """
+        return await self._generate_image_asset(
+            concept, "1080x1080", "1080x1080", "instagram_post", prompt, brand_guidelines
+        )
 
     async def _generate_instagram_story(self, concept: Dict, brand_guidelines: Dict = None) -> Dict:
-        # Similar to post but vertical
-        return {
-             "type": "instagram_story",
-             "format": "1080x1920",
-             "image_data": None, # Placeholder
-             "reasoning": "Vertical story format",
-             "concept": concept['headline']
-        }
+        prompt = """
+        Crea una INSTAGRAM STORY (Vertical 9:16) inmersiva:
+        
+        DESCRIPCIÓN VISUAL: {visual_description}
+        
+        REQUISITOS:
+        - Formato vertical alto (9:16).
+        - Dejar espacio libre arriba y abajo para UI de Instagram.
+        - TEXTO EN LA IMAGEN: "{headline}" (Grande, llamativo, en el centro o tercio superior).
+        - Colores: {colors}.
+        - Estilo: {photo_style}.
+        
+        La imagen debe invitar a hacer 'Tap'. Haz que el plato se vea grandioso y alto.
+        """
+        return await self._generate_image_asset(
+            concept, "Vertical", "1080x1920", "instagram_story", prompt, brand_guidelines
+        )
 
     async def _generate_web_banner(self, concept: Dict, brand_guidelines: Dict = None) -> Dict:
-        return {
-             "type": "web_banner",
-             "format": "1200x628",
-             "image_data": None,
-             "reasoning": "Web banner format",
-             "concept": concept['headline']
-        }
+        prompt = """
+        Crea un BANNER WEB (Landscape 1.91:1) para sitio web:
+        
+        DESCRIPCIÓN VISUAL: {visual_description}
+        
+        REQUISITOS:
+        - Formato horizontal ancho.
+        - Espacio negativo amplio a la derecha o izquierda para texto superpuesto (si se añade después) o incluir el texto "{headline}" limpiamente.
+        - Colores: {colors}.
+        - Estilo: {photo_style}.
+        
+        Composición limpia, editorial, estilo página de inicio de restaurante de lujo.
+        """
+        return await self._generate_image_asset(
+            concept, "Landscape", "1200x628", "web_banner", prompt, brand_guidelines
+        )
 
     async def _generate_printable_flyer(self, concept: Dict, brand_guidelines: Dict = None) -> Dict:
-        return {
-             "type": "printable_flyer",
-             "format": "2480x3508",
-             "image_data": None,
-             "reasoning": "A4 Flyer",
-             "concept": concept['headline']
-        }
+        prompt = """
+        Crea un FLYER IMPRIMIBLE (Formato A4 vertical) de alta resolución:
+        
+        DESCRIPCIÓN VISUAL: {visual_description}
+        
+        REQUISITOS:
+        - Formato papel vertical.
+        - Diseño tipo poster/cartel.
+        - TEXTO PRINCIPAL: "{headline}" en la parte superior.
+        - Incluir espacio visual para "Escanea para ordenar" (simulado).
+        - Colores: {colors}.
+        - Estilo: {photo_style}.
+        
+        Debe verse como un póster impreso de alta calidad pegado en una pared o vitrina.
+        """
+        return await self._generate_image_asset(
+            concept, "A4", "2480x3508", "printable_flyer", prompt, brand_guidelines
+        )
 
     async def _generate_ab_variants(self, base_asset: Dict, strategy: Dict) -> List[Dict]:
-        return [] # Placeholder
-
-    async def _edit_camera_angle(self, base_asset: Dict) -> Dict:
-        return base_asset # Placeholder
-
-    async def _edit_lighting(self, base_asset: Dict) -> Dict:
-        return base_asset # Placeholder
-
-    async def _edit_color_grading(self, base_asset: Dict) -> Dict:
-        return base_asset # Placeholder
+        """Genera variantes A/B cambiando el enfoque creativo."""
+        if not base_asset or not base_asset.get('concept'):
+            return []
+            
+        variants = []
+        
+        # Variant A: Enfoque en Producto (Macro/Close-up)
+        # Reutilizamos el concepto pero forzamos el estilo
+        concept_a = {
+            "headline": base_asset['concept'],
+            "visual_description": "Extremo close-up macro del plato, enfocando texturas, gotas, brillo. Fondo desenfocado (bokeh).",
+            "main_message": "Sabor intenso",
+            "photo_style": "Macro food photography",
+            "key_elements": "Textura, detalle, frescura"
+        }
+        variant_a = await self._generate_instagram_post(concept_a)
+        variant_a['variant_type'] = "macro_focus"
+        variants.append(variant_a)
+        
+        # Variant B: Enfoque en Lifestyle (Mesa, gente, ambiente)
+        concept_b = {
+            "headline": base_asset['concept'],
+            "visual_description": "Plano abierto mostrando el plato en una mesa de restaurante con comensales felices difusos al fondo. Ambiente cálido y social.",
+            "main_message": "Experiencia compartida",
+            "photo_style": "Lifestyle dining",
+            "key_elements": "Ambiente, mesa puesta, bebidas"
+        }
+        variant_b = await self._generate_instagram_post(concept_b)
+        variant_b['variant_type'] = "lifestyle_focus"
+        variants.append(variant_b)
+        
+        return variants
 
     async def localize_campaign(
         self,
@@ -395,13 +447,79 @@ class CreativeAutopilotAgent:
         target_languages: List[str]
     ) -> Dict[str, List[Dict]]:
         """
-        Localiza la campaña a múltiples idiomas.
+        Localiza la campaña regenerando assets con texto traducido.
         """
-        localized_campaigns = {}
+        localized = {}
+        
+        # Traducir conceptos primero (usando Reasoning model para rapidez)
+        headlines = [a.get('concept') for a in campaign_assets if a.get('concept')]
+        headlines = list(set(headlines)) # Unique
+        
+        if not headlines:
+            return {}
+            
+        translation_prompt = f"""
+        Traduce estos titulares de marketing a los idiomas solicitados.
+        Mantén el tono persuasivo y corto.
+        
+        Titulares: {json.dumps(headlines)}
+        Idiomas: {json.dumps(target_languages)}
+        
+        Responde JSON: {{ "original": {{ "lang": "translated" }} }}
+        Ejemplo: {{ "Sabor Real": {{ "en": "Real Flavor", "fr": "Goût Royal" }} }}
+        """
+        
+        try:
+            response = self.client.models.generate_content(
+                model=self.reasoning_model,
+                contents=translation_prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
+            )
+            translations = json.loads(response.text)
+        except Exception as e:
+            logger.error(f"Translation failed: {e}")
+            translations = {}
+
+        # Regenerar assets para cada idioma
         for lang in target_languages:
-            # Simply duplicate for now as translation logic requires image editing
-            localized_campaigns[lang] = campaign_assets 
-        return localized_campaigns
+            lang_assets = []
+            for asset in campaign_assets:
+                # Recuperar concepto base para regenerar
+                # (En un caso real, guardaríamos el 'concept' dict completo en el asset,
+                # aquí reconstruimos uno parcial para la demo)
+                
+                original_headline = asset.get('concept')
+                translated_headline = original_headline
+                
+                if original_headline in translations and lang in translations[original_headline]:
+                    translated_headline = translations[original_headline][lang]
+                
+                # Reconstruir concepto mínimo
+                concept_recreated = {
+                    "headline": translated_headline,
+                    "visual_description": f"Same visual as original: {asset.get('reasoning', '')}", # Simplificación
+                    "main_message": "Localized content",
+                    "key_elements": "Same as original"
+                }
+                
+                # Determinar tipo y regenerar
+                new_asset = None
+                if asset['type'] == 'instagram_post':
+                    new_asset = await self._generate_instagram_post(concept_recreated)
+                elif asset['type'] == 'instagram_story':
+                    new_asset = await self._generate_instagram_story(concept_recreated)
+                elif asset['type'] == 'web_banner':
+                    new_asset = await self._generate_web_banner(concept_recreated)
+                elif asset['type'] == 'printable_flyer':
+                    new_asset = await self._generate_printable_flyer(concept_recreated)
+                
+                if new_asset:
+                    new_asset['language'] = lang
+                    lang_assets.append(new_asset)
+            
+            localized[lang] = lang_assets
+            
+        return localized
 
     async def _localize_asset(self, asset: Dict, target_language: str) -> Dict:
         return asset # Placeholder
@@ -411,8 +529,27 @@ class CreativeAutopilotAgent:
             return base64.b64encode(image_file.read()).decode('utf-8')
 
     def _extract_sources(self, response) -> List[str]:
-        # Logic to extract grounding metadata if available
-        return []
+        """Extract grounding sources from the response if available."""
+        sources = []
+        try:
+            # Check for grounding metadata in candidates
+            if hasattr(response, 'candidates') and response.candidates:
+                for candidate in response.candidates:
+                    if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
+                        if hasattr(candidate.grounding_metadata, 'search_entry_point'):
+                            sep = candidate.grounding_metadata.search_entry_point
+                            if hasattr(sep, 'rendered_content'):
+                                sources.append(sep.rendered_content)
+                        
+                        # Also check grounding_chunks if available
+                        if hasattr(candidate.grounding_metadata, 'grounding_chunks'):
+                            for chunk in candidate.grounding_metadata.grounding_chunks:
+                                if hasattr(chunk, 'web') and chunk.web and hasattr(chunk.web, 'uri'):
+                                    sources.append(chunk.web.uri)
+        except Exception as e:
+            logger.warning(f"Failed to extract sources: {e}")
+            
+        return list(set(sources)) # Deduplicate
 
     def _calculate_impact(self, strategy: Dict) -> float:
         return 0.85 # Mock score

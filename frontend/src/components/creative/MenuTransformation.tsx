@@ -3,6 +3,7 @@
 import { FileUpload } from '@/components/setup/FileUpload';
 import { ArrowLeftRight, Download, Loader2, Sparkles, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 const STYLES = [
   { id: 'modern_minimalist', name: 'Modern Minimalist', description: 'Clean, sans-serif, whitespace' },
@@ -89,7 +90,7 @@ export function MenuTransformation() {
       }
     } catch (error) {
       console.error('Error transforming menu:', error);
-      alert('Failed to transform menu. Please try again.');
+      toast.error('Failed to transform menu. Please try again.');
     } finally {
       setIsTransforming(false);
     }

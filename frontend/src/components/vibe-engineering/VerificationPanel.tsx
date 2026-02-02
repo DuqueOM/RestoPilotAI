@@ -1,12 +1,11 @@
 'use client';
 
-import React from 'react';
-import { VibeEngineeringState } from '@/types/vibe-engineering';
-import { QualityMetrics } from './QualityMetrics';
-import { ImprovementHistory } from './ImprovementHistory';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { VibeEngineeringState } from '@/types/vibe-engineering';
+import { AlertTriangle, CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { ImprovementHistory } from './ImprovementHistory';
+import { QualityMetrics } from './QualityMetrics';
 
 interface VerificationPanelProps {
   state: VibeEngineeringState | null;
@@ -69,7 +68,7 @@ export function VerificationPanel({ state, isVerifying }: VerificationPanelProps
             <QualityMetrics state={state} />
 
             {/* Improvement History */}
-            {state.improvement_iterations.length > 0 && (
+            {state.improvement_iterations && state.improvement_iterations.length > 0 && (
               <ImprovementHistory iterations={state.improvement_iterations} />
             )}
 
@@ -82,19 +81,19 @@ export function VerificationPanel({ state, isVerifying }: VerificationPanelProps
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">Quality Score</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {(state.quality_achieved * 100).toFixed(1)}%
+                  {((state.quality_achieved || 0) * 100).toFixed(1)}%
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">Duration</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {(state.total_duration_ms / 1000).toFixed(1)}s
+                  {((state.total_duration_ms || 0) / 1000).toFixed(1)}s
                 </p>
               </div>
             </div>
 
             {/* Latest Verification Details */}
-            {state.verification_history.length > 0 && (
+            {state.verification_history && state.verification_history.length > 0 && (
               <div className="space-y-3">
                 <h4 className="font-semibold text-sm text-gray-900">Latest Assessment</h4>
                 <p className="text-sm text-gray-700">
@@ -102,7 +101,7 @@ export function VerificationPanel({ state, isVerifying }: VerificationPanelProps
                 </p>
 
                 {/* Strengths */}
-                {state.verification_history[state.verification_history.length - 1].strengths.length > 0 && (
+                {state.verification_history[state.verification_history.length - 1].strengths?.length > 0 && (
                   <div>
                     <p className="text-xs font-medium text-green-800 mb-2">Strengths:</p>
                     <ul className="space-y-1">
@@ -119,7 +118,7 @@ export function VerificationPanel({ state, isVerifying }: VerificationPanelProps
                 )}
 
                 {/* Issues */}
-                {state.verification_history[state.verification_history.length - 1].identified_issues.length > 0 && (
+                {state.verification_history[state.verification_history.length - 1].identified_issues?.length > 0 && (
                   <div>
                     <p className="text-xs font-medium text-red-800 mb-2">Issues Identified:</p>
                     <ul className="space-y-2">

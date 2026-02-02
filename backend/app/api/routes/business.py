@@ -94,7 +94,10 @@ async def ingest_menu_image(
     ]
     sessions[session_id]["menu_items"].extend(new_items)
 
-    result = {"items": new_items, "item_count": len(new_items)}
+    # Calculate categories from new items
+    categories = list(set(item.get("category", "Other") for item in new_items))
+
+    result = {"items": new_items, "item_count": len(new_items), "categories": categories}
     sessions[session_id]["menu_extraction"] = result
 
     # Create thought signature
@@ -109,6 +112,7 @@ async def ingest_menu_image(
         "items_extracted": len(new_items),
         "files_processed": total_files_processed,
         "items": new_items,
+        "categories": categories,
         "thought_process": thought,
     }
 

@@ -17,6 +17,7 @@ import {
     Utensils
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import ThinkingStream, { ThoughtStep } from '../common/ProgressTracker'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -205,11 +206,15 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
         setIsLoading(false)
         setCurrentStep(null)
         onComplete({}) // Trigger refresh or final state update
+        toast.success("Analysis completed successfully!")
       }
 
       // 5. Handle Errors
       if (msg.type === 'error') {
         console.error("Orchestrator Error:", msg.message)
+        const errorMessage = msg.error || msg.message || "Unknown error occurred"
+        toast.error(`Analysis Error: ${errorMessage}`)
+        
         if (msg.stage) {
            const frontendStage = BACKEND_TO_FRONTEND_STAGE_MAP[msg.stage]
            if (frontendStage) {
@@ -233,44 +238,14 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
     setStepThoughts({})
     
     try {
-      // Trigger the orchestrator
-      await axios.post(`${API_URL}/api/v1/orchestrator/run`, 
-        // Send data as form data if needed, or just params. 
-        // The endpoint usually expects multipart if uploading files, 
-        // but for a re-run/trigger we might need to adjust endpoint or params.
-        // Assuming we are triggering an analysis on *existing* session data if files aren't provided.
-        // But the route in backend expects UploadFile which are optional.
-        // We need to pass session_id somehow? 
-        // Actually, /orchestrator/run creates a NEW session if we don't pass one, 
-        // OR we use /orchestrator/resume/{session_id} for existing.
-        // Let's use resume for existing session to trigger pipeline on it?
-        // Or if we are starting fresh, we use run.
-        // Given sessionId exists in props, we likely want to Resume or Trigger on *this* session.
-        null, 
-        {
-          params: {
-             session_id: sessionId // If the backend supports passing session_id to run (it might not based on code read)
-          }
-        }
-      )
-      
-      // If /orchestrator/run creates a NEW session, we have a problem because we are on `sessionId`.
-      // Let's check backend route: 
-      // @router.post("/orchestrator/run") -> creates new session via orchestrator.create_session()
-      
-      // We should probably use /orchestrator/resume/{session_id} if we want to run on *current* session
-      // OR we need to update the session ID if a new one is returned.
-      
-      // Let's try resume first as it likely continues or re-runs.
-      // Or we can call the individual endpoints if orchestrator/run forces new session.
-      
-      // Wait, if we use /orchestrator/resume/{session_id}, it calls orchestrator.resume_session -> run_full_pipeline.
-      // This seems correct for "Run Analysis" on this session.
-      
+      // Resume/Start the orchestrator on the existing session
+      // This endpoint now supports triggering the pipeline via background tasks
       await axios.post(`${API_URL}/api/v1/orchestrator/resume/${sessionId}`, new FormData())
+      toast.info("Analysis pipeline started...")
       
     } catch (error) {
       console.error('Failed to start pipeline:', error)
+      toast.error("Failed to start analysis pipeline. Please try again.")
       setIsLoading(false)
       setStageStatus(prev => ({ ...prev, [currentStep || 'unknown']: 'failed' }))
     }
@@ -315,6 +290,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
         if (res.data) {
            onComplete(res.data)
            setStageStatus(prev => ({ ...prev, [stageId]: 'completed' }))
+           toast.success(`Stage '${stageId.replace('_', ' ')}' completed`)
         }
       } else {
          setStageStatus(prev => ({ ...prev, [stageId]: 'completed' }))
@@ -322,6 +298,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
       
     } catch (error) {
       console.error(`Error in stage ${stageId}:`, error)
+      toast.error(`Stage execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setStageStatus(prev => ({ ...prev, [stageId]: 'failed' }))
     } finally {
       setIsLoading(false)

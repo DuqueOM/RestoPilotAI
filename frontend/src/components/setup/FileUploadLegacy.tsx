@@ -4,6 +4,7 @@ import axios from 'axios'
 import { AlertTriangle, CheckCircle, FileSpreadsheet, FileText, Image as ImageIcon, Info, Loader2, Mic, MicOff, Pause, Play, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { toast } from 'sonner'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -149,7 +150,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
       setMenuUploaded(true)
     } catch (err: any) {
       const msg = err.response?.data?.detail || err.message
-      alert(`Menu upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
+      toast.error(`Menu upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
       stopUploading('menu')
     }
@@ -167,7 +168,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
       setMediaUploaded(true)
     } catch (err: any) {
       const msg = err.response?.data?.detail || err.message
-      alert(`Media upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
+      toast.error(`Media upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
       stopUploading('media')
     }
@@ -213,7 +214,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
       if (type === 'business') setIsRecordingBusiness(true)
       else setIsRecordingCompetitor(true)
     } catch (err) {
-      alert('Microphone access denied')
+      toast.error('Microphone access denied')
     }
   }
 
@@ -246,7 +247,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
         setNewCompetitorLink('')
       }
     } catch {
-      alert('Please enter a valid URL')
+      toast.warning('Please enter a valid URL')
     }
   }
 

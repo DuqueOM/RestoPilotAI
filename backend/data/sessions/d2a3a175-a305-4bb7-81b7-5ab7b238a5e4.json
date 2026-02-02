@@ -1,0 +1,92 @@
+{
+  "session_id": "d2a3a175-a305-4bb7-81b7-5ab7b238a5e4",
+  "current_stage": "menu_extraction",
+  "checkpoints": [
+    {
+      "stage": "menu_extraction",
+      "timestamp": "2026-02-02T03:10:46.376188+00:00",
+      "data": {
+        "menu_items_count": 0,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction"
+      ],
+      "success": false,
+      "error": "400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Unable to process input image. Please retry or report in https://developers.generativeai.google/guide/troubleshooting', 'status': 'INVALID_ARGUMENT'}}"
+    }
+  ],
+  "thought_traces": [
+    {
+      "step": "Session Initialization",
+      "reasoning": "Creating new analysis session for restaurant optimization",
+      "observations": [
+        "Fresh session created",
+        "All pipeline stages pending"
+      ],
+      "decisions": [
+        "Ready to receive data inputs"
+      ],
+      "confidence": 1.0,
+      "timestamp": "2026-02-02T03:10:45.515510+00:00"
+    },
+    {
+      "step": "Menu Extraction",
+      "reasoning": "Processing menu images to extract structured product catalog",
+      "observations": [
+        "Received 1 menu images"
+      ],
+      "decisions": [
+        "Using hybrid OCR + Gemini multimodal extraction"
+      ],
+      "confidence": 0.85,
+      "timestamp": "2026-02-02T03:10:45.527646+00:00"
+    }
+  ],
+  "restaurant_name": "Our Restaurant",
+  "location": null,
+  "menu_items": [],
+  "sales_data": [],
+  "business_context": {
+    "name": "Debug Taco Shop",
+    "location_query": "Mexico City",
+    "instagram": null,
+    "facebook": null,
+    "tiktok": null,
+    "website": null,
+    "history": null,
+    "values": null,
+    "usps": null,
+    "target_audience": null,
+    "challenges": null,
+    "goals": null,
+    "competitor_input": null,
+    "history_audio_paths": [],
+    "values_audio_paths": [],
+    "usps_audio_paths": [],
+    "target_audience_audio_paths": [],
+    "challenges_audio_paths": [],
+    "goals_audio_paths": []
+  },
+  "competitor_urls": [],
+  "image_scores": {},
+  "discovered_competitors": [],
+  "neighborhood_analysis": null,
+  "competitor_analysis": null,
+  "sentiment_analysis": null,
+  "visual_gap_report": null,
+  "context_insights": null,
+  "bcg_analysis": null,
+  "predictions": null,
+  "campaigns": [],
+  "verification_result": null,
+  "verification_history": [],
+  "vibe_status": null,
+  "thinking_level": "standard",
+  "auto_verify": true,
+  "started_at": "2026-02-02T03:10:45.515494+00:00",
+  "completed_at": null,
+  "total_thinking_time_ms": 0
+}

@@ -74,7 +74,7 @@ class BCGClassifier:
         self.agent = agent
         self.settings = get_settings()
 
-    async def classify_products(
+    async def classify(
         self,
         menu_items: List[Dict[str, Any]],
         sales_data: List[Dict[str, Any]],

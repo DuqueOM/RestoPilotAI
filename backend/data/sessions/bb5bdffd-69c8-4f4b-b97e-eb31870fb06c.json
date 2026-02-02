@@ -1,0 +1,710 @@
+{
+  "session_id": "bb5bdffd-69c8-4f4b-b97e-eb31870fb06c",
+  "current_stage": "failed",
+  "checkpoints": [
+    {
+      "stage": "menu_extraction",
+      "timestamp": "2026-02-02T02:01:41.600939+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "competitor_discovery",
+      "timestamp": "2026-02-02T02:01:42.035534+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "competitor_enrichment",
+      "timestamp": "2026-02-02T02:01:42.164370+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "competitor_verification",
+      "timestamp": "2026-02-02T02:01:42.256414+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "competitor_analysis",
+      "timestamp": "2026-02-02T02:01:42.404529+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "sentiment_analysis",
+      "timestamp": "2026-02-02T02:01:42.582410+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification",
+        "Sentiment Analysis",
+        "Sentiment Vibe Verification"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "image_analysis",
+      "timestamp": "2026-02-02T02:01:42.867205+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification",
+        "Sentiment Analysis",
+        "Sentiment Vibe Verification",
+        "Dish Image Analysis"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "visual_gap_analysis",
+      "timestamp": "2026-02-02T02:01:43.206594+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification",
+        "Sentiment Analysis",
+        "Sentiment Vibe Verification",
+        "Dish Image Analysis",
+        "Visual Gap Analysis",
+        "Visual Gap Analysis Skipped"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "context_processing",
+      "timestamp": "2026-02-02T02:01:43.336393+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification",
+        "Sentiment Analysis",
+        "Sentiment Vibe Verification",
+        "Dish Image Analysis",
+        "Visual Gap Analysis",
+        "Visual Gap Analysis Skipped",
+        "Context Integration"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "sales_processing",
+      "timestamp": "2026-02-02T02:01:43.581982+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 3,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification",
+        "Sentiment Analysis",
+        "Sentiment Vibe Verification",
+        "Dish Image Analysis",
+        "Visual Gap Analysis",
+        "Visual Gap Analysis Skipped",
+        "Context Integration",
+        "Sales Data Processing"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "bcg_classification",
+      "timestamp": "2026-02-02T02:01:43.984865+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 3,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification",
+        "Sentiment Analysis",
+        "Sentiment Vibe Verification",
+        "Dish Image Analysis",
+        "Visual Gap Analysis",
+        "Visual Gap Analysis Skipped",
+        "Context Integration",
+        "Sales Data Processing",
+        "BCG Classification",
+        "BCG Vibe Verification",
+        "BCG Results"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "sales_prediction",
+      "timestamp": "2026-02-02T02:01:44.020510+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 3,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification",
+        "Sentiment Analysis",
+        "Sentiment Vibe Verification",
+        "Dish Image Analysis",
+        "Visual Gap Analysis",
+        "Visual Gap Analysis Skipped",
+        "Context Integration",
+        "Sales Data Processing",
+        "BCG Classification",
+        "BCG Vibe Verification",
+        "BCG Results",
+        "Sales Prediction",
+        "Prediction Vibe Verification"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "campaign_generation",
+      "timestamp": "2026-02-02T02:01:44.047320+00:00",
+      "data": {
+        "menu_items_count": 2,
+        "sales_records_count": 3,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization",
+        "Menu Extraction",
+        "Menu Image 1 Processing",
+        "Competitor Discovery",
+        "Competitor Enrichment",
+        "Enrichment Complete",
+        "Competitor Data Verification",
+        "Competitor Analysis",
+        "Competitor Vibe Verification",
+        "Sentiment Analysis",
+        "Sentiment Vibe Verification",
+        "Dish Image Analysis",
+        "Visual Gap Analysis",
+        "Visual Gap Analysis Skipped",
+        "Context Integration",
+        "Sales Data Processing",
+        "BCG Classification",
+        "BCG Vibe Verification",
+        "BCG Results",
+        "Sales Prediction",
+        "Prediction Vibe Verification",
+        "Campaign Generation"
+      ],
+      "success": false,
+      "error": "'CampaignGenerator' object has no attribute 'generate'"
+    }
+  ],
+  "thought_traces": [
+    {
+      "step": "Session Initialization",
+      "reasoning": "Creating new analysis session for restaurant optimization",
+      "observations": [
+        "Fresh session created",
+        "All pipeline stages pending"
+      ],
+      "decisions": [
+        "Ready to receive data inputs"
+      ],
+      "confidence": 1.0,
+      "timestamp": "2026-02-02T02:01:41.504216+00:00"
+    },
+    {
+      "step": "Menu Extraction",
+      "reasoning": "Processing menu images to extract structured product catalog",
+      "observations": [
+        "Received 1 menu images"
+      ],
+      "decisions": [
+        "Using hybrid OCR + Gemini multimodal extraction"
+      ],
+      "confidence": 0.85,
+      "timestamp": "2026-02-02T02:01:41.600738+00:00"
+    },
+    {
+      "step": "Menu Image 1 Processing",
+      "reasoning": "Combining OCR text with visual understanding",
+      "observations": [
+        "Extracted 2 items from image 1"
+      ],
+      "decisions": [
+        "Items added to catalog"
+      ],
+      "confidence": 0.7,
+      "timestamp": "2026-02-02T02:01:41.600907+00:00"
+    },
+    {
+      "step": "Competitor Discovery",
+      "reasoning": "Scouting for competitors near Av. Reforma 123, Mexico City",
+      "observations": [
+        "Initiating Scout Agent",
+        "Cuisine: Mexican"
+      ],
+      "decisions": [
+        "Searching for top relevant competitors"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T02:01:42.035356+00:00"
+    },
+    {
+      "step": "Competitor Enrichment",
+      "reasoning": "Gathering deep intelligence on competitors (Social, Reviews, Photos)",
+      "observations": [
+        "Enriching 1 competitors"
+      ],
+      "decisions": [
+        "Cross-referencing web & social data",
+        "Analyzing content with Gemini"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T02:01:42.164299+00:00"
+    },
+    {
+      "step": "Enrichment Complete",
+      "reasoning": "Competitor profiles enriched with deep multimodal data",
+      "observations": [
+        "Enriched 1 profiles"
+      ],
+      "decisions": [
+        "Proceeding to data verification"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T02:01:42.164351+00:00"
+    },
+    {
+      "step": "Competitor Data Verification",
+      "reasoning": "Verifying quality and consistency of discovered competitor data",
+      "observations": [
+        "Checking 1 competitors"
+      ],
+      "decisions": [
+        "Identifying anomalies or data gaps"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T02:01:42.256311+00:00"
+    },
+    {
+      "step": "Competitor Analysis",
+      "reasoning": "Analyzing competitor menus and pricing strategies",
+      "observations": [
+        "Analyzing 1 competitors"
+      ],
+      "decisions": [
+        "Extracting menus and comparing prices"
+      ],
+      "confidence": 0.85,
+      "timestamp": "2026-02-02T02:01:42.404247+00:00"
+    },
+    {
+      "step": "Competitor Vibe Verification",
+      "reasoning": "Autonomous verification of competitor intelligence",
+      "observations": [
+        "Quality Score: 0.98",
+        "Iterations: 0"
+      ],
+      "decisions": [
+        "Competitor analysis verified"
+      ],
+      "confidence": 0.98,
+      "timestamp": "2026-02-02T02:01:42.404483+00:00"
+    },
+    {
+      "step": "Sentiment Analysis",
+      "reasoning": "Analyzing customer sentiment from reviews and photos",
+      "observations": [
+        "Processing sentiment data"
+      ],
+      "decisions": [
+        "Identifying key themes and item-level sentiment"
+      ],
+      "confidence": 0.8,
+      "timestamp": "2026-02-02T02:01:42.581419+00:00"
+    },
+    {
+      "step": "Sentiment Vibe Verification",
+      "reasoning": "Autonomous verification of sentiment analysis",
+      "observations": [
+        "Quality Score: 0.98"
+      ],
+      "decisions": [
+        "Sentiment analysis verified"
+      ],
+      "confidence": 0.98,
+      "timestamp": "2026-02-02T02:01:42.582359+00:00"
+    },
+    {
+      "step": "Dish Image Analysis",
+      "reasoning": "Evaluating visual presentation quality of dishes",
+      "observations": [
+        "Analyzing 1 dish photos"
+      ],
+      "decisions": [
+        "Scoring presentation, plating, and appeal"
+      ],
+      "confidence": 0.8,
+      "timestamp": "2026-02-02T02:01:42.867098+00:00"
+    },
+    {
+      "step": "Visual Gap Analysis",
+      "reasoning": "Comparing our food presentation against market standards",
+      "observations": [
+        "Comparing 1 of our photos"
+      ],
+      "decisions": [
+        "Identifying visual competitive advantages/disadvantages"
+      ],
+      "confidence": 0.85,
+      "timestamp": "2026-02-02T02:01:43.001526+00:00"
+    },
+    {
+      "step": "Visual Gap Analysis Skipped",
+      "reasoning": "Could not retrieve competitor photos (no photos found or download failed)",
+      "observations": [],
+      "decisions": [
+        "Skipping comparative visual analysis"
+      ],
+      "confidence": 1.0,
+      "timestamp": "2026-02-02T02:01:43.205208+00:00"
+    },
+    {
+      "step": "Context Integration",
+      "reasoning": "Integrating user-provided business context",
+      "observations": [
+        "Context keys: ['cuisine_type', 'address', 'goals']"
+      ],
+      "decisions": [
+        "Enhancing insights with personalization"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T02:01:43.336091+00:00"
+    },
+    {
+      "step": "Sales Data Processing",
+      "reasoning": "Parsing and validating historical sales records",
+      "observations": [
+        "Processed 3 sales records",
+        "Date range identified from CSV"
+      ],
+      "decisions": [
+        "Data validated and ready for analysis"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T02:01:43.581863+00:00"
+    },
+    {
+      "step": "BCG Classification",
+      "reasoning": "Classifying products into BCG Matrix quadrants based on market share and growth",
+      "observations": [
+        "Analyzing 2 products",
+        "Using sales data for market dynamics"
+      ],
+      "decisions": [
+        "Applying Star/Cash Cow/Question Mark/Dog classification"
+      ],
+      "confidence": 0.85,
+      "timestamp": "2026-02-02T02:01:43.984541+00:00"
+    },
+    {
+      "step": "BCG Vibe Verification",
+      "reasoning": "Autonomous verification and improvement of BCG analysis",
+      "observations": [
+        "Quality Score: 0.98",
+        "Iterations: 0"
+      ],
+      "decisions": [
+        "Analysis refined based on critical audit"
+      ],
+      "confidence": 0.98,
+      "timestamp": "2026-02-02T02:01:43.984750+00:00"
+    },
+    {
+      "step": "BCG Results",
+      "reasoning": "Classification complete with strategic insights",
+      "observations": [
+        "Stars: 1 (high growth, high share)",
+        "Cash Cows: 0 (low growth, high share)",
+        "Question Marks: 0 (high growth, low share)",
+        "Dogs: 0 (low growth, low share)"
+      ],
+      "decisions": [
+        "Ready for campaign strategy development"
+      ],
+      "confidence": 0.88,
+      "timestamp": "2026-02-02T02:01:43.984796+00:00"
+    },
+    {
+      "step": "Sales Prediction",
+      "reasoning": "Training ML model and generating forecasts",
+      "observations": [
+        "Using 3 historical records",
+        "Preparing scenarios for comparison"
+      ],
+      "decisions": [
+        "Running XGBoost prediction with scenario analysis"
+      ],
+      "confidence": 0.75,
+      "timestamp": "2026-02-02T02:01:44.020223+00:00"
+    },
+    {
+      "step": "Prediction Vibe Verification",
+      "reasoning": "Autonomous verification of sales forecasts",
+      "observations": [
+        "Quality Score: 0.98"
+      ],
+      "decisions": [
+        "Predictions verified"
+      ],
+      "confidence": 0.98,
+      "timestamp": "2026-02-02T02:01:44.020485+00:00"
+    },
+    {
+      "step": "Campaign Generation",
+      "reasoning": "Creating data-driven marketing campaigns aligned with BCG strategy",
+      "observations": [
+        "Using BCG classifications for targeting",
+        "Incorporating prediction scenarios"
+      ],
+      "decisions": [
+        "Generating multi-channel campaigns with scheduling"
+      ],
+      "confidence": 0.82,
+      "timestamp": "2026-02-02T02:01:44.047066+00:00"
+    }
+  ],
+  "restaurant_name": "Our Restaurant",
+  "location": null,
+  "menu_items": [
+    {
+      "name": "Taco Pastor",
+      "price": 10
+    },
+    {
+      "name": "Guacamole",
+      "price": 8
+    }
+  ],
+  "sales_data": [
+    {
+      "item_name": "Taco Pastor",
+      "sale_date": "2024-01-01",
+      "units_sold": 50,
+      "revenue": 500.0,
+      "had_promotion": false,
+      "promotion_discount": 0.0
+    },
+    {
+      "item_name": "Taco Pastor",
+      "sale_date": "2024-01-02",
+      "units_sold": 60,
+      "revenue": 600.0,
+      "had_promotion": false,
+      "promotion_discount": 0.0
+    },
+    {
+      "item_name": "Guacamole",
+      "sale_date": "2024-01-01",
+      "units_sold": 20,
+      "revenue": 200.0,
+      "had_promotion": false,
+      "promotion_discount": 0.0
+    }
+  ],
+  "business_context": {
+    "cuisine_type": "Mexican",
+    "address": "Av. Reforma 123, Mexico City",
+    "goals": [
+      "Increase sales",
+      "Attract younger audience"
+    ]
+  },
+  "competitor_urls": [],
+  "image_scores": {
+    "Taco Pastor": 0.95
+  },
+  "discovered_competitors": [
+    {
+      "name": "Comp1",
+      "website": "http://comp1.com"
+    }
+  ],
+  "neighborhood_analysis": null,
+  "competitor_analysis": {
+    "market_position": "Leader"
+  },
+  "sentiment_analysis": {
+    "score": 0.8
+  },
+  "visual_gap_report": null,
+  "context_insights": {
+    "strategic_fit": "High"
+  },
+  "bcg_analysis": {
+    "products": [
+      {
+        "name": "Taco Pastor",
+        "classification": "star"
+      }
+    ]
+  },
+  "predictions": {
+    "forecast": []
+  },
+  "campaigns": [],
+  "verification_result": null,
+  "verification_history": [
+    {
+      "stage": "competitor_verification",
+      "result": {
+        "verified": true,
+        "confidence_score": 0.9
+      }
+    }
+  ],
+  "vibe_status": {
+    "final_analysis": {
+      "forecast": []
+    },
+    "quality_achieved": 0.98
+  },
+  "thinking_level": "standard",
+  "auto_verify": true,
+  "started_at": "2026-02-02T02:01:41.504199+00:00",
+  "completed_at": null,
+  "total_thinking_time_ms": 208
+}

@@ -2,6 +2,7 @@
 
 import { Calendar, Check, Copy, MessageSquare, Target, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface Campaign {
   id: number
@@ -28,6 +29,7 @@ export default function CampaignCards({ campaigns }: CampaignCardsProps) {
   const copyToClipboard = (text: string, id: number) => {
     navigator.clipboard.writeText(text)
     setCopiedId(id)
+    toast.success("Social post copy copied to clipboard!")
     setTimeout(() => setCopiedId(null), 2000)
   }
 

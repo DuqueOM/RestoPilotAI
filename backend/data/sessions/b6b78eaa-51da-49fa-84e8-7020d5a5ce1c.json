@@ -1,0 +1,175 @@
+{
+  "session_id": "b6b78eaa-51da-49fa-84e8-7020d5a5ce1c",
+  "current_stage": "failed",
+  "checkpoints": [
+    {
+      "stage": "menu_extraction",
+      "timestamp": "2026-02-02T01:47:26.272371+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "competitor_discovery",
+      "timestamp": "2026-02-02T01:47:26.437655+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Competitor Discovery"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "context_processing",
+      "timestamp": "2026-02-02T01:47:40.902755+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Competitor Discovery",
+        "Context Integration"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "bcg_classification",
+      "timestamp": "2026-02-02T01:47:40.959180+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Competitor Discovery",
+        "Context Integration",
+        "BCG Classification"
+      ],
+      "success": false,
+      "error": "'BCGClassifier' object has no attribute 'classify'"
+    }
+  ],
+  "thought_traces": [
+    {
+      "step": "Competitor Discovery",
+      "reasoning": "Scouting for competitors near 123 Main St",
+      "observations": [
+        "Initiating Scout Agent",
+        "Cuisine: Mexican"
+      ],
+      "decisions": [
+        "Searching for top relevant competitors"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T01:47:26.437541+00:00"
+    },
+    {
+      "step": "Context Integration",
+      "reasoning": "Integrating user-provided business context",
+      "observations": [
+        "Context keys: ['cuisine_type', 'address']"
+      ],
+      "decisions": [
+        "Enhancing insights with personalization"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T01:47:26.465684+00:00"
+    },
+    {
+      "step": "BCG Classification",
+      "reasoning": "Classifying products into BCG Matrix quadrants based on market share and growth",
+      "observations": [
+        "Analyzing 1 products",
+        "Using sales data for market dynamics"
+      ],
+      "decisions": [
+        "Applying Star/Cash Cow/Question Mark/Dog classification"
+      ],
+      "confidence": 0.85,
+      "timestamp": "2026-02-02T01:47:40.958819+00:00"
+    }
+  ],
+  "restaurant_name": "Our Restaurant",
+  "location": null,
+  "menu_items": [
+    {
+      "name": "Taco",
+      "price": 10
+    }
+  ],
+  "sales_data": [],
+  "business_context": {
+    "cuisine_type": "Mexican",
+    "address": "123 Main St"
+  },
+  "competitor_urls": [],
+  "image_scores": {},
+  "discovered_competitors": [],
+  "neighborhood_analysis": null,
+  "competitor_analysis": null,
+  "sentiment_analysis": null,
+  "visual_gap_report": null,
+  "context_insights": {
+    "context_integrated_insights": {
+      "bcg": [
+        "Star Strategy: Identify the highest-margin dish currently ordered by walk-ins and promote it as the 'Signature' to compensate for the lack of defined USPs.",
+        "Question Mark Strategy: Since history/values are N/A, use limited-time offers (LTOs) to test customer preferences and 'build' a brand identity based on real-time data.",
+        "Cash Cow Protection: Focus on high-volume, low-complexity staples to maintain cash flow while the brand's unique positioning is being developed."
+      ],
+      "pricing": [
+        "Market-Parity Baseline: In the absence of specific goals (like luxury or budget), implement a competitive 'Middle-Ground' pricing strategy to avoid alienating potential neighborhood demographics.",
+        "Value-Bundle Testing: Create 'Taster Menus' at a set price point to identify which price-value perception resonates most with the current anonymous audience.",
+        "Psychological Anchoring: Use 'Decoy Pricing' (one premium item) to make the standard menu items appear as better value, driving volume while the target audience is being refined."
+      ],
+      "positioning": [
+        "The 'Blank Canvas' Advantage: Position the restaurant as a fresh, modern alternative to established local incumbents with 'baggage'.",
+        "Community-Centric Reliability: Without a specific USP, the positioning should lean into 'Consistency and Quality'\u2014the two most valued traits for a neighborhood generalist.",
+        "Discovery-Based Marketing: Frame the lack of public history as a 'New Secret' or 'Hidden Gem' to pique curiosity among local foodies."
+      ]
+    },
+    "personalized_campaigns": [
+      {
+        "title": "Your New Daily Ritual",
+        "copy": "We don\u2019t believe in gimmicks\u2014just great food made right. Discover your new favorite local spot today.",
+        "why": "Since values are currently N/A, this neutral 'Quality First' messaging builds trust without over-promising specific niche experiences."
+      },
+      {
+        "title": "The Neighborhood\u2019s Best Kept Secret",
+        "copy": "No long stories, just long-lasting flavors. Come see why your neighbors are choosing us for their quiet nights out.",
+        "why": "Leverages the lack of history as a 'mystery/exclusivity' factor, turning a data gap into a marketing hook."
+      }
+    ],
+    "strategic_alignment": {
+      "goals_addressed": [
+        "Market Entry: Establishing a baseline presence through 'Discovery' campaigns since specific expansion goals are not yet defined.",
+        "Data-Driven Growth: Using initial sales data to fill the 'N/A' gaps in Target Audience and USP profiles."
+      ],
+      "challenges_tackled": [
+        "Identity Vacuum: Mitigating the lack of brand story by focusing on high-quality visual content and 'Blank Canvas' positioning.",
+        "Competitive Anonymity: Standing out from established competitors by emphasizing 'Freshness' and 'Newness' over traditional heritage."
+      ]
+    }
+  },
+  "bcg_analysis": null,
+  "predictions": null,
+  "campaigns": [],
+  "verification_result": null,
+  "verification_history": [],
+  "vibe_status": null,
+  "thinking_level": "standard",
+  "auto_verify": true,
+  "started_at": "2026-02-02T01:47:26.272321+00:00",
+  "completed_at": null,
+  "total_thinking_time_ms": 14437
+}

@@ -1,9 +1,10 @@
 from typing import Dict, List, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Body
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Body, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 from app.services.orchestrator import orchestrator, PipelineStage, AnalysisState
 from app.services.gemini.base_agent import ThinkingLevel
+from app.core.websocket_manager import manager
 from loguru import logger
 
 router = APIRouter()
@@ -167,37 +168,51 @@ async def cancel_task(task_id: str):
     raise HTTPException(status_code=404, detail="Task not found or already finished")
 
 @router.post("/marathon/recover/{task_id}", tags=["Marathon Agent"])
-async def recover_task(task_id: str):
+async def recover_task(task_id: str, background_tasks: BackgroundTasks):
     """Recover a failed task from last checkpoint."""
+    # First verify we can load the state
     success = await orchestrator.resume_session(task_id)
     if not success:
          raise HTTPException(status_code=400, detail="Could not recover task")
     
+    # Trigger execution in background to continue from where it left off
+    # Resume session loads state but doesn't auto-run. We need to call run_full_pipeline again.
+    # The orchestrator logic now skips completed stages.
+    background_tasks.add_task(
+        orchestrator.run_full_pipeline,
+        session_id=task_id,
+        # We don't need to pass other args as they are loaded from state/context
+        # But run_full_pipeline signature expects them as optional.
+        # Orchestrator handles missing args by looking at state.
+    )
+    
     return {"task_id": task_id, "status": "recovering"}
 
-@router.get("/marathon/checkpoints/{task_id}", tags=["Marathon Agent"])
-async def get_checkpoints(task_id: str):
-    """Get list of checkpoints for a task."""
-    # We need to access the state to get checkpoints
-    state = orchestrator.active_sessions.get(task_id) or orchestrator.completed_sessions.get(task_id)
-    
-    if not state:
-        # Try loading from disk
-        state = orchestrator._load_session_from_disk(task_id)
+@router.websocket("/ws/marathon/{task_id}")
+async def marathon_progress(websocket: WebSocket, task_id: str):
+    """
+    WebSocket endpoint for real-time Marathon Agent progress.
+    """
+    await manager.connect(websocket, task_id)
+    try:
+        # Send initial status
+        state = orchestrator.get_session_status(task_id)
+        if state:
+            await websocket.send_json({
+                "type": "initial_state",
+                "state": state
+            })
         
-    if not state:
-        raise HTTPException(status_code=404, detail="Task not found")
-        
-    # Convert internal checkpoints to frontend expected format
-    checkpoints = []
-    for i, cp in enumerate(state.checkpoints):
-        checkpoints.append({
-            "checkpoint_id": f"{task_id}_cp_{i}",
-            "task_id": task_id,
-            "step_index": i,
-            "timestamp": cp.timestamp.isoformat(),
-            "accumulated_results": {}, # valid data
-            "state_snapshot": {"stage": cp.stage.value}
-        })
-        
-    return checkpoints
+        # Keep connection alive and listen for client messages (if any)
+        # In this pattern, the server pushes updates via manager.broadcast/send_to_session
+        while True:
+            data = await websocket.receive_text()
+            # Client might send "ping" or commands, handle if needed
+            if data == "ping":
+                await websocket.send_text("pong")
+                
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, task_id)
+    except Exception as e:
+        logger.error(f"WebSocket error for task {task_id}: {e}")
+        manager.disconnect(websocket, task_id)

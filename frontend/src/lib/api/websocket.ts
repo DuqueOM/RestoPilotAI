@@ -12,6 +12,7 @@ export type WebSocketMessage = {
   stage?: string;
   progress?: number;
   message?: string;
+  error?: string;
   timestamp?: string;
 };
 

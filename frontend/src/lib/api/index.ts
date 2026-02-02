@@ -191,7 +191,7 @@ class RestoPilotAIAPI {
 
   async uploadMenu(file: File): Promise<MenuExtractionResult> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('files', file);
 
     const response = await fetch(`${this.baseUrl}/api/v1/ingest/menu`, {
       method: 'POST',
@@ -280,9 +280,13 @@ class RestoPilotAIAPI {
   // ==================== Orchestrator Endpoints ====================
 
   async runFullAnalysis(sessionId: string): Promise<{ status: string }> {
+    const formData = new FormData();
+    formData.append('session_id', sessionId);
+    
     return this.request<{ status: string }>('/api/v1/orchestrator/run', {
       method: 'POST',
-      body: JSON.stringify({ session_id: sessionId }),
+      body: formData,
+      headers: {}, // FormData handles boundary
     });
   }
 
@@ -316,9 +320,11 @@ class RestoPilotAIAPI {
     issues: string[];
     suggestions: string[];
   }> {
-    return this.request('/api/v1/verify/analysis', {
+    const params = new URLSearchParams();
+    params.append('session_id', sessionId);
+    
+    return this.request(`/api/v1/verify/analysis?${params.toString()}`, {
       method: 'POST',
-      body: JSON.stringify({ session_id: sessionId }),
     });
   }
 
@@ -426,6 +432,50 @@ class RestoPilotAIAPI {
       headers: {},
     });
   }
+
+  async generateCreativeAssets(
+    restaurantName: string,
+    dishId: number,
+    sessionId: string,
+    targetLanguages: string[] = ['es']
+  ): Promise<CreativeAutopilotResult> {
+    const params = new URLSearchParams();
+    params.append('restaurant_name', restaurantName);
+    params.append('dish_id', dishId.toString());
+    params.append('session_id', sessionId);
+    targetLanguages.forEach(lang => params.append('target_languages', lang));
+
+    return this.request<CreativeAutopilotResult>(`/api/v1/campaigns/creative-autopilot?${params.toString()}`, {
+      method: 'POST',
+    });
+  }
+}
+
+// ==================== Creative Autopilot Types ====================
+
+export interface VisualAsset {
+  type: string;
+  format: string;
+  image_data?: string; // base64
+  reasoning?: string;
+  concept?: string;
+  language?: string;
+  variant_type?: string;
+}
+
+export interface CreativeCampaignData {
+  strategy: any;
+  creative_concept: any;
+  visual_assets: VisualAsset[];
+  localized_versions?: Record<string, VisualAsset[]>;
+  ab_variants?: VisualAsset[];
+  estimated_impact?: number;
+}
+
+export interface CreativeAutopilotResult {
+  campaign_id: number;
+  campaign: CreativeCampaignData;
+  demo_url: string;
 }
 
 // ==================== Advanced Analytics Types ====================

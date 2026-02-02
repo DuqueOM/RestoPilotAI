@@ -1,0 +1,63 @@
+{
+  "session_id": "d14c4266-bccb-4af6-94b7-b91fa6dc69bb",
+  "current_stage": "menu_extraction",
+  "checkpoints": [
+    {
+      "stage": "menu_extraction",
+      "timestamp": "2026-02-02T01:45:50.018645+00:00",
+      "data": {
+        "items": 1
+      },
+      "thought_trace": [
+        "Extracted taco"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "menu_extraction",
+      "timestamp": "2026-02-02T01:45:50.018724+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [],
+      "success": true,
+      "error": null
+    }
+  ],
+  "thought_traces": [],
+  "restaurant_name": "Our Restaurant",
+  "location": null,
+  "menu_items": [
+    {
+      "name": "Taco",
+      "price": 10
+    }
+  ],
+  "sales_data": [],
+  "business_context": {
+    "cuisine_type": "Mexican",
+    "address": "123 Main St"
+  },
+  "competitor_urls": [],
+  "image_scores": {},
+  "discovered_competitors": [],
+  "neighborhood_analysis": null,
+  "competitor_analysis": null,
+  "sentiment_analysis": null,
+  "visual_gap_report": null,
+  "context_insights": null,
+  "bcg_analysis": null,
+  "predictions": null,
+  "campaigns": [],
+  "verification_result": null,
+  "verification_history": [],
+  "vibe_status": null,
+  "thinking_level": "standard",
+  "auto_verify": true,
+  "started_at": "2026-02-02T01:45:50.018636+00:00",
+  "completed_at": null,
+  "total_thinking_time_ms": 0
+}

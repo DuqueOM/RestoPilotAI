@@ -414,3 +414,31 @@ class CustomerPhotoAnalysis(Base):
 
     # Relationships
     session = relationship("SentimentAnalysisSession", back_populates="photo_analyses")
+
+
+class MarathonCheckpoint(Base):
+    """
+    Checkpoint for long-running Marathon Agent tasks.
+    Allows recovery from failures by storing the complete state at each stage.
+    """
+
+    __tablename__ = "marathon_checkpoints"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[str] = mapped_column(String(36), index=True)
+    
+    # Execution context
+    stage: Mapped[str] = mapped_column(String(50))
+    status: Mapped[str] = mapped_column(String(20)) # running, completed, failed
+    
+    # State storage (Snapshot of AnalysisState)
+    state_data: Mapped[Dict[str, Any]] = mapped_column(JSON)
+    
+    # Execution logs for this stage
+    thought_trace: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+

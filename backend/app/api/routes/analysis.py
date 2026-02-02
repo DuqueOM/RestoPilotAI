@@ -1,4 +1,7 @@
 from typing import Dict, List, Optional
+from pathlib import Path
+import aiofiles
+import asyncio
 
 import pandas as pd
 from app.api.deps import load_session, save_session, sessions
@@ -27,9 +30,10 @@ from app.services.gemini.base_agent import GeminiAgent, ThinkingLevel
 from app.services.gemini.multimodal import MultimodalAgent
 from app.services.gemini.reasoning_agent import ReasoningAgent
 from app.services.gemini.verification import VerificationAgent
+from app.services.gemini.vibe_engineering import VibeEngineeringAgent
 from app.services.intelligence.competitor_finder import ScoutAgent
 from app.services.orchestrator import orchestrator
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 from loguru import logger
 
 # Initialize router
@@ -40,6 +44,7 @@ settings = get_settings()
 agent = GeminiAgent()
 multimodal_agent = MultimodalAgent()
 reasoning_agent = ReasoningAgent()
+vibe_agent = VibeEngineeringAgent()
 
 bcg_classifier = BCGClassifier(agent)
 menu_engineering = MenuEngineeringClassifier()
@@ -58,7 +63,7 @@ scout_agent = ScoutAgent()
 
 
 @router.post("/analyze/bcg", tags=["Analyze"])
-async def run_bcg_analysis(session_id: str, period: str = "30d"):
+async def run_bcg_analysis(session_id: str, period: str = "30d", auto_verify: bool = True):
     """Run Menu Engineering analysis on menu items."""
     session = load_session(session_id)
     if not session:
@@ -125,19 +130,46 @@ async def run_bcg_analysis(session_id: str, period: str = "30d"):
 
     try:
         result = await menu_engineering.analyze(menu_items, sales_data, analysis_period)
+        
+        # Vibe Engineering Loop
+        vibe_data = None
+        if auto_verify:
+            try:
+                vibe_result = await vibe_agent.verify_and_improve_analysis(
+                    analysis_type="bcg_classification",
+                    analysis_result=result,
+                    source_data={
+                        "menu_items_count": len(menu_items), 
+                        "sales_records": len(sales_data),
+                        "period": period
+                    },
+                    auto_improve=True
+                )
+                result = vibe_result["final_analysis"]
+                vibe_data = vibe_result
+                sessions[session_id]["vibe_bcg"] = vibe_data
+                # Update global vibe status for frontend visibility
+                sessions[session_id]["vibe_status"] = vibe_data
+            except Exception as ve:
+                logger.error(f"Vibe Engineering failed for BCG: {ve}")
+        
         sessions[session_id]["bcg_analysis"] = result
         save_session(session_id)
 
-        return {
+        response = {
             "session_id": session_id,
             "status": "success",
-            "summary": result.get("summary", {}),
-            "items": result.get("items", []),
+            **result, # Include full result (period, thresholds, data_quality, etc.)
             "thought_signature": await agent.create_thought_signature(
                 "Menu Engineering analysis",
                 {"items": len(menu_items), "period": period},
             ),
         }
+        
+        if vibe_data:
+            response["vibe_verification"] = vibe_data
+            
+        return response
     except Exception as e:
         logger.error(f"BCG analysis failed: {e}")
         raise HTTPException(500, str(e))
@@ -149,6 +181,7 @@ async def predict_sales(
     horizon_days: int = 14,
     scenarios: Optional[List[Dict]] = None,
     period: str = "all",
+    auto_verify: bool = True,
 ):
     """Generate sales predictions."""
     session = load_session(session_id)
@@ -195,10 +228,31 @@ async def predict_sales(
             items_for_prediction, horizon_days, scenarios
         )
 
+        # Vibe Engineering Loop
+        vibe_data = None
+        if auto_verify:
+            try:
+                vibe_result = await vibe_agent.verify_and_improve_analysis(
+                    analysis_type="sales_prediction",
+                    analysis_result=result,
+                    source_data={
+                        "items_count": len(items_for_prediction),
+                        "horizon_days": horizon_days,
+                        "scenarios": [s.get("name") for s in scenarios]
+                    },
+                    auto_improve=True
+                )
+                result = vibe_result["final_analysis"]
+                vibe_data = vibe_result
+                sessions[session_id]["vibe_predictions"] = vibe_data
+                sessions[session_id]["vibe_status"] = vibe_data
+            except Exception as ve:
+                logger.error(f"Vibe Engineering failed for Sales Prediction: {ve}")
+
         sessions[session_id]["predictions"] = result
         save_session(session_id)
 
-        return {
+        response = {
             "session_id": session_id,
             "status": "success",
             "scenario_totals": result["scenario_totals"],
@@ -207,6 +261,11 @@ async def predict_sales(
                 "Sales prediction", {"horizon": horizon_days}
             ),
         }
+        
+        if vibe_data:
+            response["vibe_verification"] = vibe_data
+            
+        return response
     except Exception as e:
         logger.error(f"Prediction failed: {e}")
         raise HTTPException(500, str(e))
@@ -218,6 +277,7 @@ async def generate_campaigns(
     num_campaigns: int = 3,
     duration_days: int = 14,
     channels: Optional[List[str]] = None,
+    auto_verify: bool = True,
 ):
     """Generate AI-powered marketing campaigns."""
     session = load_session(session_id)
@@ -244,22 +304,53 @@ async def generate_campaigns(
             duration_days,
             channels,
         )
-        sessions[session_id]["campaigns"] = result["campaigns"]
+        
+        campaigns_result = result["campaigns"]
+        
+        # Vibe Engineering Loop
+        vibe_data = None
+        if auto_verify:
+            try:
+                # Wrap campaigns in a dict for analysis structure
+                analysis_wrapper = {"campaigns": campaigns_result}
+                vibe_result = await vibe_agent.verify_and_improve_analysis(
+                    analysis_type="campaign_generation",
+                    analysis_result=analysis_wrapper,
+                    source_data={
+                        "num_campaigns": num_campaigns,
+                        "duration_days": duration_days,
+                        "channels": channels
+                    },
+                    auto_improve=True
+                )
+                campaigns_result = vibe_result["final_analysis"]["campaigns"]
+                vibe_data = vibe_result
+                sessions[session_id]["vibe_campaigns"] = vibe_data
+                sessions[session_id]["vibe_status"] = vibe_data
+            except Exception as ve:
+                logger.error(f"Vibe Engineering failed for Campaigns: {ve}")
+
+        sessions[session_id]["campaigns"] = campaigns_result
         save_session(session_id)
 
-        return {
+        response = {
             "session_id": session_id,
             "status": "success",
-            "campaigns": result["campaigns"],
+            "campaigns": campaigns_result,
             "thought_signature": result["thought_signature"],
         }
+        
+        if vibe_data:
+            response["vibe_verification"] = vibe_data
+            
+        return response
     except Exception as e:
         logger.error(f"Campaign generation failed: {e}")
         raise HTTPException(500, str(e))
 
 
 @router.post("/analyze/competitors", tags=["Analyze"])
-async def analyze_competitors(session_id: str):
+async def analyze_competitors(session_id: str, auto_verify: bool = True):
     """Run comprehensive competitor analysis."""
     session = load_session(session_id)
     if not session:
@@ -296,10 +387,31 @@ async def analyze_competitors(session_id: str):
         )
 
         result_dict = result.to_dict()
+        
+        # Vibe Engineering Loop
+        vibe_data = None
+        if auto_verify:
+            try:
+                vibe_result = await vibe_agent.verify_and_improve_analysis(
+                    analysis_type="competitor_analysis",
+                    analysis_result=result_dict,
+                    source_data={
+                        "competitors_count": len(competitor_sources),
+                        "restaurant_name": session.get("business_location", {}).get("name")
+                    },
+                    auto_improve=True
+                )
+                result_dict = vibe_result["final_analysis"]
+                vibe_data = vibe_result
+                sessions[session_id]["vibe_competitors"] = vibe_data
+                sessions[session_id]["vibe_status"] = vibe_data
+            except Exception as ve:
+                logger.error(f"Vibe Engineering failed for Competitors: {ve}")
+
         sessions[session_id]["competitor_analysis"] = result_dict
         save_session(session_id)
 
-        return {
+        response = {
             "session_id": session_id,
             "status": "success",
             "competitor_analysis": result_dict,
@@ -307,13 +419,18 @@ async def analyze_competitors(session_id: str):
                 "Competitor Analysis", {"competitors": len(competitor_sources)}
             ),
         }
+        
+        if vibe_data:
+            response["vibe_verification"] = vibe_data
+            
+        return response
     except Exception as e:
         logger.error(f"Competitor analysis failed: {e}")
         raise HTTPException(500, str(e))
 
 
 @router.post("/analyze/sentiment", tags=["Analyze"])
-async def analyze_sentiment(session_id: str):
+async def analyze_sentiment(session_id: str, auto_verify: bool = True):
     """Run multi-modal sentiment analysis."""
     session = load_session(session_id)
     if not session:
@@ -350,10 +467,31 @@ async def analyze_sentiment(session_id: str):
         )
 
         result_dict = result.to_dict()
+        
+        # Vibe Engineering Loop
+        vibe_data = None
+        if auto_verify:
+            try:
+                vibe_result = await vibe_agent.verify_and_improve_analysis(
+                    analysis_type="sentiment_analysis",
+                    analysis_result=result_dict,
+                    source_data={
+                        "reviews_count": len(reviews),
+                        "menu_items_count": len(session.get("menu_items", [])),
+                    },
+                    auto_improve=True
+                )
+                result_dict = vibe_result["final_analysis"]
+                vibe_data = vibe_result
+                sessions[session_id]["vibe_sentiment"] = vibe_data
+                sessions[session_id]["vibe_status"] = vibe_data
+            except Exception as ve:
+                logger.error(f"Vibe Engineering failed for Sentiment: {ve}")
+
         sessions[session_id]["sentiment_analysis"] = result_dict
         save_session(session_id)
 
-        return {
+        response = {
             "session_id": session_id,
             "status": "success",
             "sentiment_analysis": result_dict,
@@ -361,6 +499,11 @@ async def analyze_sentiment(session_id: str):
                 "Sentiment Analysis", {"reviews": len(reviews)}
             ),
         }
+        
+        if vibe_data:
+            response["vibe_verification"] = vibe_data
+            
+        return response
     except Exception as e:
         logger.error(f"Sentiment analysis failed: {e}")
         raise HTTPException(500, str(e))
@@ -490,18 +633,31 @@ async def start_new_analysis(
     }
     
     # 3. Process Files
-    menu_bytes = []
-    for file in menuFiles:
-        menu_bytes.append(await file.read())
+    upload_dir = Path(f"data/uploads/{session_id}")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    async def save_uploads(files: List[UploadFile], subdir: str) -> List[str]:
+        saved_paths = []
+        if not files:
+            return saved_paths
         
-    dish_bytes = []
-    for file in photoFiles:
-        dish_bytes.append(await file.read())
+        target_dir = upload_dir / subdir
+        target_dir.mkdir(exist_ok=True)
+        
+        for file in files:
+            file_path = target_dir / file.filename
+            async with aiofiles.open(file_path, 'wb') as out_file:
+                content = await file.read()
+                await out_file.write(content)
+            saved_paths.append(str(file_path))
+        return saved_paths
+
+    menu_paths = await save_uploads(menuFiles, "menu")
+    dish_paths = await save_uploads(photoFiles, "dishes")
     
     # Save competitor files to disk and prepare data structure
     competitor_data = []
-    upload_dir = Path(f"data/uploads/{session_id}")
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    # Reuse upload_dir logic
     
     competitor_dir = upload_dir / "competitors"
     competitor_dir.mkdir(exist_ok=True)
@@ -513,7 +669,7 @@ async def start_new_analysis(
             await out_file.write(content)
             
         competitor_data.append({
-            "content": content,
+            "content": None, # Orchestrator now uses path
             "filename": file.filename,
             "mime_type": file.content_type,
             "path": str(file_path)
@@ -535,7 +691,8 @@ async def start_new_analysis(
         saved_paths = []
         for i, file in enumerate(files):
             if not file: continue
-            path = upload_dir / f"{prefix}_{i}_{file.filename}"
+            path = upload_dir / "audio" / f"{prefix}_{i}_{file.filename}"
+            path.parent.mkdir(exist_ok=True)
             async with aiofiles.open(path, 'wb') as out_file:
                 content = await file.read()
                 await out_file.write(content)
@@ -554,8 +711,8 @@ async def start_new_analysis(
         # Run in background via asyncio task
         asyncio.create_task(orchestrator.run_full_pipeline(
             session_id=session_id,
-            menu_images=menu_bytes,
-            dish_images=dish_bytes,
+            menu_images=menu_paths,
+            dish_images=dish_paths,
             competitor_files=competitor_data, # Pass structured data
             sales_csv=sales_csv,
             address=location,
@@ -575,6 +732,8 @@ async def start_new_analysis(
 
 @router.post("/orchestrator/run", tags=["Orchestrator"])
 async def run_autonomous_pipeline(
+    background_tasks: BackgroundTasks,
+    session_id: Optional[str] = Form(None), # Allow passing existing session_id
     menu_image: Optional[UploadFile] = File(None),
     dish_images: Optional[List[UploadFile]] = File(None),
     sales_file: Optional[UploadFile] = File(None),
@@ -587,31 +746,34 @@ async def run_autonomous_pipeline(
     except ValueError:
         level = ThinkingLevel.STANDARD
 
-    session_id = await orchestrator.create_session()
+    # Use provided session_id or create new one
+    if not session_id:
+        session_id = await orchestrator.create_session()
 
     menu_bytes = [await menu_image.read()] if menu_image else None
     dish_bytes = [await img.read() for img in dish_images] if dish_images else None
     sales_csv = (await sales_file.read()).decode("utf-8") if sales_file else None
 
-    try:
-        result = await orchestrator.run_full_pipeline(
-            session_id=session_id,
-            menu_images=menu_bytes,
-            dish_images=dish_bytes,
-            sales_csv=sales_csv,
-            thinking_level=level,
-            auto_verify=auto_verify,
-        )
-        return result
-    except Exception as e:
-        logger.error(f"Orchestrator failed: {e}")
-        raise HTTPException(500, str(e))
+    # Run in background
+    background_tasks.add_task(
+        orchestrator.run_full_pipeline,
+        session_id=session_id,
+        menu_images=menu_bytes,
+        dish_images=dish_bytes,
+        sales_csv=sales_csv,
+        thinking_level=level,
+        auto_verify=auto_verify,
+    )
+    
+    return {"session_id": session_id, "status": "started"}
 
 
 @router.get("/orchestrator/status/{session_id}", tags=["Orchestrator"])
 async def get_orchestrator_status(session_id: str):
     status = orchestrator.get_session_status(session_id)
     if not status:
+        # If not found in memory/disk, check if it's a valid session ID format at least?
+        # Or just return 404.
         raise HTTPException(404, "Session not found")
     return status
 
@@ -619,9 +781,11 @@ async def get_orchestrator_status(session_id: str):
 @router.post("/orchestrator/resume/{session_id}", tags=["Orchestrator"])
 async def resume_orchestrator_session(
     session_id: str,
+    background_tasks: BackgroundTasks,
     thinking_level: Optional[str] = Form(None),
     auto_verify: Optional[bool] = Form(None),
 ):
+    # First verify we can load the state
     status = await orchestrator.resume_session(session_id)
     if not status:
         raise HTTPException(404, "Session not found")
@@ -633,14 +797,15 @@ async def resume_orchestrator_session(
         except ValueError:
             pass
 
-    try:
-        result = await orchestrator.run_full_pipeline(
-            session_id=session_id, thinking_level=level, auto_verify=auto_verify
-        )
-        return result
-    except Exception as e:
-        logger.error(f"Resume failed: {e}")
-        raise HTTPException(500, str(e))
+    # Run in background
+    background_tasks.add_task(
+        orchestrator.run_full_pipeline,
+        session_id=session_id, 
+        thinking_level=level, 
+        auto_verify=auto_verify
+    )
+    
+    return {"session_id": session_id, "status": "resumed"}
 
 
 @router.post("/verify/analysis", tags=["Verification"])

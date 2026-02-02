@@ -152,7 +152,7 @@ export default function SetupPage() {
       router.push(`/analysis/${analysis_id}`);
     } catch (error) {
       console.error('Error starting analysis:', error);
-      alert('Failed to start analysis. Please try again.');
+      toast.error('Failed to start analysis. Please try again.');
       setIsSubmitting(false);
     }
   };

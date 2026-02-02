@@ -1,0 +1,44 @@
+{
+  "session_id": "ce77fb37-ea98-4c47-8cda-a545affcd336",
+  "current_stage": "initialized",
+  "checkpoints": [],
+  "thought_traces": [
+    {
+      "step": "Session Initialization",
+      "reasoning": "Creating new analysis session for restaurant optimization",
+      "observations": [
+        "Fresh session created",
+        "All pipeline stages pending"
+      ],
+      "decisions": [
+        "Ready to receive data inputs"
+      ],
+      "confidence": 1.0,
+      "timestamp": "2026-02-02T03:14:11.747207+00:00"
+    }
+  ],
+  "restaurant_name": "Our Restaurant",
+  "location": null,
+  "menu_items": [],
+  "sales_data": [],
+  "business_context": {},
+  "competitor_urls": [],
+  "image_scores": {},
+  "discovered_competitors": [],
+  "neighborhood_analysis": null,
+  "competitor_analysis": null,
+  "sentiment_analysis": null,
+  "visual_gap_report": null,
+  "context_insights": null,
+  "bcg_analysis": null,
+  "predictions": null,
+  "campaigns": [],
+  "verification_result": null,
+  "verification_history": [],
+  "vibe_status": null,
+  "thinking_level": "standard",
+  "auto_verify": true,
+  "started_at": "2026-02-02T03:14:11.747166+00:00",
+  "completed_at": null,
+  "total_thinking_time_ms": 0
+}

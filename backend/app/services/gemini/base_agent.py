@@ -183,10 +183,19 @@ class GeminiBaseAgent:
         prompt: str,
         images: Optional[List[bytes]] = None,
         thinking_level: str = "STANDARD",
+        return_full_response: bool = False,
         **kwargs
-    ) -> str:
-        """Generate content with retry logic"""
+    ) -> Any:
+        """
+        Generate content with retry logic.
         
+        Args:
+            prompt: Text prompt
+            images: Optional list of image bytes
+            thinking_level: Analysis depth
+            return_full_response: If True, returns full response object instead of text
+            **kwargs: Additional generation config
+        """
         start_time = datetime.now()
         
         try:
@@ -213,6 +222,9 @@ class GeminiBaseAgent:
             if thinking_level == "DEEP" or thinking_level == "EXHAUSTIVE":
                 config_kwargs["temperature"] = 0.8 
             
+            # Extract internal parameters that shouldn't go to API config
+            feature = kwargs.pop("feature", None)
+            
             config_kwargs.update(kwargs)
 
             # Get timeout from settings
@@ -220,11 +232,6 @@ class GeminiBaseAgent:
             timeout = settings.gemini_timeout_seconds
 
             # Generate
-            # Using asyncio.to_thread for the sync client call if needed, 
-            # but genai.Client has async support if configured? 
-            # The current SDK genai.Client seems to support sync calls.
-            # We wrap in asyncio.to_thread to keep it async friendly.
-            
             def _sync_generate():
                 return self.client.models.generate_content(
                     model=self.model_name,
@@ -244,7 +251,7 @@ class GeminiBaseAgent:
                 self.usage_stats["total_tokens"] += tokens
                 self.usage_stats["total_requests"] += 1
                 self.usage_stats["total_cost_usd"] += tokens * 0.00001  # Approximate
-                self.total_tokens += tokens # Keep compatibility
+                self.total_tokens += tokens 
             else:
                 tokens = 0
             
@@ -261,6 +268,8 @@ class GeminiBaseAgent:
                 has_images=bool(images)
             )
             
+            if return_full_response:
+                return response
             return response.text
             
         except Exception as e:
@@ -274,80 +283,6 @@ class GeminiBaseAgent:
     def get_usage_stats(self) -> Dict[str, Any]:
         """Return usage statistics"""
         return self.usage_stats
-
-    async def create_thought_signature(
-        self, task: str, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Generate a Thought Signature - a transparent reasoning trace.
-
-        This is a key differentiator that shows the agent's planning
-        and reasoning process before executing tasks.
-        """
-
-        prompt = f"""You are RestoPilotAI, an AI assistant for restaurant optimization.
-        
-Before executing the following task, create a detailed thought signature that outlines:
-1. Your plan of action (numbered steps)
-2. Key observations from the provided context
-3. Your main reasoning chain
-4. Assumptions you're making
-5. Your confidence level (0-1)
-
-Task: {task}
-
-Context:
-{json.dumps(context, indent=2, default=str)}
-
-Respond in this exact JSON format:
-{{
-    "plan": ["Step 1: ...", "Step 2: ...", ...],
-    "observations": ["Observation 1", "Observation 2", ...],
-    "reasoning": "Main reasoning explanation...",
-    "assumptions": ["Assumption 1", "Assumption 2", ...],
-    "confidence": 0.85
-}}
-"""
-
-        response = await self._call_gemini(prompt)
-        self.call_count += 1
-
-        try:
-            # Parse JSON from response
-            json_str = response.text
-            if "```json" in json_str:
-                json_str = json_str.split("```json")[1].split("```")[0]
-            elif "```" in json_str:
-                json_str = json_str.split("```")[1].split("```")[0]
-
-            return json.loads(json_str.strip())
-        except (json.JSONDecodeError, IndexError):
-            # Fallback structure
-            return {
-                "plan": [f"Execute {task}"],
-                "observations": ["Context provided"],
-                "reasoning": response.text[:500],
-                "assumptions": ["Standard analysis assumptions apply"],
-                "confidence": 0.7,
-            }
-
-    async def extract_menu_from_pdf(
-        self, pdf_path: str, additional_context: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """
-        Extract menu items from a PDF file.
-
-        Args:
-        - pdf_path (str): Path to the PDF file.
-        - additional_context (str, optional): Additional context to provide to the model.
-
-        Returns:
-        - Dict[str, Any]: Extracted menu items in a structured format.
-        """
-
-        # TODO: Implement PDF extraction using Gemini API
-
-        return {}
 
     def _define_tools(self) -> List[types.Tool]:
         """Define tools available to the agent for function calling."""
@@ -489,6 +424,31 @@ Respond in this exact JSON format:
             )
         ]
 
+    def _extract_thought_signature(self, response_text: str) -> Dict[str, Any]:
+        """
+        Extract structured thought signature from response text.
+        Handles JSON blocks and fallback parsing.
+        """
+        try:
+            # Try to find JSON block
+            if "```json" in response_text:
+                json_str = response_text.split("```json")[1].split("```")[0]
+            elif "```" in response_text:
+                json_str = response_text.split("```")[1].split("```")[0]
+            else:
+                json_str = response_text
+
+            return json.loads(json_str.strip())
+        except (json.JSONDecodeError, IndexError):
+            # Fallback structure
+            return {
+                "plan": ["Execution plan inferred from content"],
+                "observations": ["Content generated without explicit structure"],
+                "reasoning": response_text[:500],
+                "assumptions": ["Standard assumptions"],
+                "confidence": 0.5,
+            }
+
     async def create_thought_signature(
         self, task: str, context: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -526,24 +486,7 @@ Respond in this exact JSON format:
         response = await self._call_gemini(prompt)
         self.call_count += 1
 
-        try:
-            # Parse JSON from response
-            json_str = response.text
-            if "```json" in json_str:
-                json_str = json_str.split("```json")[1].split("```")[0]
-            elif "```" in json_str:
-                json_str = json_str.split("```")[1].split("```")[0]
-
-            return json.loads(json_str.strip())
-        except (json.JSONDecodeError, IndexError):
-            # Fallback structure
-            return {
-                "plan": [f"Execute {task}"],
-                "observations": ["Context provided"],
-                "reasoning": response.text[:500],
-                "assumptions": ["Standard analysis assumptions apply"],
-                "confidence": 0.7,
-            }
+        return self._extract_thought_signature(response.text)
 
     async def extract_menu_from_pdf(
         self, pdf_path: str, additional_context: Optional[str] = None
@@ -663,7 +606,7 @@ NO RESUMAS. NO AGRUPES. NO OMITAS NADA.
 CONTEXTO: Estás procesando menús densos (ej: listas de licores con 50+ items, menús de platos fuertes con 100+ items).
 Tu trabajo es listar CADA UNO de ellos individualmente.
 
-� **INSTRUCCIONES DE VISIÓN Y LECTURA:**
+ **INSTRUCCIONES DE VISIÓN Y LECTURA:**
 1.  **Escaneo Estructural**: Analiza columnas, tablas, notas al pie, cajas laterales y texto superpuesto en imágenes.
 2.  **Manejo de Variantes**: Si ves "Cervezas: Corona, Modelo, Victoria... $50", DEBES crear 3 items separados (Cerveza Corona, Cerveza Modelo, Cerveza Victoria), todos con precio 50.
 3.  **Licores y Botellas**: Si hay una lista de tequilas/whiskies, extrae CADA MARCA y TIPO como un item individual.
@@ -1050,79 +993,6 @@ Be critical and thorough."""
             ),
         )
         return response
-
-    async def generate(
-        self,
-        prompt: str,
-        images: Optional[List[bytes]] = None,
-        thinking_level: str = "STANDARD",
-        **kwargs
-    ) -> str:
-        """
-        Generic generation method to support new agents.
-        
-        Args:
-            prompt: Text prompt
-            images: Optional list of image bytes
-            thinking_level: Analysis depth
-            **kwargs: Additional generation config
-        """
-        start_time = time.time()
-        
-        try:
-            parts = [types.Part(text=prompt)]
-            
-            if images:
-                for img_bytes in images:
-                    parts.append(
-                        types.Part(
-                            inline_data=types.Blob(
-                                mime_type="image/jpeg", 
-                                data=img_bytes
-                            )
-                        )
-                    )
-
-            # Map thinking level to config
-            config_kwargs = {
-                "temperature": 0.7,
-                "max_output_tokens": 4096
-            }
-            if thinking_level == "DEEP" or thinking_level == "EXHAUSTIVE":
-                config_kwargs["temperature"] = 0.8 
-                pass
-            
-            config_kwargs.update(kwargs)
-
-            response = self.client.models.generate_content(
-                model=self.MODEL_NAME,
-                contents=[types.Content(parts=parts)],
-                config=types.GenerateContentConfig(**config_kwargs)
-            )
-
-            # Track usage
-            if hasattr(response, 'usage_metadata'):
-                usage = response.usage_metadata
-                p_tokens = usage.prompt_token_count if usage else 0
-                c_tokens = usage.candidates_token_count if usage else 0
-                total = p_tokens + c_tokens
-                
-                self.total_tokens += total
-            
-            latency = (time.time() - start_time) * 1000
-            logger.info(
-                "gemini_request_generic",
-                model=self.MODEL_NAME,
-                thinking_level=thinking_level,
-                latency_ms=latency,
-                has_images=bool(images)
-            )
-
-            return response.text
-
-        except Exception as e:
-            logger.error(f"Gemini generic generation failed: {e}")
-            raise
 
     async def _call_gemini_with_tools(
         self, prompt: str, context: Optional[List[Any]] = None

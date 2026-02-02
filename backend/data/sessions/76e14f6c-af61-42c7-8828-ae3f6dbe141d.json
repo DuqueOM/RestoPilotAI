@@ -1,0 +1,170 @@
+{
+  "session_id": "76e14f6c-af61-42c7-8828-ae3f6dbe141d",
+  "current_stage": "failed",
+  "checkpoints": [
+    {
+      "stage": "menu_extraction",
+      "timestamp": "2026-02-02T01:52:15.463855+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "competitor_discovery",
+      "timestamp": "2026-02-02T01:52:15.838191+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Competitor Discovery"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "context_processing",
+      "timestamp": "2026-02-02T01:52:35.224404+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Competitor Discovery",
+        "Context Integration"
+      ],
+      "success": true,
+      "error": null
+    },
+    {
+      "stage": "bcg_classification",
+      "timestamp": "2026-02-02T01:52:35.258680+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Competitor Discovery",
+        "Context Integration",
+        "BCG Classification"
+      ],
+      "success": false,
+      "error": "'BCGClassifier' object has no attribute 'classify'"
+    }
+  ],
+  "thought_traces": [
+    {
+      "step": "Competitor Discovery",
+      "reasoning": "Scouting for competitors near 123 Main St",
+      "observations": [
+        "Initiating Scout Agent",
+        "Cuisine: Mexican"
+      ],
+      "decisions": [
+        "Searching for top relevant competitors"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T01:52:15.838017+00:00"
+    },
+    {
+      "step": "Context Integration",
+      "reasoning": "Integrating user-provided business context",
+      "observations": [
+        "Context keys: ['cuisine_type', 'address']"
+      ],
+      "decisions": [
+        "Enhancing insights with personalization"
+      ],
+      "confidence": 0.9,
+      "timestamp": "2026-02-02T01:52:15.979517+00:00"
+    },
+    {
+      "step": "BCG Classification",
+      "reasoning": "Classifying products into BCG Matrix quadrants based on market share and growth",
+      "observations": [
+        "Analyzing 1 products",
+        "Using sales data for market dynamics"
+      ],
+      "decisions": [
+        "Applying Star/Cash Cow/Question Mark/Dog classification"
+      ],
+      "confidence": 0.85,
+      "timestamp": "2026-02-02T01:52:35.258406+00:00"
+    }
+  ],
+  "restaurant_name": "Our Restaurant",
+  "location": null,
+  "menu_items": [
+    {
+      "name": "Taco",
+      "price": 10
+    }
+  ],
+  "sales_data": [],
+  "business_context": {
+    "cuisine_type": "Mexican",
+    "address": "123 Main St"
+  },
+  "competitor_urls": [],
+  "image_scores": {},
+  "discovered_competitors": [],
+  "neighborhood_analysis": null,
+  "competitor_analysis": null,
+  "sentiment_analysis": null,
+  "visual_gap_report": null,
+  "context_insights": {
+    "context_integrated_insights": {
+      "bcg": [
+        "Discovery Phase: Since USPs are currently undefined, perform a 'Signature Audit' on high-margin items. Items with the highest repeat purchase rate should be retroactively designated as your 'Stars' and foundational USPs.",
+        "Menu Engineering: Without stated values (like health-conscious or indulgence), treat 'Question Marks' as experimental slots to test different cuisines or price points to see what the local market naturally gravitates toward."
+      ],
+      "pricing": [
+        "Market-Responsive Strategy: In the absence of specific goals, implement 'Dynamic Testing.' Start with mid-market pricing to gather a broad data set, then pivot toward 'Premium' or 'Value' based on which segment shows the highest customer lifetime value (CLV).",
+        "Elasticity Benchmarking: Use promotional 'Power Hours' to identify the price sensitivity of your neighborhood, helping to define the Target Audience by their spending habits."
+      ],
+      "positioning": [
+        "The 'Blank Canvas' Approach: Position the restaurant as a fresh, community-led space. Use the lack of history as a strength, marketing the venue as 'The Neighborhood\u2019s Newest Tradition' where the customers help write the story.",
+        "Reliability Focus: Until specific brand values are identified, lead with 'Universal Quality'\u2014positioning the brand around high standards of service and cleanliness to appeal to the widest possible demographic."
+      ]
+    },
+    "personalized_campaigns": [
+      {
+        "title": "The 'Help Us Build It' Series",
+        "copy": "We\u2019re new, we\u2019re fresh, and we want to be your favorite. Tell us what your dream neighborhood spot looks like, and watch us bring it to life.",
+        "why": "Directly addresses the 'N/A' context by turning the lack of history/values into an interactive brand-building exercise."
+      },
+      {
+        "title": "Founders\u2019 Choice Secret Menu",
+        "copy": "We\u2019re testing three new secret recipes this week. Come in, try them, and vote for the one that earns a permanent spot on our menu.",
+        "why": "Uses customer feedback to identify USPs and Target Audience preferences in real-time."
+      }
+    ],
+    "strategic_alignment": {
+      "goals_addressed": [
+        "Identity Formation: The primary goal is to transition from 'N/A' to a defined brand profile. This strategy uses the first 3 months of operations as a 'Live Pilot' to gather the data needed for a full brand launch."
+      ],
+      "challenges_tackled": [
+        "Brand Anonymity: By inviting the neighborhood to 'shape the restaurant,' we overcome the challenge of having no established history or USP, creating an immediate emotional investment from locals."
+      ]
+    }
+  },
+  "bcg_analysis": null,
+  "predictions": null,
+  "campaigns": [],
+  "verification_result": null,
+  "verification_history": [],
+  "vibe_status": null,
+  "thinking_level": "standard",
+  "auto_verify": true,
+  "started_at": "2026-02-02T01:52:15.463827+00:00",
+  "completed_at": null,
+  "total_thinking_time_ms": 19245
+}
