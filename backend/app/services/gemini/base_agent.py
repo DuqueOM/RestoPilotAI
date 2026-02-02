@@ -166,6 +166,79 @@ class GeminiBaseAgent:
             return self.settings.gemini_model_image_gen
         else:
             return self.settings.gemini_model_primary
+    
+    # === THOUGHT SIGNATURES ===
+    
+    def _create_thought_signature(self, prompt: str, thinking_level: str) -> str:
+        """
+        Create prompt with Thought Signature for transparent reasoning.
+        
+        CRÍTICO PARA HACKATHON: Muestra el proceso de razonamiento del modelo.
+        
+        Args:
+            prompt: Original prompt
+            thinking_level: Depth of reasoning (QUICK, STANDARD, DEEP, EXHAUSTIVE)
+            
+        Returns:
+            Enhanced prompt with thought signature instructions
+        """
+        depth_descriptions = {
+            "QUICK": "Quick analysis, 1-2 reasoning steps",
+            "STANDARD": "Standard analysis, 3-5 reasoning steps",
+            "DEEP": "Deep analysis, multi-perspective, 5-10 steps",
+            "EXHAUSTIVE": "Exhaustive analysis, comprehensive, 10+ steps"
+        }
+        
+        enhanced_prompt = f"""[THOUGHT SIGNATURE - Level: {thinking_level.upper()}]
+
+Expected Depth: {depth_descriptions.get(thinking_level.upper(), "Standard analysis")}
+
+{prompt}
+
+IMPORTANT: Structure your response as follows:
+
+<thinking>
+[Show your step-by-step reasoning process here]
+Step 1: [Initial analysis]
+Step 2: [Considerations]
+Step 3: [Cross-checking]
+Step 4: [Conclusion]
+</thinking>
+
+<answer>
+[Provide the final response here]
+</answer>
+
+This thought trace will be visible for transparency."""
+        
+        return enhanced_prompt
+    
+    def _extract_thought_trace(self, response_text: str) -> Optional[str]:
+        """Extract thought trace from response."""
+        try:
+            start = response_text.find("<thinking>") + len("<thinking>")
+            end = response_text.find("</thinking>")
+            
+            if start > len("<thinking>") - 1 and end > -1:
+                return response_text[start:end].strip()
+        except Exception as e:
+            logger.debug(f"Could not extract thought trace: {e}")
+        
+        return None
+    
+    def _extract_answer(self, response_text: str) -> str:
+        """Extract final answer from response."""
+        try:
+            start = response_text.find("<answer>") + len("<answer>")
+            end = response_text.find("</answer>")
+            
+            if start > len("<answer>") - 1 and end > -1:
+                return response_text[start:end].strip()
+        except Exception as e:
+            logger.debug(f"Could not extract answer: {e}")
+        
+        # If no tags, return full text
+        return response_text
 
     async def generate_response(
         self,
@@ -328,6 +401,278 @@ class GeminiBaseAgent:
     def get_usage_stats(self) -> Dict[str, Any]:
         """Return usage statistics"""
         return self.usage_stats
+    
+    # === ENHANCED GENERATION WITH THOUGHT SIGNATURES ===
+    
+    async def generate_with_thought_signature(
+        self,
+        prompt: str,
+        images: Optional[List[bytes]] = None,
+        thinking_level: str = "STANDARD",
+        include_thought_trace: bool = True,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Generate content with Thought Signature for transparent reasoning.
+        
+        CRÍTICO PARA HACKATHON: Muestra el proceso de razonamiento del modelo.
+        
+        Args:
+            prompt: Text prompt
+            images: Optional list of image bytes
+            thinking_level: Depth of reasoning (QUICK, STANDARD, DEEP, EXHAUSTIVE)
+            include_thought_trace: Whether to include thought signature
+            **kwargs: Additional generation config
+            
+        Returns:
+            Dict with answer, thought_trace, thinking_level, model_used
+        """
+        # Create enhanced prompt with thought signature
+        if include_thought_trace:
+            enhanced_prompt = self._create_thought_signature(prompt, thinking_level)
+        else:
+            enhanced_prompt = prompt
+        
+        # Generate response
+        full_response = await self.generate(
+            prompt=enhanced_prompt,
+            images=images,
+            thinking_level=thinking_level,
+            return_full_response=False,
+            **kwargs
+        )
+        
+        # Extract components
+        thought_trace = self._extract_thought_trace(full_response) if include_thought_trace else None
+        answer = self._extract_answer(full_response) if include_thought_trace else full_response
+        
+        return {
+            "answer": answer,
+            "thought_trace": thought_trace,
+            "thinking_level": thinking_level,
+            "model_used": self.model_name,
+            "full_response": full_response
+        }
+    
+    # === GROUNDING SUPPORT ===
+    
+    async def generate_with_grounding(
+        self,
+        prompt: str,
+        enable_grounding: bool = True,
+        thinking_level: str = "STANDARD",
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Generate content with Google Search grounding.
+        
+        DIFERENCIADOR HACKATHON: Gemini 3 es el único modelo con grounding nativo.
+        
+        Args:
+            prompt: Text prompt
+            enable_grounding: Whether to enable Google Search grounding
+            thinking_level: Depth of reasoning
+            **kwargs: Additional generation config
+            
+        Returns:
+            Dict with answer, grounding_metadata, grounded flag
+        """
+        settings = get_settings()
+        
+        # Prepare parts
+        parts = [types.Part(text=prompt)]
+        
+        # Configure thinking level
+        if thinking_level == "QUICK":
+            config_kwargs = {
+                "temperature": settings.thinking_level_quick_temp,
+                "max_output_tokens": settings.thinking_level_quick_tokens
+            }
+        elif thinking_level == "STANDARD":
+            config_kwargs = {
+                "temperature": settings.thinking_level_standard_temp,
+                "max_output_tokens": settings.thinking_level_standard_tokens
+            }
+        elif thinking_level == "DEEP":
+            config_kwargs = {
+                "temperature": settings.thinking_level_deep_temp,
+                "max_output_tokens": settings.thinking_level_deep_tokens
+            }
+        else:
+            config_kwargs = {
+                "temperature": settings.thinking_level_standard_temp,
+                "max_output_tokens": settings.thinking_level_standard_tokens
+            }
+        
+        config_kwargs.update(kwargs)
+        
+        # Add grounding tools if enabled
+        tools = []
+        if enable_grounding and settings.enable_grounding:
+            tools.append(types.Tool(google_search=types.GoogleSearch()))
+        
+        # Generate with grounding
+        def _sync_generate():
+            config = types.GenerateContentConfig(**config_kwargs)
+            if tools:
+                config.tools = tools
+            
+            return self.client.models.generate_content(
+                model=self.model_name,
+                contents=[types.Content(parts=parts)],
+                config=config
+            )
+        
+        response = await asyncio.to_thread(_sync_generate)
+        
+        # Extract grounding metadata
+        grounding_metadata = None
+        if hasattr(response, 'candidates') and response.candidates:
+            candidate = response.candidates[0]
+            if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
+                grounding_metadata = {
+                    "grounding_chunks": [],
+                    "search_queries": []
+                }
+                
+                if hasattr(candidate.grounding_metadata, 'grounding_chunks'):
+                    for chunk in candidate.grounding_metadata.grounding_chunks:
+                        grounding_metadata["grounding_chunks"].append({
+                            "uri": getattr(chunk.web, 'uri', None) if hasattr(chunk, 'web') else None,
+                            "title": getattr(chunk.web, 'title', None) if hasattr(chunk, 'web') else None
+                        })
+                
+                if hasattr(candidate.grounding_metadata, 'search_entry_point'):
+                    grounding_metadata["search_queries"] = [
+                        candidate.grounding_metadata.search_entry_point.rendered_content
+                    ]
+        
+        return {
+            "answer": response.text,
+            "grounding_metadata": grounding_metadata,
+            "grounded": bool(grounding_metadata),
+            "model_used": self.model_name
+        }
+    
+    # === IMPROVED RETRY LOGIC FOR MARATHON AGENT ===
+    
+    async def generate_with_retry(
+        self,
+        prompt: str,
+        max_retries: Optional[int] = None,
+        images: Optional[List[bytes]] = None,
+        thinking_level: str = "STANDARD",
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Generate content with improved retry logic.
+        
+        CRÍTICO para Marathon Agent: tareas largas pueden fallar por timeouts, rate limits.
+        
+        Args:
+            prompt: Text prompt
+            max_retries: Maximum number of retries (default from settings)
+            images: Optional list of image bytes
+            thinking_level: Depth of reasoning
+            **kwargs: Additional generation config
+            
+        Returns:
+            Dict with answer and metadata
+        """
+        settings = get_settings()
+        max_retries = max_retries or settings.marathon_max_retries_per_step
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                # Use generate_with_thought_signature for better transparency
+                result = await self.generate_with_thought_signature(
+                    prompt=prompt,
+                    images=images,
+                    thinking_level=thinking_level,
+                    **kwargs
+                )
+                
+                logger.info(f"Generation succeeded on attempt {attempt + 1}/{max_retries}")
+                return result
+            
+            except Exception as e:
+                last_error = e
+                
+                logger.warning(
+                    f"Generation attempt {attempt + 1}/{max_retries} failed: {e}"
+                )
+                
+                if attempt < max_retries - 1:
+                    # Exponential backoff with max 60s
+                    wait_time = min(2 ** attempt, 60)
+                    logger.info(f"Retrying in {wait_time}s...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    logger.error(f"All {max_retries} attempts failed")
+        
+        raise last_error
+    
+    # === STREAMING SUPPORT ===
+    
+    async def generate_stream(
+        self,
+        prompt: str,
+        thinking_level: str = "STANDARD",
+        **kwargs
+    ):
+        """
+        Generate content with streaming for real-time UI updates.
+        
+        Útil para mostrar "pensamiento" del modelo en tiempo real.
+        
+        Args:
+            prompt: Text prompt
+            thinking_level: Depth of reasoning
+            **kwargs: Additional generation config
+            
+        Yields:
+            Text chunks as they are generated
+        """
+        settings = get_settings()
+        
+        # Configure thinking level
+        if thinking_level == "QUICK":
+            config_kwargs = {
+                "temperature": settings.thinking_level_quick_temp,
+                "max_output_tokens": settings.thinking_level_quick_tokens
+            }
+        elif thinking_level == "STANDARD":
+            config_kwargs = {
+                "temperature": settings.thinking_level_standard_temp,
+                "max_output_tokens": settings.thinking_level_standard_tokens
+            }
+        elif thinking_level == "DEEP":
+            config_kwargs = {
+                "temperature": settings.thinking_level_deep_temp,
+                "max_output_tokens": settings.thinking_level_deep_tokens
+            }
+        else:
+            config_kwargs = {
+                "temperature": settings.thinking_level_standard_temp,
+                "max_output_tokens": settings.thinking_level_standard_tokens
+            }
+        
+        config_kwargs.update(kwargs)
+        
+        # Stream generation
+        def _sync_stream():
+            return self.client.models.generate_content_stream(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(**config_kwargs)
+            )
+        
+        stream = await asyncio.to_thread(_sync_stream)
+        
+        for chunk in stream:
+            if hasattr(chunk, 'text') and chunk.text:
+                yield chunk.text
 
     def _define_tools(self) -> List[types.Tool]:
         """Define tools available to the agent for function calling."""
