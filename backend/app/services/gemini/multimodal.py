@@ -30,10 +30,12 @@ class MultimodalAgent(GeminiBaseAgent):
 
     def __init__(
         self,
-        model: GeminiModel = GeminiModel.FLASH,
+        model: GeminiModel = GeminiModel.VISION,  # Use VISION model by default
         **kwargs,
     ):
         super().__init__(model_name=model, **kwargs)
+        # Use vision model from settings for multimodal tasks
+        self.model_name = self.settings.gemini_model_vision
 
     async def process(self, *args, **kwargs) -> Any:
         """Main entry point - routes to specific extraction method."""
@@ -134,13 +136,18 @@ RESPOND WITH VALID JSON ONLY:
 Extract EVERY item visible. Be thorough and accurate."""
 
         try:
-            response = await self._generate_multimodal(
+            # Use Gemini 3 Vision natively - no external OCR needed
+            image_bytes = base64.b64decode(image_base64)
+            
+            response = await self.generate(
                 prompt=prompt,
-                images=[image_base64],
+                images=[image_bytes],
+                thinking_level="STANDARD",
+                return_full_response=False,
                 mime_type=mime_type,
                 temperature=0.3,
                 max_output_tokens=8192,
-                feature="menu_extraction",
+                feature="menu_extraction"
             )
 
             result = self._parse_json_response(response)
@@ -267,13 +274,18 @@ RESPOND WITH VALID JSON:
 Be objective and constructive in your analysis."""
 
         try:
-            response = await self._generate_multimodal(
+            # Use Gemini 3 Vision for professional dish analysis
+            image_bytes = base64.b64decode(image_base64)
+            
+            response = await self.generate(
                 prompt=prompt,
-                images=[image_base64],
+                images=[image_bytes],
+                thinking_level="STANDARD",
+                return_full_response=False,
                 mime_type=mime_type,
                 temperature=0.4,
                 max_output_tokens=4096,
-                feature="dish_analysis",
+                feature="dish_analysis"
             )
 
             result = self._parse_json_response(response)
@@ -291,6 +303,186 @@ Be objective and constructive in your analysis."""
                 "error": str(e),
                 "attractiveness_score": 0.5,
                 "visual_scores": {},
+            }
+
+    async def analyze_dish_professional(
+        self,
+        image_source: Union[str, bytes],
+        dish_name: str,
+        dish_category: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Professional gastronomy critic analysis of dish photograph.
+        
+        CRÍTICO PARA HACKATHON: "Food Porn AI" - Análisis de clase mundial.
+        
+        Args:
+            image_source: Dish photo
+            dish_name: Name of the dish
+            dish_category: Category (appetizer, main, dessert, etc.)
+            
+        Returns:
+            Professional analysis with detailed scores and recommendations
+        """
+        # Load image
+        if isinstance(image_source, str):
+            if Path(image_source).exists():
+                image_bytes = Path(image_source).read_bytes()
+                image_base64 = base64.b64encode(image_bytes).decode()
+            else:
+                image_base64 = image_source
+        else:
+            image_base64 = base64.b64encode(image_source).decode()
+
+        mime_type = self._detect_mime_type(image_base64)
+
+        prompt = f"""Actúa como CRÍTICO GASTRONÓMICO DE CLASE MUNDIAL especializado en fotografía culinaria y presentación profesional.
+
+Analiza esta foto del plato: "{dish_name}" (Categoría: {dish_category})
+
+Evalúa en escala 0-10 con criterios PROFESIONALES:
+
+1. COMPOSICIÓN VISUAL
+   - Regla de tercios aplicada
+   - Balance de elementos en el plato
+   - Punto focal claro y definido
+   - Uso efectivo del espacio negativo
+   - Ángulo de fotografía apropiado
+
+2. ILUMINACIÓN PROFESIONAL
+   - Dirección y calidad de luz
+   - Sombras apropiadas que añaden profundidad
+   - Destacado de texturas
+   - Color temperature correcto
+   - Evita sobreexposición/subexposición
+
+3. EMPLATADO PROFESIONAL
+   - Precisión y limpieza del plato
+   - Altura y volumen (dimensionalidad)
+   - Uso estratégico del color
+   - Garnish apropiado y no excesivo
+   - Técnicas de emplatado modernas
+
+4. APETITOSIDAD ("Food Porn Factor")
+   - Texturas visibles y atractivas
+   - Colores vibrantes y naturales
+   - Frescura aparente de ingredientes
+   - Factor "craveable" (provoca deseo)
+   - Steam/moisture visible si aplica
+
+5. "INSTAGRAMABILIDAD"
+   - Aesthetic trending actual
+   - Shareability en redes sociales
+   - Visual storytelling
+   - Elementos únicos/memorables
+   - Wow factor
+
+RESPONDE CON JSON VÁLIDO:
+{{
+    "overall_score": 8.5,
+    "scores": {{
+        "composition": 8.0,
+        "lighting": 9.0,
+        "plating": 8.5,
+        "appetizing": 9.0,
+        "instagramability": 8.0
+    }},
+    "strengths": [
+        "Iluminación natural perfecta que resalta texturas",
+        "Colores vibrantes del plato contrastan con fondo neutro",
+        "Garnish minimalista pero efectivo"
+    ],
+    "weaknesses": [
+        "Composición ligeramente descentrada",
+        "Podría beneficiarse de más altura en el emplatado"
+    ],
+    "specific_improvements": [
+        {{
+            "issue": "Composición no sigue regla de tercios",
+            "suggestion": "Reposicionar plato 1/3 hacia la izquierda",
+            "priority": "medium",
+            "expected_impact": "Mejorará balance visual en 15%"
+        }},
+        {{
+            "issue": "Falta profundidad en el plato",
+            "suggestion": "Agregar altura con técnica de stacking",
+            "priority": "high",
+            "expected_impact": "Aumentará percepción de valor en 20%"
+        }}
+    ],
+    "professional_assessment": "Plato bien ejecutado con potencial comercial alto. La iluminación natural es excepcional y los colores son vibrantes. Con ajustes menores en composición y altura, podría alcanzar nivel de revista gastronómica.",
+    "comparable_to": "Nivel de Pujol o Quintonil en presentación, pero con estilo más casual",
+    "market_positioning": {{
+        "current_level": "upscale_casual",
+        "potential_level": "fine_dining",
+        "price_point_suggested": "$$$ (150-250 MXN)",
+        "target_audience": "Millennials, foodies, Instagram influencers"
+    }},
+    "technical_details": {{
+        "estimated_camera_angle": "45 degrees",
+        "lighting_type": "natural_window",
+        "color_palette": ["vibrant_green", "warm_brown", "white"],
+        "plating_style": "modern_rustic",
+        "portion_size_perception": "generous"
+    }},
+    "actionable_recommendations": [
+        "Usar este estilo de iluminación consistentemente",
+        "Invertir en platos de color neutro para mejor contraste",
+        "Capacitar staff en técnicas de altura en emplatado"
+    ],
+    "instagram_optimization": {{
+        "hashtag_suggestions": ["#FoodPorn", "#MexicanCuisine", "#Foodie"],
+        "best_posting_time": "12:00-14:00, 19:00-21:00",
+        "caption_angle": "Highlight freshness and traditional techniques",
+        "filter_recommendation": "None - natural colors are perfect"
+    }}
+}}
+
+Sé específico, profesional y constructivo. Este análisis será usado para mejorar el negocio."""
+
+        try:
+            # Use Gemini 3 Vision with DEEP thinking for professional analysis
+            image_bytes = base64.b64decode(image_base64)
+            
+            response = await self.generate(
+                prompt=prompt,
+                images=[image_bytes],
+                thinking_level="DEEP",  # Professional analysis requires deeper thinking
+                return_full_response=False,
+                mime_type=mime_type,
+                temperature=0.5,  # Balance between creativity and precision
+                max_output_tokens=6144,
+                feature="professional_dish_analysis"
+            )
+
+            result = self._parse_json_response(response)
+            
+            # Add metadata
+            result["dish_name"] = dish_name
+            result["dish_category"] = dish_category
+            result["analysis_type"] = "professional_gastronomy_critic"
+            result["model_used"] = self.model_name
+            
+            logger.info(
+                "Professional dish analysis completed",
+                extra={
+                    "dish": dish_name,
+                    "overall_score": result.get("overall_score", 0),
+                    "model": self.model_name
+                }
+            )
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Professional dish analysis failed: {e}")
+            return {
+                "error": str(e),
+                "overall_score": 0,
+                "scores": {},
+                "dish_name": dish_name,
+                "dish_category": dish_category
             }
 
     async def analyze_batch_dish_images(
@@ -405,13 +597,18 @@ RESPOND WITH VALID JSON:
 }}"""
 
         try:
-            response = await self._generate_multimodal(
+            # Use Gemini 3 Vision for competitor analysis
+            image_bytes = base64.b64decode(image_base64)
+            
+            response = await self.generate(
                 prompt=prompt,
-                images=[image_base64],
+                images=[image_bytes],
+                thinking_level="STANDARD",
+                return_full_response=False,
                 mime_type=mime_type,
                 temperature=0.3,
                 max_output_tokens=8192,
-                feature="competitor_extraction",
+                feature="competitor_extraction"
             )
 
             result = self._parse_json_response(response)
@@ -523,12 +720,17 @@ RESPOND WITH VALID JSON:
 }}"""
 
         try:
-            response = await self._generate_multimodal(
+            # Convert all images to bytes for Gemini 3 Vision
+            image_bytes_list = [base64.b64decode(img) for img in image_data]
+            
+            response = await self.generate(
                 prompt=prompt,
-                images=image_data,
+                images=image_bytes_list,
+                thinking_level="STANDARD",
+                return_full_response=False,
                 temperature=0.4,
                 max_output_tokens=8192,
-                feature="customer_photo_analysis",
+                feature="customer_photo_analysis"
             )
 
             return self._parse_json_response(response)
