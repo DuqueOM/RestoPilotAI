@@ -8,7 +8,6 @@ UNIQUE TO GEMINI 3: Auto-citation of sources from Google Search.
 OpenAI/Claude cannot match this level of integration.
 """
 
-import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from enum import Enum
