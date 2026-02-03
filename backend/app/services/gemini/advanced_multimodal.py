@@ -13,7 +13,6 @@ This agent showcases capabilities that competitors cannot match.
 """
 
 import base64
-import json
 from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
 
@@ -734,7 +733,7 @@ RETURN ONLY VALID JSON:
 """
         
         # Note: Video processing requires base64 encoding
-        video_b64 = base64.b64encode(video_bytes).decode()
+        # video_b64 = base64.b64encode(video_bytes).decode()
         
         result = await self.generate(
             prompt=prompt,
@@ -825,7 +824,7 @@ RETURN ONLY VALID JSON:
 """
         
         # Gemini can process audio directly
-        audio_b64 = base64.b64encode(audio_bytes).decode()
+        # audio_b64 = base64.b64encode(audio_bytes).decode()
         
         result = await self.generate(
             prompt=prompt,

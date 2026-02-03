@@ -11,17 +11,15 @@ Features that set us apart:
 """
 
 import json
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, AsyncGenerator
+from typing import Any, Dict, List, Optional
 
 from loguru import logger
 from pydantic import BaseModel, Field
 
 from app.services.gemini.enhanced_agent import (
     EnhancedGeminiAgent,
-    ThinkingLevel,
-    ThoughtTrace
+    ThinkingLevel
 )
 from app.core.config import GeminiModel
 

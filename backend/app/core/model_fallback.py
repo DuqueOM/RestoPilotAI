@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Callable, Optional, Any
 
-from app.core.config import get_settings, GeminiModel
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 

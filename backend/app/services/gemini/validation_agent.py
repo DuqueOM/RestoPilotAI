@@ -256,7 +256,7 @@ RETURN AS JSON:
         
         try:
             return SafetyCheck(**result["data"])
-        except:
+        except Exception:
             return SafetyCheck(
                 safe=True,
                 safety_issues=[],

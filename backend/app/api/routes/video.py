@@ -12,8 +12,7 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 
 from app.services.gemini.advanced_multimodal import (
-    AdvancedMultimodalAgent,
-    VideoAnalysisSchema
+    AdvancedMultimodalAgent
 )
 
 

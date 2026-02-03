@@ -11,7 +11,7 @@ import asyncio
 import time
 from collections import deque
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
 
 from app.core.config import get_settings

@@ -11,7 +11,6 @@ Provides end-to-end campaign generation:
 Complete cycle: Analysis → Strategy → Generation → Deploy
 """
 
-import base64
 import json
 from typing import Any, Dict, List, Optional
 from datetime import datetime
@@ -535,5 +534,5 @@ Return updated copy in the same JSON format.
         
         try:
             return CampaignCopy(**result["data"])
-        except:
+        except Exception:
             return original_copy

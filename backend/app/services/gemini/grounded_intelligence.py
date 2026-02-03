@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 from enum import Enum
 
 from loguru import logger
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
 from app.services.gemini.enhanced_agent import (
     EnhancedGeminiAgent,
@@ -466,7 +466,7 @@ RETURN AS JSON:
         # Also check for grounding_metadata in response
         grounding_metadata = result.get("grounding_metadata", {})
         if grounding_metadata:
-            web_search_queries = grounding_metadata.get("web_search_queries", [])
+            # web_search_queries = grounding_metadata.get("web_search_queries", [])
             search_entry_point = grounding_metadata.get("search_entry_point", {})
             
             # Extract rendered content sources
@@ -494,7 +494,7 @@ RETURN AS JSON:
             # Remove www. prefix
             domain = domain.replace("www.", "")
             return domain
-        except:
+        except Exception:
             return url
     
     def _classify_source_type(self, url: str) -> SourceType:

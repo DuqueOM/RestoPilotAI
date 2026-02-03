@@ -28,6 +28,13 @@ from app.api.routes.campaigns import router as campaigns_router
 from app.core.config import get_settings
 from app.models.database import init_db
 
+try:
+    from app.api.routes.monitoring import router as monitoring_router
+    MONITORING_AVAILABLE = True
+except ImportError:
+    MONITORING_AVAILABLE = False
+    monitoring_router = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

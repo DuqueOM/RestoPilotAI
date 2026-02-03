@@ -17,11 +17,8 @@ from loguru import logger
 from pydantic import BaseModel
 
 from app.services.gemini.advanced_reasoning import (
-    AdvancedReasoningAgent,
-    BCGAnalysisSchema,
-    DataQualityAssessment
+    AdvancedReasoningAgent
 )
-from app.services.gemini.enhanced_agent import ThinkingLevel
 
 
 # ==================== Streaming Thought Types ====================
@@ -351,7 +348,7 @@ class StreamingReasoningAgent(AdvancedReasoningAgent):
             elif product.category == "question_mark":
                 content += f" (High growth {product.growth_rate:+.1%}, Low share)"
             elif product.category == "dog":
-                content += f" (Low growth, Low share)"
+                content += " (Low growth, Low share)"
             
             yield StreamingThought(
                 type=ThoughtType.CLASSIFICATION,
