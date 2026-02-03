@@ -1,7 +1,7 @@
 from app.services.gemini.base_agent import GeminiBaseAgent
-from typing import Dict, List, Optional
+from typing import Dict, List, Any
 import json
-from loguru import logger
+from datetime import datetime
 from google.genai import types
 
 class SocialAestheticsAnalyzer(GeminiBaseAgent):

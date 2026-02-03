@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 from enum import Enum
 import pandas as pd
-import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)

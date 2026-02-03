@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useState } from 'react';
 
 const TEMPLATES = [
   {
@@ -81,8 +81,17 @@ const TEMPLATES = [
   }
 ];
 
+interface TemplateContext {
+  historyContext?: string;
+  valuesContext?: string;
+  uspsContext?: string;
+  targetAudienceContext?: string;
+  challengesContext?: string;
+  goalsContext?: string;
+}
+
 interface TemplateSelectorProps {
-  onSelect: (template: any) => void;
+  onSelect: (template: TemplateContext) => void;
 }
 
 export function TemplateSelector({ onSelect }: TemplateSelectorProps) {

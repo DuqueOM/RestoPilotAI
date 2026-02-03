@@ -54,7 +54,7 @@ export function useVibeEngineering(sessionId: string): UseVibeEngineeringResult 
         setIsVerifying(false);
       }
     },
-    [defaultConfig]
+    []
   );
 
   const cancelVerification = useCallback(async () => {

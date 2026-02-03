@@ -39,10 +39,10 @@ interface NearbyPlace {
   placeId: string;
   distance?: string;
   types?: string[];
-  social_media?: any[];
-  menu?: any;
-  competitive_intelligence?: any;
-  metadata?: any;
+  social_media?: Record<string, unknown>[];
+  menu?: Record<string, unknown>;
+  competitive_intelligence?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 interface LocationInputProps {
@@ -78,9 +78,6 @@ export function LocationInput({
   const [candidates, setCandidates] = useState<BusinessCandidate[]>([]);
   const [showCandidates, setShowCandidates] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(initialLocation || null);
-  const [nearbyCompetitors, setNearbyCompetitors] = useState<NearbyPlace[]>([]);
-  const [isLoadingNearby, setIsLoadingNearby] = useState(false);
-  const [isEnriching, setIsEnriching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Map State
@@ -95,7 +92,7 @@ export function LocationInput({
     if (value !== undefined && value !== searchQuery) {
       setSearchQuery(value);
     }
-  }, [value]);
+  }, [value, searchQuery]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;

@@ -18,7 +18,7 @@ export interface AvailablePeriodsData {
   period_info: Record<string, PeriodInfo>;
 }
 
-export function useAvailablePeriods(sessionData: any): AvailablePeriodsData | null {
+export function useAvailablePeriods(sessionData: Record<string, unknown> | null): AvailablePeriodsData | null {
   const [periodsData, setPeriodsData] = useState<AvailablePeriodsData | null>(null);
 
   useEffect(() => {

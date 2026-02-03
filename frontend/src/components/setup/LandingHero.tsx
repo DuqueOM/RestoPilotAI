@@ -1,6 +1,6 @@
 'use client';
 
-import { ChefHat, Sparkles, TrendingUp, DollarSign, Users, Zap, ArrowRight, Play, Brain, BarChart3 } from 'lucide-react';
+import { ArrowRight, BarChart3, Brain, DollarSign, Play, Sparkles, TrendingUp, Users, Zap } from 'lucide-react';
 
 interface LandingHeroProps {
   onGetStarted: () => void;

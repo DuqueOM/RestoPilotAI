@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { VibeEngineeringState, QualityDimension } from '@/types/vibe-engineering';
 import { Progress } from '@/components/ui/progress';
+import { VibeEngineeringState } from '@/types/vibe-engineering';
 
 interface QualityMetricsProps {
   state: VibeEngineeringState;

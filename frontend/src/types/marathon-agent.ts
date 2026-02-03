@@ -59,7 +59,7 @@ export interface MarathonTaskState {
   completed_at?: string;
   steps: PipelineStep[];
   checkpoints: Checkpoint[];
-  accumulated_results: Record<string, any>;
+  accumulated_results: Record<string, unknown>;
   error?: string;
   can_recover: boolean;
 }

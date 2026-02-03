@@ -1,5 +1,5 @@
 from app.services.gemini.base_agent import GeminiBaseAgent
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import json
 
 class ContextProcessor(GeminiBaseAgent):

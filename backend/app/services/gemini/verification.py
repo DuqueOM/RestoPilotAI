@@ -1,6 +1,6 @@
 from app.services.gemini.base_agent import GeminiBaseAgent
 from app.core.logging_config import logger
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 import json
 from dataclasses import dataclass, field
 from enum import Enum

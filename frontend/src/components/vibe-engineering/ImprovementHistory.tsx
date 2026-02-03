@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { ImprovementIteration } from '@/types/vibe-engineering';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 
@@ -13,7 +12,7 @@ export function ImprovementHistory({ iterations }: ImprovementHistoryProps) {
     <div className="space-y-4">
       <h4 className="font-semibold text-sm text-gray-900">Improvement Timeline</h4>
       <div className="space-y-3">
-        {iterations.map((iteration, idx) => (
+        {iterations.map((iteration) => (
           <div
             key={iteration.iteration}
             className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"

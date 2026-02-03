@@ -9,7 +9,9 @@ interface StatusBadgeProps {
   showIcon?: boolean;
 }
 
-const config: Record<StatusType, { color: string; icon: any; label: string }> = {
+type IconComponent = typeof Clock;
+
+const config: Record<StatusType, { color: string; icon: IconComponent; label: string }> = {
   pending: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300', icon: Clock, label: 'Pending' },
   running: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 animate-pulse', icon: PlayCircle, label: 'Running' },
   completed: { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: BadgeCheck, label: 'Completed' },
