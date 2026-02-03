@@ -1,0 +1,48 @@
+{
+  "session_id": "margarita-pinta-demo-001",
+  "campaigns": [
+    {
+      "title": "Noches de Margarita",
+      "objective": "Boost signature cocktail sales",
+      "target_category": "STAR",
+      "target_audience": "Couples and social groups 25-45",
+      "copy": {
+        "social_media": "\ud83c\udf79 MARGARITA NIGHTS ARE BACK! \ud83c\udf79\n\nExperience the heat with our signature Margarita Ardiente. Premium tequila, perfectly balanced spice.\n\n2x1 every Thursday night! \ud83c\udf36\ufe0f\n\n\ud83d\udccd Margarita Pinta, Cl 20 #40A-10\n#MargaritaPinta #Pasto #Cocteleria #NightLife",
+        "email_subject": "\ud83c\udf36\ufe0f Spice up your Thursday night!",
+        "email_body": "Hola!\n\nReady for something different? Our Margarita Ardiente is waiting for you.\n\nJoin us this Thursday for 2x1 on all Margaritas. The perfect start to your weekend.\n\nCheers,\nMargarita Pinta Team"
+      },
+      "timing": "Thursdays 6pm-11pm",
+      "expected_impact": "30% increase in cocktail revenue, higher social engagement",
+      "rationale": "Leveraging the brand name 'Margarita' with our top Star product."
+    },
+    {
+      "title": "Hervido Experience",
+      "objective": "Promote local fusion drinks (Question Mark -> Star)",
+      "target_category": "QUESTION_MARK",
+      "target_audience": "Locals looking for comfort drinks with a twist",
+      "copy": {
+        "social_media": "\ud83d\udd25 HERVIDO COMO NUNCA ANTES \ud83d\udd25\n\nTradici\u00f3n Nari\u00f1ense + Tequila Premium = La perfecci\u00f3n.\n\nVen a probar nuestro Hervido con Tequila. El calorcito que necesitas esta noche.\n\n#Pasto #Tradicion #Hervido #Nari\u00f1o #MargaritaPinta",
+        "email_subject": "Tradition meets Innovation: Tequila Hervido \u2615",
+        "email_body": "It's cold outside, but we've got you covered.\n\nDiscover our unique twist on the Nari\u00f1o classic: Hervido con Tequila.\n\nPerfect for sharing with friends on a chilly Pasto evening."
+      },
+      "timing": "Friday & Saturday evenings",
+      "expected_impact": "Convert local curiosity into sales, establish a unique selling point",
+      "rationale": "Capitalizes on local 'Hervido' tradition but adds a premium twist to align with gastrobar identity."
+    },
+    {
+      "title": "After Office Chill",
+      "objective": "Drive traffic during early evening with Cash Cows",
+      "target_category": "CASH_COW",
+      "target_audience": "Office workers nearby",
+      "copy": {
+        "social_media": "\ud83c\udf7b AFTER OFFICE AT MARGARITA PINTA \ud83c\udf7b\n\nRough day? We've got ice-cold Coronas and loaded Nachos waiting.\n\nCombo: 2 Coronas + Nachos Supreme for $55k.\n\n#AfterOffice #Pasto #Cerveza #Relax",
+        "email_subject": "You deserve a break \ud83c\udf7b",
+        "email_body": "Work's done. Time to relax.\n\nGrab your colleagues and head over for our After Office special:\nBucket of Coronas + Nachos for a special price.\n\nSee you at 5!"
+      },
+      "timing": "Weekdays 5pm-8pm",
+      "expected_impact": "Fill tables during pre-dinner hours, increase average ticket size",
+      "rationale": "Bundling high-margin Nachos with high-volume Beer to boost early evening occupancy."
+    }
+  ],
+  "thought_process": "Campaigns focused on reinforcing the 'Gastrobar' identity. 1. Anchor campaign on the namesake product (Margarita). 2. Innovation campaign on local fusion (Hervido). 3. Volume campaign for off-peak hours (After Office)."
+}

@@ -34,7 +34,7 @@ export default function PredictionsPage({ params }: PredictionsPageProps) {
 
   const fetchPredictions = async () => {
     try {
-      const session = sessionId === 'demo-session-001'
+      const session = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
         ? await api.getDemoSession()
         : await api.getSession(sessionId);
       setSessionData(session);

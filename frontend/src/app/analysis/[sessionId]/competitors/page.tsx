@@ -17,7 +17,7 @@ export default function CompetitorsPage({ params }: CompetitorsPageProps) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = sessionId === 'demo-session-001'
+        const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
           ? await api.getDemoSession()
           : await api.getSession(sessionId);
         setSession(data);
@@ -41,44 +41,19 @@ export default function CompetitorsPage({ params }: CompetitorsPageProps) {
     );
   }
 
-  // Demo data for competitors - in real implementation, this would come from competitor_context
-  const competitors = session?.competitor_analysis?.competitors || [
-    {
-      name: "La Taquería Mexicana",
-      type: "Competidor Directo",
-      distance: "500m",
-      rating: 4.2,
-      priceRange: "$$",
-      strengths: ["Ubicación céntrica", "Precios bajos", "Horario extendido"],
-      weaknesses: ["Calidad inconsistente", "Espacio pequeño"],
-      marketShare: 25,
-      trend: "stable"
-    },
-    {
-      name: "Cantina del Sol",
-      type: "Competidor Directo", 
-      distance: "800m",
-      rating: 4.5,
-      priceRange: "$$$",
-      strengths: ["Alta calidad", "Ambiente premium", "Buenas reseñas"],
-      weaknesses: ["Precios altos", "Servicio lento"],
-      marketShare: 20,
-      trend: "up"
-    },
-    {
-      name: "Tacos Express",
-      type: "Competidor Indirecto",
-      distance: "1.2km",
-      rating: 3.8,
-      priceRange: "$",
-      strengths: ["Precios muy bajos", "Servicio rápido", "Delivery eficiente"],
-      weaknesses: ["Baja calidad percibida", "Poca variedad"],
-      marketShare: 15,
-      trend: "down"
-    }
-  ];
-
+  // Get competitors from session data
+  const competitors = session?.competitor_analysis?.competitors || [];
   const competitorContext = session?.competitor_context || "";
+
+  if (!competitors.length && !loading) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <Target className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+        <p className="text-lg">No hay análisis de competencia disponible</p>
+        <p className="text-sm mt-2">Ejecuta el análisis para identificar competidores.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

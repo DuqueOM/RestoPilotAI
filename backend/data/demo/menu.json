@@ -1,0 +1,1130 @@
+{
+  "session_id": "margarita-pinta-demo-001",
+  "items": [
+    {
+      "name": "Margarita",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Tequila Olmeca, Triple Sec, zumo de lim\u00f3n, jarabe de goma, Finest Call",
+      "unit": "unit"
+    },
+    {
+      "name": "Margarita Blue",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Tequila Olmeca, Blue Cura\u00e7ao, zumo de lim\u00f3n, jarabe de goma, Finest Call",
+      "unit": "unit"
+    },
+    {
+      "name": "Margarita en Llamas",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Tequila Olmeca, Triple Sec, ginebra Beefeater, licor de cerezas",
+      "unit": "unit"
+    },
+    {
+      "name": "Margarita Ardiente",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Tequila Olmeca, aguardiente de an\u00eds, zumo de lim\u00f3n, jarabe de goma, jalape\u00f1os",
+      "unit": "unit"
+    },
+    {
+      "name": "Piel de Iguana",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Vodka Absolut, licor de kiwi, zumo de lim\u00f3n, jarabe de goma, Sprite",
+      "unit": "unit"
+    },
+    {
+      "name": "Long Island",
+      "category": "Cocteler\u00eda",
+      "price": 38000.0,
+      "cost": 13300.0,
+      "description": "Ron Blanco, ginebra Beefeater, tequila Olmeca, Triple Sec, zumo de lim\u00f3n, t\u00e9 o Coca Cola",
+      "unit": "unit"
+    },
+    {
+      "name": "Dulce Mar\u00eda",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Vodka Absolut, amaretto, helado de chocolate",
+      "unit": "unit"
+    },
+    {
+      "name": "Cosmopolitan",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Vodka Absolut Citron, Triple Sec, jugo de ar\u00e1ndano",
+      "unit": "unit"
+    },
+    {
+      "name": "Gold Martini",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Tequila Olmeca, Triple Sec, piel de naranja",
+      "unit": "unit"
+    },
+    {
+      "name": "White Lady",
+      "category": "Cocteler\u00eda",
+      "price": 36000.0,
+      "cost": 12600.0,
+      "description": "Ginebra Beefeater, Triple Sec, zumo de lim\u00f3n, jarabe de goma",
+      "unit": "unit"
+    },
+    {
+      "name": "Tom Collins",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Ginebra Beefeater, zumo de lim\u00f3n, jarabe de jengibre, soda",
+      "unit": "unit"
+    },
+    {
+      "name": "Gin Tonic",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Ginebra Beefeater, agua t\u00f3nica, lim\u00f3n",
+      "unit": "unit"
+    },
+    {
+      "name": "Dry Martini",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Ginebra Beefeater, vermut extra dry, aceitunas",
+      "unit": "unit"
+    },
+    {
+      "name": "Dirty Martini",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Ginebra Beefeater, vermut extra dry, jugo de aceituna",
+      "unit": "unit"
+    },
+    {
+      "name": "Sangr\u00eda Margarita",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Vino, amaretto, brandy, frutos rojos, frutos secos",
+      "unit": "unit"
+    },
+    {
+      "name": "Alexander",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Brandy, licor de cacao, crema de leche",
+      "unit": "unit"
+    },
+    {
+      "name": "Vin Broule",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Vino Cabernet Sauvignon, vermut rosso, brandy, naranja, especias",
+      "unit": "unit"
+    },
+    {
+      "name": "Old Fashioned",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Jack Daniel's, angostura bitter, piel de naranja y lim\u00f3n, turbinado de az\u00facar, soda",
+      "unit": "unit"
+    },
+    {
+      "name": "Manhattan",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Jack Daniel's, vermut rosso, gotas amargas",
+      "unit": "unit"
+    },
+    {
+      "name": "Mojito",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Ron Blanco, Finest Call mojito, hierbabuena, zumo de lim\u00f3n, jarabe de goma, soda",
+      "unit": "unit"
+    },
+    {
+      "name": "Bayless Frozen",
+      "category": "Cocteler\u00eda",
+      "price": 34000.0,
+      "cost": 11900.0,
+      "description": "Crema de whisky, ron dorado, helado de vainilla, crema de leche",
+      "unit": "unit"
+    },
+    {
+      "name": "Hervido con Aguardiente",
+      "category": "Cocteler\u00eda",
+      "price": 20000.0,
+      "cost": 7000.0,
+      "description": "Mora, lulo o maracuy\u00e1 con aguardiente",
+      "unit": "unit"
+    },
+    {
+      "name": "Hervido con Ron",
+      "category": "Cocteler\u00eda",
+      "price": 20000.0,
+      "cost": 7000.0,
+      "description": "Mora, lulo o maracuy\u00e1 con ron",
+      "unit": "unit"
+    },
+    {
+      "name": "Hervido con Brandy",
+      "category": "Cocteler\u00eda",
+      "price": 20000.0,
+      "cost": 7000.0,
+      "description": "Mora, lulo o maracuy\u00e1 con brandy",
+      "unit": "unit"
+    },
+    {
+      "name": "Hervido con Tequila",
+      "category": "Cocteler\u00eda",
+      "price": 25000.0,
+      "cost": 8750.0,
+      "description": "Mora, lulo o maracuy\u00e1 con tequila",
+      "unit": "unit"
+    },
+    {
+      "name": "Olmeca Altos (trago)",
+      "category": "Tequila",
+      "price": 20000.0,
+      "cost": 7000.0,
+      "description": "Tequila premium mexicano",
+      "unit": "trago"
+    },
+    {
+      "name": "Olmeca Altos (med)",
+      "category": "Tequila",
+      "price": 110000.0,
+      "cost": 60500.0,
+      "description": "Tequila premium mexicano",
+      "unit": "med"
+    },
+    {
+      "name": "Olmeca Altos (bot)",
+      "category": "Tequila",
+      "price": 180000.0,
+      "cost": 99000.0,
+      "description": "Tequila premium mexicano",
+      "unit": "bot"
+    },
+    {
+      "name": "Olmeca Tradicional (bot)",
+      "category": "Tequila",
+      "price": 290000.0,
+      "cost": 159500.0,
+      "description": "Tequila tradicional mexicano",
+      "unit": "bot"
+    },
+    {
+      "name": "Don Julio A\u00f1ejo (bot)",
+      "category": "Tequila",
+      "price": 580000.0,
+      "cost": 319000.0,
+      "description": "Tequila a\u00f1ejo premium",
+      "unit": "bot"
+    },
+    {
+      "name": "Don Julio 70 (bot)",
+      "category": "Tequila",
+      "price": 850000.0,
+      "cost": 467500.0,
+      "description": "Tequila cristalino edici\u00f3n especial",
+      "unit": "bot"
+    },
+    {
+      "name": "Jimador (med)",
+      "category": "Tequila",
+      "price": 130000.0,
+      "cost": 71500.0,
+      "description": "Tequila 100% agave",
+      "unit": "med"
+    },
+    {
+      "name": "Jimador (bot)",
+      "category": "Tequila",
+      "price": 220000.0,
+      "cost": 121000.0,
+      "description": "Tequila 100% agave",
+      "unit": "bot"
+    },
+    {
+      "name": "Jos\u00e9 Cuervo (trago)",
+      "category": "Tequila",
+      "price": 20000.0,
+      "cost": 7000.0,
+      "description": "Tequila tradicional",
+      "unit": "trago"
+    },
+    {
+      "name": "Jos\u00e9 Cuervo (med)",
+      "category": "Tequila",
+      "price": 110000.0,
+      "cost": 60500.0,
+      "description": "Tequila tradicional",
+      "unit": "med"
+    },
+    {
+      "name": "Jos\u00e9 Cuervo (bot)",
+      "category": "Tequila",
+      "price": 180000.0,
+      "cost": 99000.0,
+      "description": "Tequila tradicional",
+      "unit": "bot"
+    },
+    {
+      "name": "Beefeater (bot)",
+      "category": "Ginebra",
+      "price": 260000.0,
+      "cost": 143000.0,
+      "description": "Ginebra London Dry",
+      "unit": "bot"
+    },
+    {
+      "name": "Hendrick's (bot)",
+      "category": "Ginebra",
+      "price": 390000.0,
+      "cost": 214500.0,
+      "description": "Ginebra premium con pepino y p\u00e9talos de rosa",
+      "unit": "bot"
+    },
+    {
+      "name": "Tanqueray (bot)",
+      "category": "Ginebra",
+      "price": 300000.0,
+      "cost": 165000.0,
+      "description": "Ginebra London Dry premium",
+      "unit": "bot"
+    },
+    {
+      "name": "Bacard\u00ed Lim\u00f3n (bot)",
+      "category": "Ron",
+      "price": 160000.0,
+      "cost": 88000.0,
+      "description": "Ron blanco con sabor a lim\u00f3n",
+      "unit": "bot"
+    },
+    {
+      "name": "Ron Viejo de Caldas (bot)",
+      "category": "Ron",
+      "price": 130000.0,
+      "cost": 71500.0,
+      "description": "Ron colombiano tradicional",
+      "unit": "bot"
+    },
+    {
+      "name": "Absolut Mandrin (bot)",
+      "category": "Vodka",
+      "price": 190000.0,
+      "cost": 104500.0,
+      "description": "Vodka sabor mandarina",
+      "unit": "bot"
+    },
+    {
+      "name": "Absolut (bot)",
+      "category": "Vodka",
+      "price": 180000.0,
+      "cost": 99000.0,
+      "description": "Vodka sueco premium",
+      "unit": "bot"
+    },
+    {
+      "name": "Smirnoff Red (bot)",
+      "category": "Vodka",
+      "price": 130000.0,
+      "cost": 71500.0,
+      "description": "Vodka triple destilado",
+      "unit": "bot"
+    },
+    {
+      "name": "Smirnoff Lulo (bot)",
+      "category": "Vodka",
+      "price": 130000.0,
+      "cost": 71500.0,
+      "description": "Vodka sabor lulo",
+      "unit": "bot"
+    },
+    {
+      "name": "Smirnoff Shot (trago)",
+      "category": "Bebida",
+      "price": 15000.0,
+      "cost": 5250.0,
+      "description": "Shot de vodka",
+      "unit": "trago"
+    },
+    {
+      "name": "Royal Salute (bot)",
+      "category": "Whisky",
+      "price": 1500000.0,
+      "cost": 825000.0,
+      "description": "Whisky escoc\u00e9s de lujo 21 a\u00f1os",
+      "unit": "bot"
+    },
+    {
+      "name": "Chivas 18 (bot)",
+      "category": "Whisky",
+      "price": 550000.0,
+      "cost": 302500.0,
+      "description": "Whisky escoc\u00e9s 18 a\u00f1os",
+      "unit": "bot"
+    },
+    {
+      "name": "Chivas 12 (trago)",
+      "category": "Whisky",
+      "price": 35000.0,
+      "cost": 12250.0,
+      "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+      "unit": "trago"
+    },
+    {
+      "name": "Chivas 12 (med)",
+      "category": "Whisky",
+      "price": 180000.0,
+      "cost": 99000.0,
+      "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+      "unit": "med"
+    },
+    {
+      "name": "Chivas 12 (bot)",
+      "category": "Whisky",
+      "price": 300000.0,
+      "cost": 165000.0,
+      "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+      "unit": "bot"
+    },
+    {
+      "name": "Buchanan's Master (bot)",
+      "category": "Whisky",
+      "price": 360000.0,
+      "cost": 198000.0,
+      "description": "Whisky escoc\u00e9s premium",
+      "unit": "bot"
+    },
+    {
+      "name": "Buchanan's 12 (med)",
+      "category": "Whisky",
+      "price": 180000.0,
+      "cost": 99000.0,
+      "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+      "unit": "med"
+    },
+    {
+      "name": "Buchanan's 12 (bot)",
+      "category": "Whisky",
+      "price": 320000.0,
+      "cost": 176000.0,
+      "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+      "unit": "bot"
+    },
+    {
+      "name": "Old Parr (bot)",
+      "category": "Whisky",
+      "price": 310000.0,
+      "cost": 170500.0,
+      "description": "Whisky escoc\u00e9s premium",
+      "unit": "bot"
+    },
+    {
+      "name": "Blue Label (med)",
+      "category": "Whisky",
+      "price": 800000.0,
+      "cost": 440000.0,
+      "description": "Whisky escoc\u00e9s ultra premium",
+      "unit": "med"
+    },
+    {
+      "name": "Blue Label (bot)",
+      "category": "Whisky",
+      "price": 1500000.0,
+      "cost": 825000.0,
+      "description": "Whisky escoc\u00e9s ultra premium",
+      "unit": "bot"
+    },
+    {
+      "name": "Black Label (bot)",
+      "category": "Whisky",
+      "price": 320000.0,
+      "cost": 176000.0,
+      "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+      "unit": "bot"
+    },
+    {
+      "name": "Red Label (bot)",
+      "category": "Whisky",
+      "price": 150000.0,
+      "cost": 82500.0,
+      "description": "Whisky escoc\u00e9s blended",
+      "unit": "bot"
+    },
+    {
+      "name": "Jameson (med)",
+      "category": "Whisky",
+      "price": 130000.0,
+      "cost": 71500.0,
+      "description": "Whisky irland\u00e9s",
+      "unit": "med"
+    },
+    {
+      "name": "Jameson (bot)",
+      "category": "Whisky",
+      "price": 220000.0,
+      "cost": 121000.0,
+      "description": "Whisky irland\u00e9s",
+      "unit": "bot"
+    },
+    {
+      "name": "Ballantine's (bot)",
+      "category": "Whisky",
+      "price": 180000.0,
+      "cost": 99000.0,
+      "description": "Whisky escoc\u00e9s blended",
+      "unit": "bot"
+    },
+    {
+      "name": "Double Black (bot)",
+      "category": "Whisky",
+      "price": 320000.0,
+      "cost": 176000.0,
+      "description": "Whisky escoc\u00e9s ahumado",
+      "unit": "bot"
+    },
+    {
+      "name": "Jack Daniel's (bot)",
+      "category": "Whisky",
+      "price": 300000.0,
+      "cost": 165000.0,
+      "description": "Whisky Tennessee",
+      "unit": "bot"
+    },
+    {
+      "name": "Jack Honey (bot)",
+      "category": "Whisky",
+      "price": 300000.0,
+      "cost": 165000.0,
+      "description": "Whisky Tennessee con miel",
+      "unit": "bot"
+    },
+    {
+      "name": "Jack Fire (bot)",
+      "category": "Whisky",
+      "price": 300000.0,
+      "cost": 165000.0,
+      "description": "Whisky Tennessee con canela",
+      "unit": "bot"
+    },
+    {
+      "name": "Baileys (bot)",
+      "category": "Licores",
+      "price": 160000.0,
+      "cost": 88000.0,
+      "description": "Crema de whisky irland\u00e9s",
+      "unit": "bot"
+    },
+    {
+      "name": "Casillero del Diablo (bot)",
+      "category": "Vino",
+      "price": 100000.0,
+      "cost": 45000.0,
+      "description": "Vino chileno reserva",
+      "unit": "bot"
+    },
+    {
+      "name": "Gato Negro (bot)",
+      "category": "Vino",
+      "price": 100000.0,
+      "cost": 45000.0,
+      "description": "Vino chileno",
+      "unit": "bot"
+    },
+    {
+      "name": "Corona (bot)",
+      "category": "Cerveza",
+      "price": 14000.0,
+      "cost": 7000.0,
+      "description": "Cerveza mexicana",
+      "unit": "bot"
+    },
+    {
+      "name": "Club Colombia (bot)",
+      "category": "Cerveza",
+      "price": 10000.0,
+      "cost": 5000.0,
+      "description": "Cerveza colombiana",
+      "unit": "bot"
+    },
+    {
+      "name": "Stella Artois (bot)",
+      "category": "Cerveza",
+      "price": 14000.0,
+      "cost": 7000.0,
+      "description": "Cerveza belga premium",
+      "unit": "bot"
+    },
+    {
+      "name": "Heineken (bot)",
+      "category": "Cerveza",
+      "price": 14000.0,
+      "cost": 7000.0,
+      "description": "Cerveza holandesa",
+      "unit": "bot"
+    },
+    {
+      "name": "Vaso Michelado",
+      "category": "Bebida",
+      "price": 3000.0,
+      "cost": 1500.0,
+      "description": "Preparaci\u00f3n tradicional",
+      "unit": "unit"
+    },
+    {
+      "name": "Agua",
+      "category": "Bebida",
+      "price": 5000.0,
+      "cost": 2500.0,
+      "description": "Agua embotellada",
+      "unit": "unit"
+    },
+    {
+      "name": "Gaseosa",
+      "category": "Bebida",
+      "price": 6000.0,
+      "cost": 3000.0,
+      "description": "Bebida gaseosa",
+      "unit": "unit"
+    },
+    {
+      "name": "T\u00f3nica",
+      "category": "Bebida",
+      "price": 8000.0,
+      "cost": 4000.0,
+      "description": "Agua t\u00f3nica",
+      "unit": "unit"
+    },
+    {
+      "name": "Soda",
+      "category": "Bebida",
+      "price": 8000.0,
+      "cost": 4000.0,
+      "description": "Agua con gas",
+      "unit": "unit"
+    },
+    {
+      "name": "Red Bull",
+      "category": "Bebida",
+      "price": 15000.0,
+      "cost": 7500.0,
+      "description": "Bebida energizante",
+      "unit": "unit"
+    },
+    {
+      "name": "Gaseosa 1.5L",
+      "category": "Bebida",
+      "price": 15000.0,
+      "cost": 7500.0,
+      "description": "Gaseosa presentaci\u00f3n grande",
+      "unit": "unit"
+    },
+    {
+      "name": "Bomba",
+      "category": "Bebida",
+      "price": 12000.0,
+      "cost": 6000.0,
+      "description": "Bebida energizante",
+      "unit": "unit"
+    },
+    {
+      "name": "Papas de la Casa",
+      "category": "Entradas",
+      "price": 15000.0,
+      "cost": 4950.0,
+      "description": "Papas a la francesa cubiertas de queso y tocineta, acompa\u00f1adas de salsas de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Chorizo Santarrosano",
+      "category": "Entradas",
+      "price": 18000.0,
+      "cost": 5940.0,
+      "description": "2 chorizos santarrosanos acompa\u00f1ados de arepa asada y rodajas de lim\u00f3n",
+      "unit": "unit"
+    },
+    {
+      "name": "Chicharrones",
+      "category": "Entradas",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Deliciosos chicharrones acompa\u00f1ados de papa salteada y salsa de guacamole",
+      "unit": "unit"
+    },
+    {
+      "name": "Nachos",
+      "category": "Snacks",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Deliciosos nachos con queso cheddar, pico de gallo, guacamole, carne molida y salsa de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Churrasco",
+      "category": "Carnes",
+      "price": 52000.0,
+      "cost": 17160.0,
+      "description": "Lomo ancho de res en corte mariposa a la parrilla, con papa salada o cascos de papa amarilla o papas a la francesa, maduros y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Chuleta",
+      "category": "Carnes",
+      "price": 38000.0,
+      "cost": 12540.0,
+      "description": "Carne de cerdo apanada acompa\u00f1ada de papas a la francesa y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Filet Mignon",
+      "category": "Carnes",
+      "price": 52000.0,
+      "cost": 17160.0,
+      "description": "Medallones de lomo fino de res albardados en tocineta, en reducci\u00f3n de vino y champi\u00f1ones, con papa salada o cascos de papa amarilla o papas a la francesa y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Baby Beef",
+      "category": "Carnes",
+      "price": 52000.0,
+      "cost": 17160.0,
+      "description": "Suave y jugoso lomo fino asado a la parrilla en mantequilla, con papa salada o cascos de papa amarilla o papas a la francesa, maduros y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Costillas Margarita Especial",
+      "category": "Costillas",
+      "price": 45000.0,
+      "cost": 14850.0,
+      "description": "Costilla de cerdo a la parrilla, ba\u00f1adas en salsa de tocineta, queso y BBQ ahumado, con papas fritas, bastones de zanahoria y apio con queso de untar",
+      "unit": "unit"
+    },
+    {
+      "name": "Costillas San Luis BBQ Fire",
+      "category": "Costillas",
+      "price": 45000.0,
+      "cost": 14850.0,
+      "description": "Costilla de cerdo San Luis a la parrilla, caramelizadas en salsa BBQ picante, con papas fritas, bastones de zanahoria y apio con queso de untar",
+      "unit": "unit"
+    },
+    {
+      "name": "Costillas San Luis Miel Mostaza",
+      "category": "Costillas",
+      "price": 45000.0,
+      "cost": 14850.0,
+      "description": "Costilla de cerdo San Luis a la parrilla, caramelizadas con miel y mostaza, con papas fritas y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Costillas San Luis BBQ",
+      "category": "Costillas",
+      "price": 45000.0,
+      "cost": 14850.0,
+      "description": "Costilla de cerdo San Luis a la parrilla, caramelizadas en salsa BBQ, con papas fritas, bastones de zanahoria y apio con queso de untar",
+      "unit": "unit"
+    },
+    {
+      "name": "Mixtura Margarita",
+      "category": "Mixtura",
+      "price": 76000.0,
+      "cost": 26600.0,
+      "description": "Para 2 personas. Costillas BBQ, alitas teriyaki, muslitos miel-mostaza, mini brochetas de res y cerdo, aros de cebolla, papas a la francesa y salsa de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Picada de Carnes",
+      "category": "Picada",
+      "price": 76000.0,
+      "cost": 26600.0,
+      "description": "Para 2 personas. Carne de res, cerdo y pollo, chorizo, chicharrones, papas a la francesa y salsas de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Pollo Margarita",
+      "category": "Pollo",
+      "price": 35000.0,
+      "cost": 11550.0,
+      "description": "Pechuga de pollo cocida o apanada en cord\u00f3n blue y glaseado de mora, con papas a la francesa, arepita en cama de queso, pl\u00e1tano maduro y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Filete de Pollo Gratinado",
+      "category": "Pollo",
+      "price": 35000.0,
+      "cost": 11550.0,
+      "description": "Pechuga de pollo ba\u00f1ada en salsa de queso, con papas a la francesa, arepita en cama de queso, pl\u00e1tano maduro y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Pechuga a la Parrilla",
+      "category": "Pollo",
+      "price": 35000.0,
+      "cost": 11550.0,
+      "description": "Pechuga de pollo con papa salada o cascos de papa amarilla o papas a la francesa y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Crispetas de Pollo",
+      "category": "Pollo",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Deliciosas crispetas de pollo apanado acompa\u00f1adas de papas a la francesa",
+      "unit": "unit"
+    },
+    {
+      "name": "Alitas BBQ x6",
+      "category": "Alitas",
+      "price": 38000.0,
+      "cost": 12540.0,
+      "description": "Alitas caramelizadas en salsa BBQ acompa\u00f1adas de papas a la francesa y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Alitas Mango Picante x6",
+      "category": "Alitas",
+      "price": 38000.0,
+      "cost": 12540.0,
+      "description": "Alitas caramelizadas en salsa de mango picante acompa\u00f1adas de papas a la francesa y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Alitas Miel Mostaza x6",
+      "category": "Alitas",
+      "price": 38000.0,
+      "cost": 12540.0,
+      "description": "Alitas caramelizadas en salsa miel mostaza acompa\u00f1adas de papas a la francesa y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Cazuela de Mariscos",
+      "category": "Mariscos",
+      "price": 60000.0,
+      "cost": 21000.0,
+      "description": "Camar\u00f3n, palmito, calamar, concha y almeja con patac\u00f3n, arroz y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Camarones Crocantes en Coco",
+      "category": "Mariscos",
+      "price": 55000.0,
+      "cost": 19250.0,
+      "description": "Camarones rebozados en coco con aderezo criollo, chips de pl\u00e1tano verde y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Camarones Gratinados",
+      "category": "Mariscos",
+      "price": 58000.0,
+      "cost": 20300.0,
+      "description": "Exquisitos camarones selectos en salsa de queso, con salsa de la casa, ensalada de la casa y chips de pl\u00e1tano verde",
+      "unit": "unit"
+    },
+    {
+      "name": "Ceviche de Camar\u00f3n",
+      "category": "Mariscos",
+      "price": 58000.0,
+      "cost": 20300.0,
+      "description": "Camar\u00f3n fresco marinado en lim\u00f3n, cebolla morada, tomate, piment\u00f3n, aj\u00ed y cilantro, con chips de pl\u00e1tano verde",
+      "unit": "unit"
+    },
+    {
+      "name": "Arroz Margarita de Camar\u00f3n",
+      "category": "Mariscos",
+      "price": 58000.0,
+      "cost": 20300.0,
+      "description": "Arroz salteado con camarones, cebolla morada, zanahoria, cilantro y piment\u00f3n, con patacones, ensalada de la casa y chips de pl\u00e1tano verde",
+      "unit": "unit"
+    },
+    {
+      "name": "Salm\u00f3n en Salsa de Camarones",
+      "category": "Salm\u00f3n",
+      "price": 65000.0,
+      "cost": 22750.0,
+      "description": "Salm\u00f3n con salsa de camarones en leche de coco, anillos de cebolla, chips de pl\u00e1tano verde y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+      "category": "Salm\u00f3n",
+      "price": 58000.0,
+      "cost": 20300.0,
+      "description": "Salm\u00f3n con salsa de maracuy\u00e1 o naranja, anillos de cebolla, chips de pl\u00e1tano verde y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Salm\u00f3n Margarita",
+      "category": "Salm\u00f3n",
+      "price": 58000.0,
+      "cost": 20300.0,
+      "description": "Salm\u00f3n a la parrilla con salsa de cilantro, chips de pl\u00e1tano verde y ensalada de la casa",
+      "unit": "unit"
+    },
+    {
+      "name": "Hamburguesa Margarita",
+      "category": "Hamburguesas",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Pan artesanal, carne de res y cerdo, ba\u00f1o en salsa de uvillas, pi\u00f1a, queso cheddar, doble crema, lechuga, tomate, jam\u00f3n, salsa de la casa y papas a la francesa",
+      "unit": "unit"
+    },
+    {
+      "name": "Hamburguesa Mexicana",
+      "category": "Hamburguesas",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Pan artesanal, carne de res y cerdo, queso parmesano, lechuga, tomate, jam\u00f3n, jalape\u00f1os, guacamole y salsa de la casa con papas a la francesa",
+      "unit": "unit"
+    },
+    {
+      "name": "Hamburguesa Cl\u00e1sica",
+      "category": "Hamburguesas",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Pan artesanal, carne de res y cerdo, jam\u00f3n, queso, tocineta, queso cheddar, tomate, lechuga y salsa de la casa con papas a la francesa",
+      "unit": "unit"
+    },
+    {
+      "name": "S\u00e1ndwich de Pollo",
+      "category": "S\u00e1ndwiches",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Pollo, queso mozzarella derretido, tomate, lechuga y salsa de la casa con papas a la francesa",
+      "unit": "unit"
+    },
+    {
+      "name": "S\u00e1ndwich Ropa Vieja",
+      "category": "S\u00e1ndwiches",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Carne desmechada en salsa a la criolla, queso mozzarella, cebolla caramelizada, pepino, lechuga y salsa de la casa con papas a la francesa",
+      "unit": "unit"
+    },
+    {
+      "name": "Crepes Margarita",
+      "category": "Crepes",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Crepe mixta al wok de res y pollo en salsa criolla con queso, tomates cherry, r\u00fagula fresca y tocineta crocante",
+      "unit": "unit"
+    },
+    {
+      "name": "Crepes de Camarones",
+      "category": "Crepes",
+      "price": 45000.0,
+      "cost": 15750.0,
+      "description": "Exquisitos camarones selectos, queso mozzarella junto a nuestra salsa especial Margarita",
+      "unit": "unit"
+    },
+    {
+      "name": "Crepes Pollo con Champi\u00f1ones",
+      "category": "Crepes",
+      "price": 28000.0,
+      "cost": 9240.0,
+      "description": "Delicioso pollo con champi\u00f1ones en salsa velout\u00e9 y queso mozzarella",
+      "unit": "unit"
+    },
+    {
+      "name": "Spaghetti a la Bolo\u00f1esa",
+      "category": "Pastas",
+      "price": 31000.0,
+      "cost": 10230.0,
+      "description": "Pasta, carne molida hecha a base de tomate, pimentones y especias, con papas a la francesa",
+      "unit": "unit"
+    },
+    {
+      "name": "Spaghetti a la Carbonara",
+      "category": "Pastas",
+      "price": 31000.0,
+      "cost": 10230.0,
+      "description": "Pasta, tocineta preparada a base de leche y crema de leche con papas a la francesa",
+      "unit": "unit"
+    },
+    {
+      "name": "Limonada Natural",
+      "category": "Bebidas Fr\u00edas",
+      "price": 6000.0,
+      "cost": 1980.0,
+      "description": "Limonada tradicional",
+      "unit": "unit"
+    },
+    {
+      "name": "Limonada Campesina",
+      "category": "Bebidas Fr\u00edas",
+      "price": 7000.0,
+      "cost": 2310.0,
+      "description": "Limonada con panela",
+      "unit": "unit"
+    },
+    {
+      "name": "Limonada Anisada",
+      "category": "Bebidas Fr\u00edas",
+      "price": 7000.0,
+      "cost": 2310.0,
+      "description": "Limonada con an\u00eds",
+      "unit": "unit"
+    },
+    {
+      "name": "Limonada Cerezada Especial",
+      "category": "Bebidas Fr\u00edas",
+      "price": 13000.0,
+      "cost": 4290.0,
+      "description": "Limonada con cerezas",
+      "unit": "unit"
+    },
+    {
+      "name": "Limonada Hierbabuena",
+      "category": "Bebidas Fr\u00edas",
+      "price": 13000.0,
+      "cost": 4290.0,
+      "description": "Limonada con hierbabuena fresca",
+      "unit": "unit"
+    },
+    {
+      "name": "Limonada de Coco Especial",
+      "category": "Bebidas Fr\u00edas",
+      "price": 13000.0,
+      "cost": 4290.0,
+      "description": "Limonada con coco",
+      "unit": "unit"
+    },
+    {
+      "name": "Batidos de Fruta",
+      "category": "Bebidas Fr\u00edas",
+      "price": 10000.0,
+      "cost": 3300.0,
+      "description": "En agua o leche. Maracuy\u00e1, fresa, mora, naranja o lulo",
+      "unit": "unit"
+    },
+    {
+      "name": "Jugo Natural en Agua",
+      "category": "Bebidas Fr\u00edas",
+      "price": 7000.0,
+      "cost": 2310.0,
+      "description": "Maracuy\u00e1, fresa, mora, naranja o lulo",
+      "unit": "unit"
+    },
+    {
+      "name": "Jugo Natural en Leche",
+      "category": "Bebidas Fr\u00edas",
+      "price": 8000.0,
+      "cost": 2640.0,
+      "description": "Maracuy\u00e1, fresa, mora, naranja o lulo",
+      "unit": "unit"
+    },
+    {
+      "name": "Malteada de Bailey's",
+      "category": "Bebidas Fr\u00edas",
+      "price": 34000.0,
+      "cost": 11220.0,
+      "description": "Deliciosa malteada con crema de whisky",
+      "unit": "unit"
+    },
+    {
+      "name": "Soda Italiana",
+      "category": "Bebidas Fr\u00edas",
+      "price": 18000.0,
+      "cost": 5940.0,
+      "description": "Soda con jarabe de frutas",
+      "unit": "unit"
+    },
+    {
+      "name": "Milo Fr\u00edo",
+      "category": "Bebidas Fr\u00edas",
+      "price": 8000.0,
+      "cost": 2640.0,
+      "description": "Bebida de chocolate con leche fr\u00eda",
+      "unit": "unit"
+    },
+    {
+      "name": "Frappuccino",
+      "category": "Bebidas Fr\u00edas",
+      "price": 13000.0,
+      "cost": 4290.0,
+      "description": "Caf\u00e9 frapp\u00e9 con crema",
+      "unit": "unit"
+    },
+    {
+      "name": "Jugo de Naranja",
+      "category": "Bebidas Fr\u00edas",
+      "price": 10000.0,
+      "cost": 3300.0,
+      "description": "Jugo natural de naranja",
+      "unit": "unit"
+    },
+    {
+      "name": "Brownie con Helado",
+      "category": "Postres",
+      "price": 12000.0,
+      "cost": 3960.0,
+      "description": "Brownie de chocolate con helado",
+      "unit": "unit"
+    },
+    {
+      "name": "Malteada",
+      "category": "Bebidas Fr\u00edas",
+      "price": 15000.0,
+      "cost": 4950.0,
+      "description": "Deliciosa mezcla cremosa con pulpas frescas batidas, combinadas con l\u00e1cteos y helado. Sabores: mora, mango, maracuy\u00e1, frutos rojos",
+      "unit": "unit"
+    },
+    {
+      "name": "Granizado de Caf\u00e9",
+      "category": "Bebidas Fr\u00edas",
+      "price": 15000.0,
+      "cost": 4950.0,
+      "description": "Caf\u00e9 granizado con hielo",
+      "unit": "unit"
+    }
+  ],
+  "categories": [
+    "Snacks",
+    "Cocteler\u00eda",
+    "Picada",
+    "Ginebra",
+    "Vodka",
+    "Postres",
+    "Cerveza",
+    "Alitas",
+    "Crepes",
+    "Entradas",
+    "Mariscos",
+    "Tequila",
+    "Ron",
+    "Whisky",
+    "Mixtura",
+    "Bebida",
+    "Pastas",
+    "Pollo",
+    "Carnes",
+    "Bebidas Fr\u00edas",
+    "Costillas",
+    "Licores",
+    "Salm\u00f3n",
+    "Vino",
+    "S\u00e1ndwiches",
+    "Hamburguesas"
+  ],
+  "extraction_confidence": 1.0
+}

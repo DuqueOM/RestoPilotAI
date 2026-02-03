@@ -524,15 +524,28 @@ async def get_demo_session():
     with open(demo_file, "r") as f:
         demo_data = json.load(f)
 
-    sessions["demo-session-001"] = {
+    session_id = demo_data.get("session_id", "demo-session-001")
+    
+    sessions[session_id] = {
         "menu_items": demo_data["menu"]["items"],
         "bcg_analysis": demo_data["bcg"],
         "campaigns": demo_data["campaigns"]["campaigns"],
         "predictions": demo_data.get("predictions"),
+        "competitor_analysis": demo_data.get("competitor_analysis"),
+        "sentiment_analysis": demo_data.get("sentiment_analysis"),
         "thought_signature": demo_data.get("thought_signature"),
         "marathon_agent_context": demo_data.get("marathon_agent_context"),
+        "restaurant_info": demo_data.get("restaurant_info"),
+        "created_at": demo_data.get("created_at")
     }
-    save_session("demo-session-001")
+    
+    # Ensure sales data is loaded if available
+    sales_file = Path("data/demo/sales.json")
+    if sales_file.exists():
+        with open(sales_file, "r") as f:
+            sessions[session_id]["sales_data"] = json.load(f)
+            
+    save_session(session_id)
 
     campaigns_data = demo_data.get("campaigns", {})
     if isinstance(campaigns_data, dict) and "campaigns" in campaigns_data:
@@ -544,7 +557,7 @@ async def get_demo_session():
         }
 
     return {
-        "session_id": demo_data["session_id"],
+        "session_id": session_id,
         "status": demo_data["status"],
         "created_at": demo_data["created_at"],
         "menu": demo_data["menu"],
@@ -552,8 +565,11 @@ async def get_demo_session():
         "bcg_analysis": demo_data["bcg"],
         "campaigns": campaigns_result,
         "predictions": demo_data.get("predictions"),
+        "competitor_analysis": demo_data.get("competitor_analysis"),
+        "sentiment_analysis": demo_data.get("sentiment_analysis"),
         "thought_signature": demo_data.get("thought_signature"),
         "marathon_agent_context": demo_data.get("marathon_agent_context"),
+        "restaurant_info": demo_data.get("restaurant_info"),
     }
 
 
@@ -569,20 +585,32 @@ async def load_demo_into_session():
     with open(demo_file, "r") as f:
         demo_data = json.load(f)
 
-    session_id = "demo-session-001"
+    session_id = demo_data.get("session_id", "demo-session-001")
+    
     sessions[session_id] = {
         "menu_items": demo_data["menu"]["items"],
         "categories": demo_data["menu"]["categories"],
         "bcg_analysis": demo_data["bcg"],
         "campaigns": demo_data["campaigns"]["campaigns"],
+        "competitor_analysis": demo_data.get("competitor_analysis"),
+        "sentiment_analysis": demo_data.get("sentiment_analysis"),
         "created_at": demo_data["created_at"],
+        "restaurant_info": demo_data.get("restaurant_info")
     }
+    
+    # Ensure sales data is loaded
+    sales_file = Path("data/demo/sales.json")
+    if sales_file.exists():
+        with open(sales_file, "r") as f:
+            sessions[session_id]["sales_data"] = json.load(f)
+            
     save_session(session_id)
 
     return {
         "session_id": session_id,
         "status": "loaded",
         "items_count": len(demo_data["menu"]["items"]),
+        "restaurant": demo_data.get("restaurant_info", {}).get("name"),
         "message": "Demo session loaded. Use this session_id with /session/{session_id} endpoint.",
     }
 

@@ -35,7 +35,7 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = sessionId === 'demo-session-001'
+        const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
           ? await api.getDemoSession()
           : await api.getSession(sessionId);
         setSessionData(data);
@@ -67,7 +67,7 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
                 <span className="text-sm font-medium text-gray-600">Powered by Gemini 3</span>
               </div>
               <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-                {sessionId === 'demo-session-001' ? '🎭 Demo' : `Session: ${sessionId.slice(0, 8)}...`}
+                {(sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001') ? '🎭 Demo' : `Session: ${sessionId.slice(0, 8)}...`}
               </span>
             </div>
           </div>

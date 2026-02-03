@@ -259,6 +259,8 @@ export interface AnalysisSession {
   bcg?: BCGAnalysisResult;
   predictions?: PredictionResult;
   campaigns?: CampaignResult;
+  competitor_analysis?: CompetitorAnalysisResult;
+  sentiment_analysis?: SentimentAnalysisResult;
 }
 
 export interface ThoughtSignature {

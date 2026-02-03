@@ -1,0 +1,108 @@
+{
+  "session_id": "margarita-pinta-demo-001",
+  "items": [
+    {
+      "name": "Margarita Ardiente",
+      "price": 39500,
+      "category": "STAR",
+      "growth": 0.88,
+      "share": 0.72,
+      "revenue": 15000000
+    },
+    {
+      "name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+      "price": 67200,
+      "category": "STAR",
+      "growth": 0.75,
+      "share": 0.65,
+      "revenue": 12000000
+    },
+    {
+      "name": "Limonada Anisada",
+      "price": 8100,
+      "category": "STAR",
+      "growth": 0.8,
+      "share": 0.78,
+      "revenue": 5000000
+    },
+    {
+      "name": "Corona",
+      "price": 16200,
+      "category": "CASH_COW",
+      "growth": 0.15,
+      "share": 0.85,
+      "revenue": 9000000
+    },
+    {
+      "name": "Nachos",
+      "price": 32500,
+      "category": "CASH_COW",
+      "growth": 0.2,
+      "share": 0.8,
+      "revenue": 8500000
+    },
+    {
+      "name": "Stella Artois",
+      "price": 16200,
+      "category": "CASH_COW",
+      "growth": 0.12,
+      "share": 0.82,
+      "revenue": 8800000
+    },
+    {
+      "name": "Hervido con Tequila",
+      "price": 29000,
+      "category": "QUESTION_MARK",
+      "growth": 0.95,
+      "share": 0.3,
+      "revenue": 4000000
+    },
+    {
+      "name": "Old Fashioned",
+      "price": 39400,
+      "category": "QUESTION_MARK",
+      "growth": 0.85,
+      "share": 0.25,
+      "revenue": 3500000
+    },
+    {
+      "name": "Brownie con Helado",
+      "price": 13900,
+      "category": "QUESTION_MARK",
+      "growth": 0.7,
+      "share": 0.35,
+      "revenue": 2000000
+    },
+    {
+      "name": "Vaso Michelado",
+      "price": 3500,
+      "category": "DOG",
+      "growth": 0.05,
+      "share": 0.2,
+      "revenue": 500000
+    },
+    {
+      "name": "Cosmopolitan",
+      "price": 39400,
+      "category": "DOG",
+      "growth": 0.08,
+      "share": 0.15,
+      "revenue": 1200000
+    },
+    {
+      "name": "T\u00f3nica",
+      "price": 9300,
+      "category": "DOG",
+      "growth": 0.02,
+      "share": 0.1,
+      "revenue": 300000
+    }
+  ],
+  "insights": {
+    "STAR": "Your Stars (Margarita Ardiente, Salm\u00f3n) define the Margarita Pinta experience. Leverage these for main promotions.",
+    "CASH_COW": "Cash Cows (Beers, Nachos) are reliable staples. Ensure stock availability and quick service.",
+    "QUESTION_MARK": "The 'Hervido con Tequila' is showing strong interest. A targeted campaign could turn it into a Star.",
+    "DOG": "Some classic cocktails like Cosmopolitan are moving slowly. Consider refreshing the recipe or removing."
+  },
+  "summary": "Margarita Pinta's portfolio is strong. The Star products are well-aligned with the brand identity (Margarita, Salm\u00f3n). There is a clear opportunity to elevate the unique local offerings (Hervidos) to Star status."
+}

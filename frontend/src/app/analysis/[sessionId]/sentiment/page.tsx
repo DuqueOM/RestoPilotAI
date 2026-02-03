@@ -17,7 +17,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = sessionId === 'demo-session-001'
+        const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
           ? await api.getDemoSession()
           : await api.getSession(sessionId);
         setSession(data);
@@ -41,31 +41,18 @@ export default function SentimentPage({ params }: SentimentPageProps) {
     );
   }
 
-  // Demo sentiment data - in real implementation from audio/link analysis
-  const sentimentData = session?.sentiment_analysis || {
-    overall: {
-      score: 0.72,
-      label: "Positivo",
-      trend: "improving"
-    },
-    sources: [
-      { name: "Google Reviews", count: 156, avgRating: 4.3, sentiment: 0.78 },
-      { name: "TripAdvisor", count: 89, avgRating: 4.1, sentiment: 0.71 },
-      { name: "Redes Sociales", count: 234, avgRating: null, sentiment: 0.68 }
-    ],
-    topics: [
-      { topic: "Calidad de comida", sentiment: 0.85, mentions: 120, trend: "up" },
-      { topic: "Servicio", sentiment: 0.65, mentions: 89, trend: "stable" },
-      { topic: "Ambiente", sentiment: 0.78, mentions: 67, trend: "up" },
-      { topic: "Precios", sentiment: 0.52, mentions: 95, trend: "down" },
-      { topic: "Tiempo de espera", sentiment: 0.45, mentions: 43, trend: "stable" }
-    ],
-    recentReviews: [
-      { text: "Excelente comida, los tacos al pastor son los mejores de la zona", rating: 5, source: "Google", date: "hace 2 días" },
-      { text: "Buen ambiente pero el servicio fue un poco lento", rating: 4, source: "TripAdvisor", date: "hace 3 días" },
-      { text: "Precios un poco elevados para las porciones, pero calidad top", rating: 4, source: "Google", date: "hace 5 días" }
-    ]
-  };
+  // Get sentiment data from session
+  const sentimentData = session?.sentiment_analysis;
+
+  if (!sentimentData && !loading) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+        <p className="text-lg">No hay análisis de sentimiento disponible</p>
+        <p className="text-sm mt-2">Ejecuta el análisis para ver la percepción de tus clientes.</p>
+      </div>
+    );
+  }
 
   const audioContext = session?.audio_analysis;
   const businessContext = session?.business_context || "";

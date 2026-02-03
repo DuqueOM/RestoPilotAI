@@ -43,7 +43,7 @@ export default function BCGPage({ params }: BCGPageProps) {
 
   const fetchAnalysis = useCallback(async (period: string) => {
     try {
-      const session = sessionId === 'demo-session-001'
+      const session = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
         ? await api.getDemoSession()
         : await api.getSession(sessionId);
       setSessionData(session);
@@ -331,8 +331,25 @@ function QuadrantCard({ category, config, items, summary, expandedItem, onToggle
                     <span>Costo: ${item.cost?.toFixed(2)}</span>
                     <span>Margen: {item.margin_pct?.toFixed(1)}%</span>
                   </div>
-                  <div className="mt-2 p-2 bg-white rounded">
-                    <span className="font-medium text-gray-700">{item.strategy?.action}</span>
+                  <div className="mt-2 p-2 bg-white rounded space-y-2">
+                    <div>
+                      <span className="font-medium text-gray-700 block mb-1">{item.strategy?.action}</span>
+                      <div className="flex gap-2 text-[10px] mb-2">
+                        {item.strategy?.priority && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600 border border-gray-200">
+                            Priority: {item.strategy.priority}
+                          </span>
+                        )}
+                        {item.strategy?.pricing && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600 border border-gray-200">
+                            Price: {item.strategy.pricing}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-gray-500 mb-1">
+                        Position: {item.strategy?.menu_position || 'Standard'}
+                      </div>
+                    </div>
                     <ul className="mt-1 text-gray-600 list-disc list-inside">
                       {item.strategy?.recommendations?.slice(0, 3).map((rec, i) => (
                         <li key={i}>{rec}</li>

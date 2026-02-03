@@ -17,7 +17,7 @@ export default function MenuPage({ params }: MenuPageProps) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = sessionId === 'demo-session-001'
+        const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
           ? await api.getDemoSession()
           : await api.getSession(sessionId);
         setSession(data);

@@ -19,7 +19,7 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
     const fetchCampaigns = async () => {
       try {
         // Check if this is a demo session
-        const session = sessionId === 'demo-session-001'
+        const session = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
           ? await api.getDemoSession()
           : await api.getSession(sessionId);
         if (session.campaigns) {

@@ -5,12 +5,14 @@ import { FileUpload } from '@/components/setup/FileUpload';
 import { InfoTooltip } from '@/components/setup/InfoTooltip';
 import { ProgressBar } from '@/components/setup/ProgressBar';
 import { TemplateSelector } from '@/components/setup/TemplateSelector';
+import { api } from '@/lib/api';
 import {
     FileText,
     Instagram,
     Loader2,
     MapPin,
     Mic,
+    Play,
     Sparkles,
     Upload
 } from 'lucide-react';
@@ -28,6 +30,7 @@ export default function SetupPage() {
   const router = useRouter();
   const [completionScore, setCompletionScore] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingDemo, setIsLoadingDemo] = useState(false);
   const [formData, setFormData] = useState({
     // Location (most important - shown first)
     location: '',
@@ -88,6 +91,25 @@ export default function SetupPage() {
     setCompletionScore(Math.min(100, fields.reduce((a, b) => a + b, 0)));
   }, [formData]);
   
+  const handleDemoClick = async () => {
+    try {
+      setIsLoadingDemo(true);
+      toast.loading('Loading Margarita Pinta Demo...');
+      
+      const result = await api.loadDemo();
+      
+      toast.dismiss();
+      toast.success('Demo loaded successfully!');
+      
+      router.push(`/analysis/${result.session_id}`);
+    } catch (error) {
+      console.error('Failed to load demo:', error);
+      toast.dismiss();
+      toast.error('Failed to load demo experience. Is the backend running?');
+      setIsLoadingDemo(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.location) return;
     
@@ -197,6 +219,22 @@ export default function SetupPage() {
             Just tell us where you are. We'll find your competitors, analyze your market,
             and create a winning strategy. All in 5 minutes.
           </p>
+
+          {/* Live Demo CTA */}
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={handleDemoClick}
+              disabled={isLoadingDemo || isSubmitting}
+              className="inline-flex items-center gap-2 px-6 py-2 bg-white text-orange-600 border border-orange-200 rounded-full hover:bg-orange-50 transition-colors shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoadingDemo ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Play className="w-4 h-4 fill-current" />
+              )}
+              View Live Demo (Margarita Pinta)
+            </button>
+          </div>
         </div>
         
         {/* Form Sections - Progressive Disclosure */}
@@ -512,7 +550,7 @@ export default function SetupPage() {
             
             <button
               onClick={handleSubmit}
-              disabled={!formData.location || isSubmitting}
+              disabled={!formData.location || isSubmitting || isLoadingDemo}
               className={`px-8 py-3 rounded-lg font-semibold text-white transition-all flex items-center gap-2 ${
                 formData.location && !isSubmitting
                   ? 'bg-gradient-to-r from-orange-500 to-blue-600 hover:shadow-lg hover:scale-105'

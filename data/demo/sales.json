@@ -1,0 +1,7121 @@
+[
+  {
+    "date": "2025-11-05",
+    "item_name": "Margarita Ardiente",
+    "quantity": 6,
+    "revenue": 237000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Corona",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Stella Artois",
+    "quantity": 13,
+    "revenue": 210600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-05",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Margarita Ardiente",
+    "quantity": 15,
+    "revenue": 592500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Limonada Anisada",
+    "quantity": 29,
+    "revenue": 234900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Corona",
+    "quantity": 23,
+    "revenue": 372600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Nachos",
+    "quantity": 20,
+    "revenue": 650000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Stella Artois",
+    "quantity": 44,
+    "revenue": 712800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Hervido con Tequila",
+    "quantity": 5,
+    "revenue": 145000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-06",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Margarita Ardiente",
+    "quantity": 17,
+    "revenue": 671500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 13,
+    "revenue": 873600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Limonada Anisada",
+    "quantity": 24,
+    "revenue": 194400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Corona",
+    "quantity": 31,
+    "revenue": 502200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Nachos",
+    "quantity": 19,
+    "revenue": 617500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Stella Artois",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Hervido con Tequila",
+    "quantity": 8,
+    "revenue": 232000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Old Fashioned",
+    "quantity": 6,
+    "revenue": 236400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Brownie con Helado",
+    "quantity": 9,
+    "revenue": 125100,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Vaso Michelado",
+    "quantity": 6,
+    "revenue": 21000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-07",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Margarita Ardiente",
+    "quantity": 29,
+    "revenue": 1145500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 9,
+    "revenue": 604800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Limonada Anisada",
+    "quantity": 33,
+    "revenue": 267300,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Corona",
+    "quantity": 30,
+    "revenue": 486000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Nachos",
+    "quantity": 19,
+    "revenue": 617500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Stella Artois",
+    "quantity": 33,
+    "revenue": 534600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Hervido con Tequila",
+    "quantity": 7,
+    "revenue": 203000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Old Fashioned",
+    "quantity": 5,
+    "revenue": 197000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Vaso Michelado",
+    "quantity": 10,
+    "revenue": 35000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-08",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Margarita Ardiente",
+    "quantity": 12,
+    "revenue": 474000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Limonada Anisada",
+    "quantity": 11,
+    "revenue": 89100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Corona",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-09",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Limonada Anisada",
+    "quantity": 22,
+    "revenue": 178200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Corona",
+    "quantity": 9,
+    "revenue": 145800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Stella Artois",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-10",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Limonada Anisada",
+    "quantity": 15,
+    "revenue": 121500,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Corona",
+    "quantity": 9,
+    "revenue": 145800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Stella Artois",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-11",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Margarita Ardiente",
+    "quantity": 6,
+    "revenue": 237000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Limonada Anisada",
+    "quantity": 17,
+    "revenue": 137700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Corona",
+    "quantity": 13,
+    "revenue": 210600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Stella Artois",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-12",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Margarita Ardiente",
+    "quantity": 15,
+    "revenue": 592500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 13,
+    "revenue": 873600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Limonada Anisada",
+    "quantity": 42,
+    "revenue": 340200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Corona",
+    "quantity": 46,
+    "revenue": 745200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Nachos",
+    "quantity": 16,
+    "revenue": 520000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Stella Artois",
+    "quantity": 27,
+    "revenue": 437400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Hervido con Tequila",
+    "quantity": 10,
+    "revenue": 290000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Old Fashioned",
+    "quantity": 4,
+    "revenue": 157600,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-13",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Margarita Ardiente",
+    "quantity": 21,
+    "revenue": 829500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 13,
+    "revenue": 873600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Limonada Anisada",
+    "quantity": 28,
+    "revenue": 226800,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Corona",
+    "quantity": 34,
+    "revenue": 550800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Nachos",
+    "quantity": 12,
+    "revenue": 390000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Stella Artois",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Hervido con Tequila",
+    "quantity": 8,
+    "revenue": 232000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Vaso Michelado",
+    "quantity": 10,
+    "revenue": 35000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-14",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Margarita Ardiente",
+    "quantity": 21,
+    "revenue": 829500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 12,
+    "revenue": 806400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Limonada Anisada",
+    "quantity": 46,
+    "revenue": 372600,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Corona",
+    "quantity": 32,
+    "revenue": 518400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Nachos",
+    "quantity": 15,
+    "revenue": 487500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Stella Artois",
+    "quantity": 41,
+    "revenue": 664200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Hervido con Tequila",
+    "quantity": 10,
+    "revenue": 290000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Brownie con Helado",
+    "quantity": 9,
+    "revenue": 125100,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-15",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Margarita Ardiente",
+    "quantity": 12,
+    "revenue": 474000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Limonada Anisada",
+    "quantity": 18,
+    "revenue": 145800,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Corona",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Stella Artois",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-16",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Limonada Anisada",
+    "quantity": 11,
+    "revenue": 89100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Corona",
+    "quantity": 13,
+    "revenue": 210600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Nachos",
+    "quantity": 4,
+    "revenue": 130000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Stella Artois",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-17",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Margarita Ardiente",
+    "quantity": 9,
+    "revenue": 355500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Limonada Anisada",
+    "quantity": 17,
+    "revenue": 137700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Corona",
+    "quantity": 18,
+    "revenue": 291600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Stella Artois",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-18",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Margarita Ardiente",
+    "quantity": 9,
+    "revenue": 355500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Limonada Anisada",
+    "quantity": 18,
+    "revenue": 145800,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Corona",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Stella Artois",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-19",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Margarita Ardiente",
+    "quantity": 29,
+    "revenue": 1145500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Limonada Anisada",
+    "quantity": 41,
+    "revenue": 332100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Corona",
+    "quantity": 40,
+    "revenue": 648000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Nachos",
+    "quantity": 12,
+    "revenue": 390000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Stella Artois",
+    "quantity": 23,
+    "revenue": 372600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Hervido con Tequila",
+    "quantity": 11,
+    "revenue": 319000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Old Fashioned",
+    "quantity": 5,
+    "revenue": 197000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Vaso Michelado",
+    "quantity": 7,
+    "revenue": 24500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-20",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Margarita Ardiente",
+    "quantity": 14,
+    "revenue": 553000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 10,
+    "revenue": 672000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Limonada Anisada",
+    "quantity": 43,
+    "revenue": 348300,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Corona",
+    "quantity": 39,
+    "revenue": 631800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Nachos",
+    "quantity": 13,
+    "revenue": 422500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Stella Artois",
+    "quantity": 27,
+    "revenue": 437400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Hervido con Tequila",
+    "quantity": 11,
+    "revenue": 319000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Old Fashioned",
+    "quantity": 7,
+    "revenue": 275800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Vaso Michelado",
+    "quantity": 7,
+    "revenue": 24500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-21",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Limonada Anisada",
+    "quantity": 31,
+    "revenue": 251100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Corona",
+    "quantity": 27,
+    "revenue": 437400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Nachos",
+    "quantity": 19,
+    "revenue": 617500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Stella Artois",
+    "quantity": 44,
+    "revenue": 712800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Hervido con Tequila",
+    "quantity": 9,
+    "revenue": 261000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Old Fashioned",
+    "quantity": 6,
+    "revenue": 236400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Brownie con Helado",
+    "quantity": 10,
+    "revenue": 139000,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Vaso Michelado",
+    "quantity": 6,
+    "revenue": 21000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-22",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Margarita Ardiente",
+    "quantity": 14,
+    "revenue": 553000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 2,
+    "revenue": 134400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Limonada Anisada",
+    "quantity": 15,
+    "revenue": 121500,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Corona",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Stella Artois",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-23",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Margarita Ardiente",
+    "quantity": 9,
+    "revenue": 355500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Corona",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Stella Artois",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-24",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Margarita Ardiente",
+    "quantity": 7,
+    "revenue": 276500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Limonada Anisada",
+    "quantity": 12,
+    "revenue": 97200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Corona",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-25",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Margarita Ardiente",
+    "quantity": 12,
+    "revenue": 474000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Corona",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Stella Artois",
+    "quantity": 18,
+    "revenue": 291600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-26",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Margarita Ardiente",
+    "quantity": 27,
+    "revenue": 1066500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Limonada Anisada",
+    "quantity": 23,
+    "revenue": 186300,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Corona",
+    "quantity": 33,
+    "revenue": 534600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Nachos",
+    "quantity": 17,
+    "revenue": 552500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Stella Artois",
+    "quantity": 44,
+    "revenue": 712800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Hervido con Tequila",
+    "quantity": 7,
+    "revenue": 203000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Old Fashioned",
+    "quantity": 7,
+    "revenue": 275800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Brownie con Helado",
+    "quantity": 11,
+    "revenue": 152900,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-27",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Margarita Ardiente",
+    "quantity": 23,
+    "revenue": 908500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Limonada Anisada",
+    "quantity": 28,
+    "revenue": 226800,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Corona",
+    "quantity": 43,
+    "revenue": 696600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Stella Artois",
+    "quantity": 28,
+    "revenue": 453600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Hervido con Tequila",
+    "quantity": 7,
+    "revenue": 203000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Old Fashioned",
+    "quantity": 6,
+    "revenue": 236400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-28",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Margarita Ardiente",
+    "quantity": 26,
+    "revenue": 1027000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 7,
+    "revenue": 470400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Limonada Anisada",
+    "quantity": 36,
+    "revenue": 291600,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Corona",
+    "quantity": 34,
+    "revenue": 550800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Nachos",
+    "quantity": 10,
+    "revenue": 325000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Stella Artois",
+    "quantity": 33,
+    "revenue": 534600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Hervido con Tequila",
+    "quantity": 10,
+    "revenue": 290000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Old Fashioned",
+    "quantity": 7,
+    "revenue": 275800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Brownie con Helado",
+    "quantity": 10,
+    "revenue": 139000,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-29",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Margarita Ardiente",
+    "quantity": 7,
+    "revenue": 276500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Limonada Anisada",
+    "quantity": 16,
+    "revenue": 129600,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Corona",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Stella Artois",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-11-30",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Limonada Anisada",
+    "quantity": 18,
+    "revenue": 145800,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Corona",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Stella Artois",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-01",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Margarita Ardiente",
+    "quantity": 12,
+    "revenue": 474000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Limonada Anisada",
+    "quantity": 20,
+    "revenue": 162000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Corona",
+    "quantity": 9,
+    "revenue": 145800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Nachos",
+    "quantity": 5,
+    "revenue": 162500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Stella Artois",
+    "quantity": 18,
+    "revenue": 291600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-02",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Margarita Ardiente",
+    "quantity": 6,
+    "revenue": 237000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Limonada Anisada",
+    "quantity": 12,
+    "revenue": 97200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Corona",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Stella Artois",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-03",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Limonada Anisada",
+    "quantity": 42,
+    "revenue": 340200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Corona",
+    "quantity": 43,
+    "revenue": 696600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Nachos",
+    "quantity": 11,
+    "revenue": 357500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Stella Artois",
+    "quantity": 42,
+    "revenue": 680400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Hervido con Tequila",
+    "quantity": 10,
+    "revenue": 290000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Brownie con Helado",
+    "quantity": 11,
+    "revenue": 152900,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Vaso Michelado",
+    "quantity": 9,
+    "revenue": 31500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-04",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Margarita Ardiente",
+    "quantity": 25,
+    "revenue": 987500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 10,
+    "revenue": 672000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Limonada Anisada",
+    "quantity": 44,
+    "revenue": 356400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Corona",
+    "quantity": 44,
+    "revenue": 712800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Nachos",
+    "quantity": 11,
+    "revenue": 357500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Stella Artois",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Hervido con Tequila",
+    "quantity": 9,
+    "revenue": 261000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Old Fashioned",
+    "quantity": 7,
+    "revenue": 275800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Brownie con Helado",
+    "quantity": 10,
+    "revenue": 139000,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Vaso Michelado",
+    "quantity": 6,
+    "revenue": 21000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-05",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Margarita Ardiente",
+    "quantity": 28,
+    "revenue": 1106000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 8,
+    "revenue": 537600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Limonada Anisada",
+    "quantity": 38,
+    "revenue": 307800,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Corona",
+    "quantity": 44,
+    "revenue": 712800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Nachos",
+    "quantity": 16,
+    "revenue": 520000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Stella Artois",
+    "quantity": 36,
+    "revenue": 583200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Hervido con Tequila",
+    "quantity": 10,
+    "revenue": 290000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Old Fashioned",
+    "quantity": 6,
+    "revenue": 236400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Brownie con Helado",
+    "quantity": 11,
+    "revenue": 152900,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Vaso Michelado",
+    "quantity": 7,
+    "revenue": 24500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-06",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Limonada Anisada",
+    "quantity": 15,
+    "revenue": 121500,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Corona",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-07",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Margarita Ardiente",
+    "quantity": 12,
+    "revenue": 474000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 2,
+    "revenue": 134400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Limonada Anisada",
+    "quantity": 17,
+    "revenue": 137700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Corona",
+    "quantity": 18,
+    "revenue": 291600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Stella Artois",
+    "quantity": 9,
+    "revenue": 145800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-08",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Limonada Anisada",
+    "quantity": 22,
+    "revenue": 178200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Corona",
+    "quantity": 9,
+    "revenue": 145800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Stella Artois",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-09",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Margarita Ardiente",
+    "quantity": 6,
+    "revenue": 237000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Limonada Anisada",
+    "quantity": 12,
+    "revenue": 97200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Corona",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Nachos",
+    "quantity": 5,
+    "revenue": 162500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-10",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 12,
+    "revenue": 806400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Limonada Anisada",
+    "quantity": 30,
+    "revenue": 243000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Corona",
+    "quantity": 34,
+    "revenue": 550800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Nachos",
+    "quantity": 13,
+    "revenue": 422500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Stella Artois",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Hervido con Tequila",
+    "quantity": 8,
+    "revenue": 232000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Old Fashioned",
+    "quantity": 5,
+    "revenue": 197000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Brownie con Helado",
+    "quantity": 11,
+    "revenue": 152900,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-11",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Margarita Ardiente",
+    "quantity": 16,
+    "revenue": 632000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Limonada Anisada",
+    "quantity": 36,
+    "revenue": 291600,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Corona",
+    "quantity": 31,
+    "revenue": 502200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Nachos",
+    "quantity": 11,
+    "revenue": 357500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Stella Artois",
+    "quantity": 40,
+    "revenue": 648000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Hervido con Tequila",
+    "quantity": 9,
+    "revenue": 261000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Brownie con Helado",
+    "quantity": 11,
+    "revenue": 152900,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Vaso Michelado",
+    "quantity": 10,
+    "revenue": 35000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-12",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Margarita Ardiente",
+    "quantity": 25,
+    "revenue": 987500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Limonada Anisada",
+    "quantity": 44,
+    "revenue": 356400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Corona",
+    "quantity": 30,
+    "revenue": 486000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Nachos",
+    "quantity": 17,
+    "revenue": 552500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Stella Artois",
+    "quantity": 21,
+    "revenue": 340200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Hervido con Tequila",
+    "quantity": 7,
+    "revenue": 203000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Old Fashioned",
+    "quantity": 5,
+    "revenue": 197000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Brownie con Helado",
+    "quantity": 11,
+    "revenue": 152900,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-13",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Margarita Ardiente",
+    "quantity": 12,
+    "revenue": 474000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Limonada Anisada",
+    "quantity": 21,
+    "revenue": 170100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Corona",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Nachos",
+    "quantity": 5,
+    "revenue": 162500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Stella Artois",
+    "quantity": 13,
+    "revenue": 210600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-14",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Margarita Ardiente",
+    "quantity": 7,
+    "revenue": 276500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Limonada Anisada",
+    "quantity": 21,
+    "revenue": 170100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Corona",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Stella Artois",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-15",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Limonada Anisada",
+    "quantity": 17,
+    "revenue": 137700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Corona",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Stella Artois",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-16",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Limonada Anisada",
+    "quantity": 13,
+    "revenue": 105300,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Corona",
+    "quantity": 13,
+    "revenue": 210600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-17",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Margarita Ardiente",
+    "quantity": 22,
+    "revenue": 869000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 14,
+    "revenue": 940800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Limonada Anisada",
+    "quantity": 39,
+    "revenue": 315900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Corona",
+    "quantity": 39,
+    "revenue": 631800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Nachos",
+    "quantity": 10,
+    "revenue": 325000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Stella Artois",
+    "quantity": 34,
+    "revenue": 550800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Hervido con Tequila",
+    "quantity": 9,
+    "revenue": 261000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Brownie con Helado",
+    "quantity": 6,
+    "revenue": 83400,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Vaso Michelado",
+    "quantity": 8,
+    "revenue": 28000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-18",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Margarita Ardiente",
+    "quantity": 20,
+    "revenue": 790000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 12,
+    "revenue": 806400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Limonada Anisada",
+    "quantity": 44,
+    "revenue": 356400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Corona",
+    "quantity": 21,
+    "revenue": 340200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Nachos",
+    "quantity": 10,
+    "revenue": 325000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Stella Artois",
+    "quantity": 41,
+    "revenue": 664200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Hervido con Tequila",
+    "quantity": 5,
+    "revenue": 145000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Old Fashioned",
+    "quantity": 6,
+    "revenue": 236400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Brownie con Helado",
+    "quantity": 6,
+    "revenue": 83400,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-19",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Margarita Ardiente",
+    "quantity": 27,
+    "revenue": 1066500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Limonada Anisada",
+    "quantity": 46,
+    "revenue": 372600,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Corona",
+    "quantity": 25,
+    "revenue": 405000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Nachos",
+    "quantity": 11,
+    "revenue": 357500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Stella Artois",
+    "quantity": 28,
+    "revenue": 453600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Hervido con Tequila",
+    "quantity": 6,
+    "revenue": 174000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Old Fashioned",
+    "quantity": 6,
+    "revenue": 236400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Brownie con Helado",
+    "quantity": 6,
+    "revenue": 83400,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Vaso Michelado",
+    "quantity": 9,
+    "revenue": 31500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-20",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Margarita Ardiente",
+    "quantity": 12,
+    "revenue": 474000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Corona",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Stella Artois",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-21",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Margarita Ardiente",
+    "quantity": 7,
+    "revenue": 276500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Limonada Anisada",
+    "quantity": 14,
+    "revenue": 113400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Corona",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Stella Artois",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-22",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Margarita Ardiente",
+    "quantity": 7,
+    "revenue": 276500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Limonada Anisada",
+    "quantity": 17,
+    "revenue": 137700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Corona",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Stella Artois",
+    "quantity": 13,
+    "revenue": 210600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-23",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Corona",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Stella Artois",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-24",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Margarita Ardiente",
+    "quantity": 28,
+    "revenue": 1106000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 13,
+    "revenue": 873600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Limonada Anisada",
+    "quantity": 26,
+    "revenue": 210600,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Corona",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Nachos",
+    "quantity": 17,
+    "revenue": 552500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Stella Artois",
+    "quantity": 43,
+    "revenue": 696600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Hervido con Tequila",
+    "quantity": 11,
+    "revenue": 319000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Old Fashioned",
+    "quantity": 7,
+    "revenue": 275800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-25",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Margarita Ardiente",
+    "quantity": 31,
+    "revenue": 1224500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 14,
+    "revenue": 940800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Limonada Anisada",
+    "quantity": 32,
+    "revenue": 259200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Corona",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Nachos",
+    "quantity": 19,
+    "revenue": 617500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Stella Artois",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Hervido con Tequila",
+    "quantity": 6,
+    "revenue": 174000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Old Fashioned",
+    "quantity": 4,
+    "revenue": 157600,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Brownie con Helado",
+    "quantity": 11,
+    "revenue": 152900,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Vaso Michelado",
+    "quantity": 9,
+    "revenue": 31500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-26",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Margarita Ardiente",
+    "quantity": 22,
+    "revenue": 869000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 9,
+    "revenue": 604800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Limonada Anisada",
+    "quantity": 43,
+    "revenue": 348300,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Corona",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Nachos",
+    "quantity": 21,
+    "revenue": 682500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Stella Artois",
+    "quantity": 32,
+    "revenue": 518400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Hervido con Tequila",
+    "quantity": 10,
+    "revenue": 290000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Old Fashioned",
+    "quantity": 5,
+    "revenue": 197000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Brownie con Helado",
+    "quantity": 9,
+    "revenue": 125100,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Vaso Michelado",
+    "quantity": 6,
+    "revenue": 21000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-27",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Limonada Anisada",
+    "quantity": 17,
+    "revenue": 137700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Corona",
+    "quantity": 13,
+    "revenue": 210600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Stella Artois",
+    "quantity": 18,
+    "revenue": 291600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-28",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Margarita Ardiente",
+    "quantity": 8,
+    "revenue": 316000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Limonada Anisada",
+    "quantity": 14,
+    "revenue": 113400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Corona",
+    "quantity": 9,
+    "revenue": 145800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Stella Artois",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-29",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Corona",
+    "quantity": 15,
+    "revenue": 243000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-30",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Margarita Ardiente",
+    "quantity": 12,
+    "revenue": 474000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Limonada Anisada",
+    "quantity": 16,
+    "revenue": 129600,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Corona",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Stella Artois",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2025-12-31",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Margarita Ardiente",
+    "quantity": 20,
+    "revenue": 790000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 7,
+    "revenue": 470400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Limonada Anisada",
+    "quantity": 37,
+    "revenue": 299700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Corona",
+    "quantity": 35,
+    "revenue": 567000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Nachos",
+    "quantity": 15,
+    "revenue": 487500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Stella Artois",
+    "quantity": 35,
+    "revenue": 567000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Hervido con Tequila",
+    "quantity": 5,
+    "revenue": 145000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Brownie con Helado",
+    "quantity": 8,
+    "revenue": 111200,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Vaso Michelado",
+    "quantity": 7,
+    "revenue": 24500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-01",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Margarita Ardiente",
+    "quantity": 28,
+    "revenue": 1106000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Limonada Anisada",
+    "quantity": 25,
+    "revenue": 202500,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Corona",
+    "quantity": 25,
+    "revenue": 405000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Nachos",
+    "quantity": 11,
+    "revenue": 357500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Stella Artois",
+    "quantity": 41,
+    "revenue": 664200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Hervido con Tequila",
+    "quantity": 11,
+    "revenue": 319000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Old Fashioned",
+    "quantity": 4,
+    "revenue": 157600,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Vaso Michelado",
+    "quantity": 9,
+    "revenue": 31500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-02",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Margarita Ardiente",
+    "quantity": 14,
+    "revenue": 553000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 10,
+    "revenue": 672000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Limonada Anisada",
+    "quantity": 30,
+    "revenue": 243000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Corona",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Nachos",
+    "quantity": 19,
+    "revenue": 617500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Stella Artois",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Hervido con Tequila",
+    "quantity": 5,
+    "revenue": 145000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Old Fashioned",
+    "quantity": 4,
+    "revenue": 157600,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Brownie con Helado",
+    "quantity": 6,
+    "revenue": 83400,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Vaso Michelado",
+    "quantity": 9,
+    "revenue": 31500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-03",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Limonada Anisada",
+    "quantity": 21,
+    "revenue": 170100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Corona",
+    "quantity": 8,
+    "revenue": 129600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Nachos",
+    "quantity": 4,
+    "revenue": 130000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Stella Artois",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-04",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Margarita Ardiente",
+    "quantity": 8,
+    "revenue": 316000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Limonada Anisada",
+    "quantity": 14,
+    "revenue": 113400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Corona",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Stella Artois",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-05",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Margarita Ardiente",
+    "quantity": 8,
+    "revenue": 316000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Limonada Anisada",
+    "quantity": 10,
+    "revenue": 81000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Corona",
+    "quantity": 9,
+    "revenue": 145800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Stella Artois",
+    "quantity": 15,
+    "revenue": 243000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-06",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Limonada Anisada",
+    "quantity": 10,
+    "revenue": 81000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Corona",
+    "quantity": 15,
+    "revenue": 243000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Nachos",
+    "quantity": 5,
+    "revenue": 162500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Stella Artois",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-07",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Margarita Ardiente",
+    "quantity": 25,
+    "revenue": 987500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 7,
+    "revenue": 470400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Limonada Anisada",
+    "quantity": 29,
+    "revenue": 234900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Corona",
+    "quantity": 30,
+    "revenue": 486000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Nachos",
+    "quantity": 10,
+    "revenue": 325000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Stella Artois",
+    "quantity": 32,
+    "revenue": 518400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Hervido con Tequila",
+    "quantity": 9,
+    "revenue": 261000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Old Fashioned",
+    "quantity": 4,
+    "revenue": 157600,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Brownie con Helado",
+    "quantity": 8,
+    "revenue": 111200,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Vaso Michelado",
+    "quantity": 10,
+    "revenue": 35000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-08",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Margarita Ardiente",
+    "quantity": 20,
+    "revenue": 790000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 9,
+    "revenue": 604800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Limonada Anisada",
+    "quantity": 45,
+    "revenue": 364500,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Corona",
+    "quantity": 24,
+    "revenue": 388800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Nachos",
+    "quantity": 19,
+    "revenue": 617500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Stella Artois",
+    "quantity": 32,
+    "revenue": 518400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Hervido con Tequila",
+    "quantity": 7,
+    "revenue": 203000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Vaso Michelado",
+    "quantity": 8,
+    "revenue": 28000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-09",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Margarita Ardiente",
+    "quantity": 16,
+    "revenue": 632000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 12,
+    "revenue": 806400,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Limonada Anisada",
+    "quantity": 26,
+    "revenue": 210600,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Corona",
+    "quantity": 44,
+    "revenue": 712800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Nachos",
+    "quantity": 10,
+    "revenue": 325000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Stella Artois",
+    "quantity": 36,
+    "revenue": 583200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Hervido con Tequila",
+    "quantity": 11,
+    "revenue": 319000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Brownie con Helado",
+    "quantity": 10,
+    "revenue": 139000,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Vaso Michelado",
+    "quantity": 10,
+    "revenue": 35000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-10",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Margarita Ardiente",
+    "quantity": 9,
+    "revenue": 355500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Limonada Anisada",
+    "quantity": 21,
+    "revenue": 170100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Corona",
+    "quantity": 9,
+    "revenue": 145800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Stella Artois",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-11",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Margarita Ardiente",
+    "quantity": 10,
+    "revenue": 395000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Limonada Anisada",
+    "quantity": 10,
+    "revenue": 81000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Corona",
+    "quantity": 15,
+    "revenue": 243000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Nachos",
+    "quantity": 4,
+    "revenue": 130000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-12",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Margarita Ardiente",
+    "quantity": 13,
+    "revenue": 513500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Corona",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Stella Artois",
+    "quantity": 15,
+    "revenue": 243000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-13",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Limonada Anisada",
+    "quantity": 22,
+    "revenue": 178200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Corona",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Stella Artois",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-14",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Margarita Ardiente",
+    "quantity": 19,
+    "revenue": 750500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Limonada Anisada",
+    "quantity": 44,
+    "revenue": 356400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Corona",
+    "quantity": 35,
+    "revenue": 567000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Stella Artois",
+    "quantity": 39,
+    "revenue": 631800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Hervido con Tequila",
+    "quantity": 10,
+    "revenue": 290000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-15",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Margarita Ardiente",
+    "quantity": 21,
+    "revenue": 829500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 9,
+    "revenue": 604800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Limonada Anisada",
+    "quantity": 28,
+    "revenue": 226800,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Corona",
+    "quantity": 28,
+    "revenue": 453600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Nachos",
+    "quantity": 21,
+    "revenue": 682500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Stella Artois",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Hervido con Tequila",
+    "quantity": 8,
+    "revenue": 232000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Old Fashioned",
+    "quantity": 4,
+    "revenue": 157600,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Brownie con Helado",
+    "quantity": 10,
+    "revenue": 139000,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-16",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Margarita Ardiente",
+    "quantity": 17,
+    "revenue": 671500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 14,
+    "revenue": 940800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Limonada Anisada",
+    "quantity": 29,
+    "revenue": 234900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Corona",
+    "quantity": 39,
+    "revenue": 631800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Nachos",
+    "quantity": 19,
+    "revenue": 617500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Stella Artois",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Hervido con Tequila",
+    "quantity": 6,
+    "revenue": 174000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Old Fashioned",
+    "quantity": 5,
+    "revenue": 197000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Brownie con Helado",
+    "quantity": 8,
+    "revenue": 111200,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Vaso Michelado",
+    "quantity": 9,
+    "revenue": 31500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-17",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Limonada Anisada",
+    "quantity": 21,
+    "revenue": 170100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Corona",
+    "quantity": 18,
+    "revenue": 291600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Stella Artois",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-18",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Margarita Ardiente",
+    "quantity": 7,
+    "revenue": 276500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Limonada Anisada",
+    "quantity": 20,
+    "revenue": 162000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Corona",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Stella Artois",
+    "quantity": 18,
+    "revenue": 291600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "Vaso Michelado",
+    "quantity": 5,
+    "revenue": 17500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-19",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Margarita Ardiente",
+    "quantity": 9,
+    "revenue": 355500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Limonada Anisada",
+    "quantity": 21,
+    "revenue": 170100,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Corona",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Nachos",
+    "quantity": 5,
+    "revenue": 162500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Stella Artois",
+    "quantity": 19,
+    "revenue": 307800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Hervido con Tequila",
+    "quantity": 2,
+    "revenue": 58000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-20",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Margarita Ardiente",
+    "quantity": 14,
+    "revenue": 553000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Limonada Anisada",
+    "quantity": 20,
+    "revenue": 162000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Corona",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Stella Artois",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-21",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Margarita Ardiente",
+    "quantity": 29,
+    "revenue": 1145500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 10,
+    "revenue": 672000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Limonada Anisada",
+    "quantity": 23,
+    "revenue": 186300,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Corona",
+    "quantity": 27,
+    "revenue": 437400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Nachos",
+    "quantity": 16,
+    "revenue": 520000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Stella Artois",
+    "quantity": 38,
+    "revenue": 615600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Hervido con Tequila",
+    "quantity": 8,
+    "revenue": 232000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Old Fashioned",
+    "quantity": 7,
+    "revenue": 275800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Vaso Michelado",
+    "quantity": 11,
+    "revenue": 38500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-22",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Margarita Ardiente",
+    "quantity": 19,
+    "revenue": 750500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 11,
+    "revenue": 739200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Limonada Anisada",
+    "quantity": 42,
+    "revenue": 340200,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Corona",
+    "quantity": 31,
+    "revenue": 502200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Nachos",
+    "quantity": 10,
+    "revenue": 325000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Stella Artois",
+    "quantity": 33,
+    "revenue": 534600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Hervido con Tequila",
+    "quantity": 8,
+    "revenue": 232000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Vaso Michelado",
+    "quantity": 9,
+    "revenue": 31500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-23",
+    "item_name": "T\u00f3nica",
+    "quantity": 2,
+    "revenue": 18600,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Margarita Ardiente",
+    "quantity": 24,
+    "revenue": 948000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 13,
+    "revenue": 873600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Limonada Anisada",
+    "quantity": 34,
+    "revenue": 275400,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Corona",
+    "quantity": 34,
+    "revenue": 550800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Nachos",
+    "quantity": 19,
+    "revenue": 617500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Stella Artois",
+    "quantity": 33,
+    "revenue": 534600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Hervido con Tequila",
+    "quantity": 6,
+    "revenue": 174000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Old Fashioned",
+    "quantity": 6,
+    "revenue": 236400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Brownie con Helado",
+    "quantity": 11,
+    "revenue": 152900,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Vaso Michelado",
+    "quantity": 7,
+    "revenue": 24500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-24",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Margarita Ardiente",
+    "quantity": 9,
+    "revenue": 355500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 5,
+    "revenue": 336000,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Limonada Anisada",
+    "quantity": 10,
+    "revenue": 81000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Corona",
+    "quantity": 20,
+    "revenue": 324000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Stella Artois",
+    "quantity": 17,
+    "revenue": 275400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-25",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Corona",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Nachos",
+    "quantity": 6,
+    "revenue": 195000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Stella Artois",
+    "quantity": 12,
+    "revenue": 194400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-26",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 3,
+    "revenue": 201600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Limonada Anisada",
+    "quantity": 19,
+    "revenue": 153900,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Corona",
+    "quantity": 10,
+    "revenue": 162000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Nachos",
+    "quantity": 9,
+    "revenue": 292500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Stella Artois",
+    "quantity": 13,
+    "revenue": 210600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Old Fashioned",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Brownie con Helado",
+    "quantity": 4,
+    "revenue": 55600,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-27",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Margarita Ardiente",
+    "quantity": 7,
+    "revenue": 276500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Limonada Anisada",
+    "quantity": 13,
+    "revenue": 105300,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Corona",
+    "quantity": 16,
+    "revenue": 259200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Hervido con Tequila",
+    "quantity": 4,
+    "revenue": 116000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Old Fashioned",
+    "quantity": 3,
+    "revenue": 118200,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Vaso Michelado",
+    "quantity": 3,
+    "revenue": 10500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-28",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Margarita Ardiente",
+    "quantity": 14,
+    "revenue": 553000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 8,
+    "revenue": 537600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Limonada Anisada",
+    "quantity": 28,
+    "revenue": 226800,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Corona",
+    "quantity": 27,
+    "revenue": 437400,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Nachos",
+    "quantity": 15,
+    "revenue": 487500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Stella Artois",
+    "quantity": 40,
+    "revenue": 648000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Hervido con Tequila",
+    "quantity": 5,
+    "revenue": 145000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Old Fashioned",
+    "quantity": 4,
+    "revenue": 157600,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Brownie con Helado",
+    "quantity": 5,
+    "revenue": 69500,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Vaso Michelado",
+    "quantity": 7,
+    "revenue": 24500,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-29",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Margarita Ardiente",
+    "quantity": 21,
+    "revenue": 829500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 6,
+    "revenue": 403200,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Limonada Anisada",
+    "quantity": 27,
+    "revenue": 218700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Corona",
+    "quantity": 38,
+    "revenue": 615600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Nachos",
+    "quantity": 17,
+    "revenue": 552500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Stella Artois",
+    "quantity": 26,
+    "revenue": 421200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Hervido con Tequila",
+    "quantity": 11,
+    "revenue": 319000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Old Fashioned",
+    "quantity": 5,
+    "revenue": 197000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Brownie con Helado",
+    "quantity": 9,
+    "revenue": 125100,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Vaso Michelado",
+    "quantity": 6,
+    "revenue": 21000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-30",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Margarita Ardiente",
+    "quantity": 27,
+    "revenue": 1066500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 8,
+    "revenue": 537600,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Limonada Anisada",
+    "quantity": 50,
+    "revenue": 405000,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Corona",
+    "quantity": 28,
+    "revenue": 453600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Nachos",
+    "quantity": 21,
+    "revenue": 682500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Stella Artois",
+    "quantity": 29,
+    "revenue": 469800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Hervido con Tequila",
+    "quantity": 8,
+    "revenue": 232000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Old Fashioned",
+    "quantity": 6,
+    "revenue": 236400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Brownie con Helado",
+    "quantity": 7,
+    "revenue": 97300,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Vaso Michelado",
+    "quantity": 8,
+    "revenue": 28000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "Cosmopolitan",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-01-31",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Margarita Ardiente",
+    "quantity": 11,
+    "revenue": 434500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Limonada Anisada",
+    "quantity": 17,
+    "revenue": 137700,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Corona",
+    "quantity": 8,
+    "revenue": 129600,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Nachos",
+    "quantity": 7,
+    "revenue": 227500,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Stella Artois",
+    "quantity": 11,
+    "revenue": 178200,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Brownie con Helado",
+    "quantity": 2,
+    "revenue": 27800,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Vaso Michelado",
+    "quantity": 2,
+    "revenue": 7000,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "Cosmopolitan",
+    "quantity": 1,
+    "revenue": 39400,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-02-01",
+    "item_name": "T\u00f3nica",
+    "quantity": 1,
+    "revenue": 9300,
+    "category": "Bebida"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Margarita Ardiente",
+    "quantity": 7,
+    "revenue": 276500,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+    "quantity": 4,
+    "revenue": 268800,
+    "category": "Platos Fuertes"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Limonada Anisada",
+    "quantity": 13,
+    "revenue": 105300,
+    "category": "Bebidas Fr\u00edas"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Corona",
+    "quantity": 15,
+    "revenue": 243000,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Nachos",
+    "quantity": 8,
+    "revenue": 260000,
+    "category": "Snacks"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Stella Artois",
+    "quantity": 14,
+    "revenue": 226800,
+    "category": "Cerveza"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Hervido con Tequila",
+    "quantity": 3,
+    "revenue": 87000,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Old Fashioned",
+    "quantity": 2,
+    "revenue": 78800,
+    "category": "Cocteler\u00eda"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Brownie con Helado",
+    "quantity": 3,
+    "revenue": 41700,
+    "category": "Postres"
+  },
+  {
+    "date": "2026-02-02",
+    "item_name": "Vaso Michelado",
+    "quantity": 4,
+    "revenue": 14000,
+    "category": "Bebida"
+  }
+]

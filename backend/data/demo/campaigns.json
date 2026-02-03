@@ -1,0 +1,45 @@
+{
+  "session_id": "margarita-pinta-demo-001",
+  "campaigns": [
+    {
+      "title": "Noches de Chivas",
+      "objective": "Boost signature cocktail sales",
+      "target_category": "STAR",
+      "target_audience": "Social groups 25-45",
+      "copy": {
+        "social_media": "\ud83c\udf79 CHIVAS 12 (TRAGO) NIGHTS! \ud83c\udf79\n\nExperience the best of Pasto. 2x1 every Thursday.\n\n#MargaritaPinta #Pasto",
+        "email_subject": "\ud83c\udf36\ufe0f Spice up your night!",
+        "email_body": "Join us for our signature specials."
+      },
+      "timing": "Thursdays 6pm-11pm",
+      "expected_impact": "30% increase in category revenue"
+    },
+    {
+      "title": "Happy Hour Estudiantil",
+      "objective": "Increase traffic during off-peak hours",
+      "target_category": "CASH_COW",
+      "target_audience": "University students",
+      "copy": {
+        "social_media": "\ud83d\udcda Study Break? \ud83c\udf7b\n\nShow your student ID for 15% off beers and nachos.\n\n#PastoStudents #HappyHour",
+        "email_subject": "Study hard, relax hard",
+        "email_body": "You deserve a break."
+      },
+      "timing": "Wed-Fri 3pm-6pm",
+      "expected_impact": "Fill tables during afternoon slump"
+    },
+    {
+      "title": "Hervido Experience",
+      "objective": "Promote local fusion drinks",
+      "target_category": "QUESTION_MARK",
+      "target_audience": "Locals and tourists",
+      "copy": {
+        "social_media": "\ud83d\udd25 HERVIDO COMO NUNCA ANTES \ud83d\udd25\n\nTradici\u00f3n Nari\u00f1ense + Licores Premium.\n\nVen a probar nuestro Hervido con Tequila. El calorcito que necesitas esta noche.\n\n#Pasto #Tradicion",
+        "email_subject": "Tradition meets Innovation \u2615",
+        "email_body": "Discover our unique twist on the Nari\u00f1o classic."
+      },
+      "timing": "Cold evenings / Weekends",
+      "expected_impact": "Convert local curiosity into sales"
+    }
+  ],
+  "thought_process": "Analysis of 178 menu items reveals strong potential in Cocteler\u00eda stars."
+}

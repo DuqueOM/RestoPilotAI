@@ -1,0 +1,257 @@
+{
+  "session_id": "margarita-pinta-demo-001",
+  "restaurant_info": {
+    "name": "Margarita Pinta",
+    "location": "Cl 20 #40A-10, Pasto, Nari\u00f1o, Colombia",
+    "cuisine_type": "Gastrobar / Cocteler\u00eda",
+    "social_media": {
+      "instagram": "https://www.instagram.com/margaritapintapasto/",
+      "facebook": "https://www.facebook.com/MargaritaPintaRestauranteBar"
+    }
+  },
+  "status": "completed",
+  "created_at": "2026-02-03T13:50:47.952024+00:00",
+  "menu": {
+    "session_id": "margarita-pinta-demo-001",
+    "items": [
+      {
+        "name": "Margarita Ardiente",
+        "price": 39500,
+        "category": "Cocteler\u00eda",
+        "description": "Signature spicy margarita with premium tequila"
+      },
+      {
+        "name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+        "price": 67200,
+        "category": "Platos Fuertes",
+        "description": "Fresh salmon fillet glazed with passion fruit sauce"
+      },
+      {
+        "name": "Limonada Anisada",
+        "price": 8100,
+        "category": "Bebidas Fr\u00edas",
+        "description": "Refreshing limeade with a touch of anise"
+      },
+      {
+        "name": "Corona",
+        "price": 16200,
+        "category": "Cerveza",
+        "description": "Imported Mexican lager"
+      },
+      {
+        "name": "Nachos",
+        "price": 32500,
+        "category": "Snacks",
+        "description": "Crispy tortillas with cheese, guacamole, and pico de gallo"
+      },
+      {
+        "name": "Stella Artois",
+        "price": 16200,
+        "category": "Cerveza",
+        "description": "Premium Belgian pilsner"
+      },
+      {
+        "name": "Hervido con Tequila",
+        "price": 29000,
+        "category": "Cocteler\u00eda",
+        "description": "Traditional hot drink with a tequila twist"
+      },
+      {
+        "name": "Old Fashioned",
+        "price": 39400,
+        "category": "Cocteler\u00eda",
+        "description": "Classic whiskey cocktail"
+      },
+      {
+        "name": "Brownie con Helado",
+        "price": 13900,
+        "category": "Postres",
+        "description": "Warm chocolate brownie served with vanilla ice cream"
+      },
+      {
+        "name": "Vaso Michelado",
+        "price": 3500,
+        "category": "Bebida",
+        "description": "Spiced rim for beers"
+      },
+      {
+        "name": "Cosmopolitan",
+        "price": 39400,
+        "category": "Cocteler\u00eda",
+        "description": "Vodka, triple sec, cranberry juice, and freshly squeezed or sweetened lime juice"
+      },
+      {
+        "name": "T\u00f3nica",
+        "price": 9300,
+        "category": "Bebida",
+        "description": "Tonic water mixer"
+      }
+    ],
+    "categories": [
+      "Bebida",
+      "Cerveza",
+      "Postres",
+      "Snacks",
+      "Cocteler\u00eda",
+      "Platos Fuertes",
+      "Bebidas Fr\u00edas"
+    ],
+    "extraction_confidence": 0.98
+  },
+  "bcg": {
+    "session_id": "margarita-pinta-demo-001",
+    "items": [
+      {
+        "name": "Margarita Ardiente",
+        "price": 39500,
+        "category": "STAR",
+        "growth": 0.88,
+        "share": 0.72,
+        "revenue": 15000000
+      },
+      {
+        "name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+        "price": 67200,
+        "category": "STAR",
+        "growth": 0.75,
+        "share": 0.65,
+        "revenue": 12000000
+      },
+      {
+        "name": "Limonada Anisada",
+        "price": 8100,
+        "category": "STAR",
+        "growth": 0.8,
+        "share": 0.78,
+        "revenue": 5000000
+      },
+      {
+        "name": "Corona",
+        "price": 16200,
+        "category": "CASH_COW",
+        "growth": 0.15,
+        "share": 0.85,
+        "revenue": 9000000
+      },
+      {
+        "name": "Nachos",
+        "price": 32500,
+        "category": "CASH_COW",
+        "growth": 0.2,
+        "share": 0.8,
+        "revenue": 8500000
+      },
+      {
+        "name": "Stella Artois",
+        "price": 16200,
+        "category": "CASH_COW",
+        "growth": 0.12,
+        "share": 0.82,
+        "revenue": 8800000
+      },
+      {
+        "name": "Hervido con Tequila",
+        "price": 29000,
+        "category": "QUESTION_MARK",
+        "growth": 0.95,
+        "share": 0.3,
+        "revenue": 4000000
+      },
+      {
+        "name": "Old Fashioned",
+        "price": 39400,
+        "category": "QUESTION_MARK",
+        "growth": 0.85,
+        "share": 0.25,
+        "revenue": 3500000
+      },
+      {
+        "name": "Brownie con Helado",
+        "price": 13900,
+        "category": "QUESTION_MARK",
+        "growth": 0.7,
+        "share": 0.35,
+        "revenue": 2000000
+      },
+      {
+        "name": "Vaso Michelado",
+        "price": 3500,
+        "category": "DOG",
+        "growth": 0.05,
+        "share": 0.2,
+        "revenue": 500000
+      },
+      {
+        "name": "Cosmopolitan",
+        "price": 39400,
+        "category": "DOG",
+        "growth": 0.08,
+        "share": 0.15,
+        "revenue": 1200000
+      },
+      {
+        "name": "T\u00f3nica",
+        "price": 9300,
+        "category": "DOG",
+        "growth": 0.02,
+        "share": 0.1,
+        "revenue": 300000
+      }
+    ],
+    "insights": {
+      "STAR": "Your Stars (Margarita Ardiente, Salm\u00f3n) define the Margarita Pinta experience. Leverage these for main promotions.",
+      "CASH_COW": "Cash Cows (Beers, Nachos) are reliable staples. Ensure stock availability and quick service.",
+      "QUESTION_MARK": "The 'Hervido con Tequila' is showing strong interest. A targeted campaign could turn it into a Star.",
+      "DOG": "Some classic cocktails like Cosmopolitan are moving slowly. Consider refreshing the recipe or removing."
+    },
+    "summary": "Margarita Pinta's portfolio is strong. The Star products are well-aligned with the brand identity (Margarita, Salm\u00f3n). There is a clear opportunity to elevate the unique local offerings (Hervidos) to Star status."
+  },
+  "campaigns": {
+    "session_id": "margarita-pinta-demo-001",
+    "campaigns": [
+      {
+        "title": "Noches de Margarita",
+        "objective": "Boost signature cocktail sales",
+        "target_category": "STAR",
+        "target_audience": "Couples and social groups 25-45",
+        "copy": {
+          "social_media": "\ud83c\udf79 MARGARITA NIGHTS ARE BACK! \ud83c\udf79\n\nExperience the heat with our signature Margarita Ardiente. Premium tequila, perfectly balanced spice.\n\n2x1 every Thursday night! \ud83c\udf36\ufe0f\n\n\ud83d\udccd Margarita Pinta, Cl 20 #40A-10\n#MargaritaPinta #Pasto #Cocteleria #NightLife",
+          "email_subject": "\ud83c\udf36\ufe0f Spice up your Thursday night!",
+          "email_body": "Hola!\n\nReady for something different? Our Margarita Ardiente is waiting for you.\n\nJoin us this Thursday for 2x1 on all Margaritas. The perfect start to your weekend.\n\nCheers,\nMargarita Pinta Team"
+        },
+        "timing": "Thursdays 6pm-11pm",
+        "expected_impact": "30% increase in cocktail revenue, higher social engagement",
+        "rationale": "Leveraging the brand name 'Margarita' with our top Star product."
+      },
+      {
+        "title": "Hervido Experience",
+        "objective": "Promote local fusion drinks (Question Mark -> Star)",
+        "target_category": "QUESTION_MARK",
+        "target_audience": "Locals looking for comfort drinks with a twist",
+        "copy": {
+          "social_media": "\ud83d\udd25 HERVIDO COMO NUNCA ANTES \ud83d\udd25\n\nTradici\u00f3n Nari\u00f1ense + Tequila Premium = La perfecci\u00f3n.\n\nVen a probar nuestro Hervido con Tequila. El calorcito que necesitas esta noche.\n\n#Pasto #Tradicion #Hervido #Nari\u00f1o #MargaritaPinta",
+          "email_subject": "Tradition meets Innovation: Tequila Hervido \u2615",
+          "email_body": "It's cold outside, but we've got you covered.\n\nDiscover our unique twist on the Nari\u00f1o classic: Hervido con Tequila.\n\nPerfect for sharing with friends on a chilly Pasto evening."
+        },
+        "timing": "Friday & Saturday evenings",
+        "expected_impact": "Convert local curiosity into sales, establish a unique selling point",
+        "rationale": "Capitalizes on local 'Hervido' tradition but adds a premium twist to align with gastrobar identity."
+      },
+      {
+        "title": "After Office Chill",
+        "objective": "Drive traffic during early evening with Cash Cows",
+        "target_category": "CASH_COW",
+        "target_audience": "Office workers nearby",
+        "copy": {
+          "social_media": "\ud83c\udf7b AFTER OFFICE AT MARGARITA PINTA \ud83c\udf7b\n\nRough day? We've got ice-cold Coronas and loaded Nachos waiting.\n\nCombo: 2 Coronas + Nachos Supreme for $55k.\n\n#AfterOffice #Pasto #Cerveza #Relax",
+          "email_subject": "You deserve a break \ud83c\udf7b",
+          "email_body": "Work's done. Time to relax.\n\nGrab your colleagues and head over for our After Office special:\nBucket of Coronas + Nachos for a special price.\n\nSee you at 5!"
+        },
+        "timing": "Weekdays 5pm-8pm",
+        "expected_impact": "Fill tables during pre-dinner hours, increase average ticket size",
+        "rationale": "Bundling high-margin Nachos with high-volume Beer to boost early evening occupancy."
+      }
+    ],
+    "thought_process": "Campaigns focused on reinforcing the 'Gastrobar' identity. 1. Anchor campaign on the namesake product (Margarita). 2. Innovation campaign on local fusion (Hervido). 3. Volume campaign for off-peak hours (After Office)."
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "session_id": "margarita-pinta-demo-001",
+  "items": [
+    {
+      "name": "Margarita Ardiente",
+      "price": 39500,
+      "category": "Cocteler\u00eda",
+      "description": "Signature spicy margarita with premium tequila"
+    },
+    {
+      "name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+      "price": 67200,
+      "category": "Platos Fuertes",
+      "description": "Fresh salmon fillet glazed with passion fruit sauce"
+    },
+    {
+      "name": "Limonada Anisada",
+      "price": 8100,
+      "category": "Bebidas Fr\u00edas",
+      "description": "Refreshing limeade with a touch of anise"
+    },
+    {
+      "name": "Corona",
+      "price": 16200,
+      "category": "Cerveza",
+      "description": "Imported Mexican lager"
+    },
+    {
+      "name": "Nachos",
+      "price": 32500,
+      "category": "Snacks",
+      "description": "Crispy tortillas with cheese, guacamole, and pico de gallo"
+    },
+    {
+      "name": "Stella Artois",
+      "price": 16200,
+      "category": "Cerveza",
+      "description": "Premium Belgian pilsner"
+    },
+    {
+      "name": "Hervido con Tequila",
+      "price": 29000,
+      "category": "Cocteler\u00eda",
+      "description": "Traditional hot drink with a tequila twist"
+    },
+    {
+      "name": "Old Fashioned",
+      "price": 39400,
+      "category": "Cocteler\u00eda",
+      "description": "Classic whiskey cocktail"
+    },
+    {
+      "name": "Brownie con Helado",
+      "price": 13900,
+      "category": "Postres",
+      "description": "Warm chocolate brownie served with vanilla ice cream"
+    },
+    {
+      "name": "Vaso Michelado",
+      "price": 3500,
+      "category": "Bebida",
+      "description": "Spiced rim for beers"
+    },
+    {
+      "name": "Cosmopolitan",
+      "price": 39400,
+      "category": "Cocteler\u00eda",
+      "description": "Vodka, triple sec, cranberry juice, and freshly squeezed or sweetened lime juice"
+    },
+    {
+      "name": "T\u00f3nica",
+      "price": 9300,
+      "category": "Bebida",
+      "description": "Tonic water mixer"
+    }
+  ],
+  "categories": [
+    "Bebida",
+    "Cerveza",
+    "Postres",
+    "Snacks",
+    "Cocteler\u00eda",
+    "Platos Fuertes",
+    "Bebidas Fr\u00edas"
+  ],
+  "extraction_confidence": 0.98
+}

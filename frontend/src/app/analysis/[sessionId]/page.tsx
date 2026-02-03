@@ -8,7 +8,7 @@ import { useVibeEngineering } from '@/hooks/useVibeEngineering';
 import { api } from '@/lib/api';
 import { Loader2, PlayCircle } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 
 // Lazy load heavy components for better performance
 const VerificationPanel = lazy(() => import('@/components/vibe-engineering/VerificationPanel').then(mod => ({ default: mod.VerificationPanel })));
@@ -28,7 +28,7 @@ export default function AnalysisPage() {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const data = sessionId === 'demo-session-001'
+        const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
           ? await api.getDemoSession()
           : await api.getSession(sessionId);
         setSession(data);
