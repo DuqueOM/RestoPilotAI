@@ -8,9 +8,20 @@ import { toast } from 'sonner'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+interface UploadResult {
+  session_id?: string;
+  records_imported?: number;
+  unique_items?: number;
+  days_span?: number;
+  date_range?: { start: string; end: string };
+  warnings?: string[];
+  data_capabilities?: Record<string, unknown>;
+  items_extracted?: number;
+  images_analyzed?: number;
+}
+
 interface FileUploadProps {
-  onSessionCreated: (id: string, data: any) => void
-  onComplete: () => void
+  onSessionCreated: (id: string, data: UploadResult) => void
   sessionId: string | null
   onValidationChange?: (isValid: boolean) => void
 }
@@ -69,7 +80,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
   const [mediaUploaded, setMediaUploaded] = useState(false)
   const [uploadingTypes, setUploadingTypes] = useState<Set<string>>(new Set())
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
-  const [uploadResults, setUploadResults] = useState<any>({})
+  const [uploadResults, setUploadResults] = useState<Record<string, UploadResult>>({})
   
   // Context state
   const [businessContext, setBusinessContext] = useState('')
@@ -125,9 +136,9 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
       if (!sessionId && res.data.session_id) {
         onSessionCreated(res.data.session_id, res.data)
       }
-      setUploadResults((prev: any) => ({ ...prev, sales: res.data }))
+      setUploadResults((prev) => ({ ...prev, sales: res.data }))
       setSalesUploaded(true)
-    } catch (err: any) {
+    } catch (err) {
       const msg = err.response?.data?.detail || err.message
       toast.error(`Sales upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
@@ -146,9 +157,9 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
       if (!sessionId && res.data.session_id) {
         onSessionCreated(res.data.session_id, res.data)
       }
-      setUploadResults((prev: any) => ({ ...prev, menu: res.data }))
+      setUploadResults((prev) => ({ ...prev, menu: res.data }))
       setMenuUploaded(true)
-    } catch (err: any) {
+    } catch (err) {
       const msg = err.response?.data?.detail || err.message
       toast.error(`Menu upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
@@ -164,9 +175,9 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
 
     try {
       const res = await uploadWithProgress(`${API_URL}/api/v1/ingest/dishes`, formData, 'media')
-      setUploadResults((prev: any) => ({ ...prev, media: res.data }))
+      setUploadResults((prev) => ({ ...prev, media: res.data }))
       setMediaUploaded(true)
-    } catch (err: any) {
+    } catch (err) {
       const msg = err.response?.data?.detail || err.message
       toast.error(`Media upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
@@ -213,7 +224,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
       mediaRecorder.start()
       if (type === 'business') setIsRecordingBusiness(true)
       else setIsRecordingCompetitor(true)
-    } catch (err) {
+    } catch {
       toast.error('Microphone access denied')
     }
   }
@@ -270,7 +281,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
   const SalesDropzone = () => {
     const onDrop = useCallback((files: File[]) => {
       if (files[0]) uploadSales(files[0])
-    }, [sessionId])
+    }, [])
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop, 
       accept: { 'text/csv': ['.csv'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }, 
@@ -370,7 +381,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
   const MenuDropzone = () => {
     const onDrop = useCallback((files: File[]) => {
       if (files.length) uploadMenu(files)
-    }, [sessionId])
+    }, [])
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop, 
       accept: { 
@@ -414,7 +425,7 @@ export default function FileUpload({ onSessionCreated, onComplete, sessionId, on
 
   // Combined Photos & Videos Dropzone
   const MediaDropzone = () => {
-    const onDrop = useCallback((files: File[]) => uploadMedia(files), [sessionId])
+    const onDrop = useCallback((files: File[]) => uploadMedia(files), [])
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop, 
       accept: { 
