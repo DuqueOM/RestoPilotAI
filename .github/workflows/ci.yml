@@ -101,6 +101,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Create .env file
+        run: |
+          echo "GEMINI_API_KEY=test_key" >> .env
+          echo "DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/RestoPilotAI" >> .env
+          echo "REDIS_URL=redis://redis:6379" >> .env
+
       - name: Build Docker images
         run: docker compose build
 
