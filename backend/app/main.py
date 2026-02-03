@@ -23,6 +23,7 @@ from app.api.routes.vibe_engineering import router as vibe_engineering_router
 from app.api.routes.marathon import router as marathon_router
 from app.api.routes.streaming import router as streaming_router
 from app.api.routes.grounding import router as grounding_router
+from app.api.routes.video import router as video_router
 from app.core.config import get_settings
 from app.models.database import init_db
 
@@ -110,6 +111,7 @@ app.include_router(vibe_engineering_router, prefix="/api/v1")
 app.include_router(marathon_router, prefix="/api/v1")
 app.include_router(streaming_router, prefix="/api/v1")
 app.include_router(grounding_router, prefix="/api/v1")
+app.include_router(video_router, prefix="/api/v1")
 
 # Include monitoring router if available
 if MONITORING_AVAILABLE and monitoring_router:
