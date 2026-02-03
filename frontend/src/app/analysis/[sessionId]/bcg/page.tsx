@@ -1,5 +1,6 @@
 'use client';
 
+import { GroundingSources } from '@/components/common/GroundingSources';
 import { api, BCGAnalysisResult, MenuEngineeringItem } from '@/lib/api';
 import { AlertTriangle, BarChart3, RefreshCw, TrendingUp } from 'lucide-react';
 import { use, useCallback, useEffect, useState } from 'react';
@@ -131,6 +132,14 @@ export default function BCGPage({ params }: BCGPageProps) {
           {loadingPeriod && <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />}
         </div>
       </div>
+
+      {/* Grounding Sources */}
+      {data.grounding_sources && data.grounding_sources.length > 0 && (
+        <GroundingSources 
+          sources={data.grounding_sources}
+          isGrounded={data.grounded || false}
+        />
+      )}
 
       {/* Date Range Info */}
       {data.date_range?.start && (

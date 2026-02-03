@@ -1,5 +1,6 @@
 'use client';
 
+import { GroundingSources } from '@/components/common/GroundingSources';
 import { useState } from 'react';
 
 interface PriceGap {
@@ -75,6 +76,8 @@ interface CompetitorAnalysis {
   metadata: {
     confidence: number;
   };
+  grounding_sources?: Array<{ web?: { uri: string; title?: string }; uri?: string; title?: string }>;
+  grounded?: boolean;
 }
 
 interface CompetitorDashboardProps {
@@ -333,21 +336,13 @@ export default function CompetitorDashboard({
       {/* Overview Tab */}
       {activeTab === 'overview' && analysis && (
         <div className="space-y-6">
-          {/* Market Position Card */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500">
-              <h3 className="text-sm font-medium text-gray-500">Market Position</h3>
-              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.competitive_landscape.market_position}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
-              <h3 className="text-sm font-medium text-gray-500">Competitive Intensity</h3>
-              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.competitive_landscape.competitive_intensity}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-              <h3 className="text-sm font-medium text-gray-500">Price Positioning</h3>
-              <p className="mt-2 text-2xl font-semibold text-gray-900 capitalize">{analysis.price_analysis.price_positioning}</p>
-            </div>
-          </div>
+          {/* Grounding Sources */}
+          {analysis.grounding_sources && analysis.grounding_sources.length > 0 && (
+            <GroundingSources 
+              sources={analysis.grounding_sources}
+              isGrounded={analysis.grounded || false}
+            />
+          )}
 
           {/* Key Differentiators */}
           <div className="bg-white rounded-lg shadow p-6">

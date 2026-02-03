@@ -603,14 +603,12 @@ Respond in JSON format matching the competitive_landscape structure."""
                 
                 if response.get("grounded"):
                     analysis = self._parse_json_response(response["answer"])
-                    sources = [
-                        chunk.get("uri")
-                        for chunk in response.get("grounding_metadata", {}).get("grounding_chunks", [])
-                        if chunk.get("uri")
-                    ]
-                    
-                    analysis["grounding_sources"] = sources
+                    grounding_chunks = response.get("grounding_metadata", {}).get("grounding_chunks", [])
+                    analysis["grounding_sources"] = grounding_chunks
                     analysis["grounded"] = True
+                    
+                    # Extract URIs for thought trace
+                    sources = [chunk.get("uri") for chunk in grounding_chunks if chunk.get("uri")]
                     
                     trace = ThoughtTrace(
                         step="Competitive Position Analysis (Grounded)",

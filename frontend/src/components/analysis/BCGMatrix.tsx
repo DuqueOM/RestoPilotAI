@@ -1,8 +1,8 @@
 'use client'
 
+import { GroundingSources } from '@/components/common/GroundingSources'
 import {
-    BarChart3,
-    ChevronDown,
+r   ChevronDown,
     ChevronRight,
     Dog,
     DollarSign,
@@ -12,7 +12,7 @@ import {
     Star,
     Target
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
     CartesianGrid,
     Cell,
@@ -51,6 +51,8 @@ interface BCGResultsPanelProps {
       portfolio_health_score: number
     }
     ai_insights?: any
+    grounding_sources?: GroundingSource[]
+    grounded?: boolean
   }
 }
 
@@ -188,6 +190,14 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
 
   return (
     <div className="space-y-6">
+      {/* Grounding Sources */}
+      {data.grounding_sources && data.grounding_sources.length > 0 && (
+        <GroundingSources 
+          sources={data.grounding_sources.map(s => ({
+            uri: s.web?.uri || s.uri ||e.ded || false}
+        />
+      )}
+
       {/* Top 4 Category Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {(['star', 'cash_cow', 'question_mark', 'dog'] as const).map(category => {

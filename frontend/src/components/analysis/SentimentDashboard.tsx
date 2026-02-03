@@ -1,5 +1,6 @@
 'use client';
 
+import { GroundingSources } from '@/components/common/GroundingSources';
 import { useState } from 'react';
 
 interface ItemSentiment {
@@ -59,6 +60,8 @@ interface SentimentAnalysis {
     action: string;
     expected_impact: string;
   }>;
+  grounding_sources?: Array<{ web?: { uri: string; title?: string }; uri?: string; title?: string }>;
+  grounded?: boolean;
 }
 
 interface SentimentDashboardProps {
@@ -424,6 +427,15 @@ export default function SentimentDashboard({
             })}
           </div>
         </div>
+      )}
+
+      {/* Grounding Sources */}
+      {analysis.grounding_sources && analysis.grounding_sources.length > 0 && (
+        <GroundingSources 
+          sources={analysis.grounding_sources}
+          isGrounded={analysis.grounded || false}
+          className="mt-4"
+        />
       )}
 
       {/* Recommendations Tab */}

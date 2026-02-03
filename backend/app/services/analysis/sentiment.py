@@ -139,6 +139,8 @@ class SentimentAnalysisResult:
     # Metadata
     confidence: float
     gemini_tokens_used: int
+    grounding_sources: List[Dict[str, str]] = field(default_factory=list)
+    grounded: bool = False
     analyzed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -172,6 +174,8 @@ class SentimentAnalysisResult:
                 "gemini_tokens_used": self.gemini_tokens_used,
                 "analyzed_at": self.analyzed_at.isoformat(),
             },
+            "grounding_sources": self.grounding_sources,
+            "grounded": self.grounded,
         }
 
 
@@ -375,14 +379,27 @@ RESPOND WITH JSON:
 }}"""
 
         try:
-            response = await self.reasoning._generate_content(
+            # Use grounding to get verifiable market insights
+            response = await self.reasoning.generate_with_grounding(
                 prompt=prompt,
                 temperature=0.4,
                 max_output_tokens=8192,
-                feature="text_sentiment_analysis",
+                enable_grounding=True
             )
 
-            return self.reasoning._parse_json_response(response)
+            result = self.reasoning._parse_json_response(response.get("answer", response))
+            
+            # Extract grounding info if available
+            if response.get("grounded"):
+                grounding_chunks = response.get("grounding_metadata", {}).get("grounding_chunks", [])
+                result["grounding_sources"] = [
+                    {"uri": chunk.get("uri"), "title": chunk.get("title")} 
+                    for chunk in grounding_chunks 
+                    if chunk.get("uri")
+                ]
+                result["grounded"] = True
+            
+            return result
 
         except Exception as e:
             logger.error(f"Text sentiment analysis failed: {e}")
@@ -697,6 +714,8 @@ RESPOND WITH JSON:
             food_quality_sentiment=category_sentiment.get("food_quality"),
             ambiance_sentiment=category_sentiment.get("ambiance"),
             value_sentiment=category_sentiment.get("value"),
+            grounding_sources=text_sentiment.get("grounding_sources", []),
+            grounded=text_sentiment.get("grounded", False),
             item_sentiments=item_sentiments,
             recommendations=recommendations,
             confidence=text_sentiment.get("confidence", 0.7),

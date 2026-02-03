@@ -1,7 +1,8 @@
 'use client'
 
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, Label } from 'recharts'
-import { Star, Milk, HelpCircle, Dog } from 'lucide-react'
+import { GroundingSources } from '@/components/common/GroundingSources'
+import { Dog, HelpCircle, Milk, Star } from 'lucide-react'
+import { CartesianGrid, Cell, Label, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts'
 
 interface BCGChartProps {
   data: {
@@ -17,6 +18,8 @@ interface BCGChartProps {
       counts: Record<string, number>
       portfolio_health_score: number
     }
+    grounding_sources?: Array<{ web?: { uri: string; title?: string }; uri?: string; title?: string }>
+    grounded?: boolean
   }
 }
 
@@ -46,6 +49,14 @@ export default function BCGChart({ data }: BCGChartProps) {
 
   return (
     <div className="space-y-6">
+      {/* Grounding Sources */}
+      {data.grounding_sources && data.grounding_sources.length > 0 && (
+        <GroundingSources 
+          sources={data.grounding_sources}
+          isGrounded={data.grounded || false}
+        />
+      )}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Object.entries(data.summary.counts).map(([key, count]) => {

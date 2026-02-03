@@ -131,6 +131,10 @@ class CompetitiveAnalysisResult:
     thinking_level: str
     gemini_tokens_used: int
     analyzed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    # Grounding metadata
+    grounding_sources: Optional[List[Dict[str, Any]]] = None
+    grounded: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -140,7 +144,7 @@ class CompetitiveAnalysisResult:
             "competitive_landscape": {
                 "market_position": self.market_position,
                 "competitive_intensity": self.competitive_intensity,
-                "key_differentiators": self.key_differentiators,
+               "key_differentiators": self.key_differentiators,
                 "competitive_gaps": self.competitive_gaps,
             },
             "price_analysis": {
@@ -164,6 +168,8 @@ class CompetitiveAnalysisResult:
                 "gemini_tokens_used": self.gemini_tokens_used,
                 "analyzed_at": self.analyzed_at.isoformat(),
             },
+            "grounding_sources": self.grounding_sources or [],
+            "grounded": self.grounded,
         }
 
 
@@ -625,6 +631,10 @@ Extract all menu items with prices. Return JSON:
         landscape = analysis.get("competitive_landscape", {})
         price_analysis = analysis.get("price_analysis", {})
         product_analysis = analysis.get("product_analysis", {})
+        
+        # Extract grounding metadata
+        grounding_sources = analysis.get("grounding_sources") or analysis.get("metadata", {}).get("grounding_sources")
+        grounded = analysis.get("grounded", False)
 
         return CompetitiveAnalysisResult(
             analysis_id=analysis_id,
@@ -654,6 +664,9 @@ Extract all menu items with prices. Return JSON:
             confidence=analysis.get("confidence", 0.7),
             thinking_level=thinking_level.value,
             gemini_tokens_used=self.reasoning.stats.total_tokens.total_tokens,
+            # Grounding
+            grounding_sources=grounding_sources,
+            grounded=grounded,
         )
 
     def _create_empty_result(

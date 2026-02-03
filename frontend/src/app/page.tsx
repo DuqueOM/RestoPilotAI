@@ -15,7 +15,7 @@ import {
     Upload
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { lazy, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 // Lazy load heavy components

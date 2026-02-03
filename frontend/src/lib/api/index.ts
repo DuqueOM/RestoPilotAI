@@ -78,6 +78,11 @@ export interface MenuEngineeringSummary {
   dogs_list: string[];
 }
 
+export interface GroundingSource {
+  uri: string;
+  title?: string;
+}
+
 export interface BCGAnalysisResult {
   session_id: string;
   status: string;
@@ -89,6 +94,111 @@ export interface BCGAnalysisResult {
   thresholds: MenuEngineeringThresholds;
   summary: MenuEngineeringSummary;
   items: MenuEngineeringItem[];
+  grounding_sources?: GroundingSource[];
+  grounded?: boolean;
+}
+
+export interface ItemSentiment {
+  item_name: string;
+  bcg_category?: 'star' | 'cash_cow' | 'question_mark' | 'dog';
+  text_sentiment: {
+    score: number;
+    mention_count: number;
+    common_descriptors: string[];
+  };
+  visual_sentiment: {
+    appeal_score?: number;
+    presentation_score?: number;
+    portion_perception?: 'very_small' | 'small' | 'adequate' | 'generous' | 'very_generous';
+    portion_score?: number;
+    photo_count: number;
+  };
+  overall_sentiment: 'very_positive' | 'positive' | 'neutral' | 'negative' | 'very_negative';
+  actionable_insight: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+export interface SentimentAnalysisResult {
+  analysis_id: string;
+  overall: {
+    sentiment_score: number;
+    nps?: number;
+    sentiment_distribution: {
+      very_positive: number;
+      positive: number;
+      neutral: number;
+      negative: number;
+      very_negative: number;
+    };
+  };
+  counts: {
+    reviews_analyzed: number;
+    photos_analyzed: number;
+    sources_used: string[];
+  };
+  themes: {
+    praises: string[];
+    complaints: string[];
+  };
+  category_sentiments: {
+    service?: number;
+    food_quality?: number;
+    ambiance?: number;
+    value?: number;
+  };
+  item_sentiments: ItemSentiment[];
+  recommendations: Array<{
+    priority: string;
+    type: string;
+    items?: string[];
+    issue: string;
+    action: string;
+    expected_impact: string;
+  }>;
+  grounding_sources?: GroundingSource[];
+  grounded?: boolean;
+}
+
+export interface PriceGap {
+  item_category: string;
+  our_item: string;
+  our_price: number;
+  competitor_name: string;
+  competitor_item: string;
+  competitor_price: number;
+  price_difference: number;
+  price_difference_percent: number;
+  recommendation: string;
+  confidence: number;
+}
+
+export interface CompetitorAnalysisResult {
+  analysis_id: string;
+  competitors_analyzed: string[];
+  competitive_landscape: {
+    market_position: string;
+    competitive_intensity: string;
+    key_differentiators: string[];
+    competitive_gaps: string[];
+  };
+  price_analysis: {
+    price_positioning: string;
+    price_gaps: PriceGap[];
+    pricing_opportunities: string[];
+  };
+  product_analysis: {
+    our_unique_items: string[];
+    competitor_unique_items: Record<string, string[]>;
+    category_gaps: Array<{ category: string; competitors_offering: number; our_count: number; opportunity: string }>;
+    trending_items_missing: string[];
+  };
+  strategic_recommendations: Array<{ priority: number; action: string; expected_impact: string; timeframe: string }>;
+  competitive_threats: Array<{ threat: string; severity: string; recommended_response: string }>;
+  metadata: {
+    confidence: number;
+  };
+  grounding_sources?: GroundingSource[];
+  grounded?: boolean;
 }
 
 // Legacy types for backwards compatibility
