@@ -2,7 +2,8 @@
 
 import { GroundingSources } from '@/components/common/GroundingSources'
 import {
-r   ChevronDown,
+    BarChart3,
+    ChevronDown,
     ChevronRight,
     Dog,
     DollarSign,
@@ -51,7 +52,12 @@ interface BCGResultsPanelProps {
       portfolio_health_score: number
     }
     ai_insights?: any
-    grounding_sources?: GroundingSource[]
+    grounding_sources?: Array<{
+      uri?: string
+      title?: string
+      web?: { uri?: string; title?: string }
+      grounded?: boolean
+    }>
     grounded?: boolean
   }
 }
@@ -194,7 +200,11 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
       {data.grounding_sources && data.grounding_sources.length > 0 && (
         <GroundingSources 
           sources={data.grounding_sources.map(s => ({
-            uri: s.web?.uri || s.uri ||e.ded || false}
+            uri: s.web?.uri || s.uri || '',
+            title: s.web?.title || s.title || 'Source',
+            grounded: s.grounded || false
+          }))}
+          isGrounded={data.grounded || false}
         />
       )}
 
