@@ -22,7 +22,7 @@ export function CreativeStudio({ sessionId }: CreativeStudioProps) {
           Creative Studio
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl">
-          Use Gemini 3's multimodal capabilities to reimagine your menu, predict social success, and auto-generate campaigns.
+          Use Gemini 3&apos;s multimodal capabilities to reimagine your menu, predict social success, and auto-generate campaigns.
         </p>
       </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
-import { Mic, Trash2, Play, Pause, FileText, Square } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { FileText, Mic, Pause, Play, Square, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface ContextInputProps {
   label: string;
@@ -37,7 +37,7 @@ export function ContextInput({
     return () => {
       audioList.forEach(a => URL.revokeObjectURL(a.url));
     };
-  }, []);
+  }, [audioList]);
 
   const startRecording = async () => {
     if (!allowAudio || !onAudioChange) return;

@@ -13,10 +13,9 @@ import { StepTimeline } from './StepTimeline';
 interface TaskMonitorProps {
   taskId: string | null;
   className?: string;
-  onTaskComplete?: () => void;
 }
 
-export function TaskMonitor({ taskId, className, onTaskComplete }: TaskMonitorProps) {
+export function TaskMonitor({ taskId, className }: TaskMonitorProps) {
   const { 
     taskState, 
     isRunning, 

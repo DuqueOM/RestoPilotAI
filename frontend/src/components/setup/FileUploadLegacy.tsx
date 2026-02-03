@@ -73,7 +73,7 @@ const AudioPlayer = ({ blob, onDelete, index }: { blob: Blob; onDelete: () => vo
   )
 }
 
-export default function FileUpload({ onSessionCreated, onComplete, sessionId, onValidationChange }: FileUploadProps) {
+export default function FileUpload({ onSessionCreated, sessionId, onValidationChange }: FileUploadProps) {
   // Upload states - separate for each type to allow simultaneous uploads
   const [salesUploaded, setSalesUploaded] = useState(false)
   const [menuUploaded, setMenuUploaded] = useState(false)

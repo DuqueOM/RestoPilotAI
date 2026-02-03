@@ -2,6 +2,7 @@
 
 import { FileUpload } from '@/components/setup/FileUpload';
 import { ArrowLeftRight, Download, Loader2, Sparkles, Upload } from 'lucide-react';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -187,7 +188,7 @@ export function MenuTransformation() {
 
           {file && !resultImage && !isTransforming && previewUrl && (
              <div className="relative w-full h-full p-4 flex flex-col items-center">
-                <img src={previewUrl} alt="Original" className="max-h-[450px] object-contain rounded-lg shadow-sm opacity-50" />
+                <Image src={previewUrl} alt="Original" width={800} height={450} className="max-h-[450px] object-contain rounded-lg shadow-sm opacity-50" unoptimized />
                 <p className="mt-4 text-gray-500 text-sm">Original Image Preview</p>
              </div>
           )}
@@ -207,11 +208,14 @@ export function MenuTransformation() {
             >
               <div className="absolute inset-0 w-full h-full p-4 flex items-center justify-center bg-gray-100">
                  {/* Background: Result (After) */}
-                 <img 
+                 <Image 
                     src={resultImage} 
                     alt="After" 
+                    width={1200}
+                    height={800}
                     className="max-h-full max-w-full object-contain shadow-xl rounded-lg" 
                     style={{ maxHeight: '100%', maxWidth: '100%' }}
+                    unoptimized
                  />
               </div>
 
@@ -220,11 +224,14 @@ export function MenuTransformation() {
                 className="absolute inset-0 w-full h-full p-4 flex items-center justify-center bg-gray-100 overflow-hidden"
                 style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
               >
-                 <img 
+                 <Image 
                     src={previewUrl} 
                     alt="Before" 
+                    width={1200}
+                    height={800}
                     className="max-h-full max-w-full object-contain shadow-xl rounded-lg"
-                    style={{ maxHeight: '100%', maxWidth: '100%' }} 
+                    style={{ maxHeight: '100%', maxWidth: '100%' }}
+                    unoptimized
                  />
                  <div className="absolute top-6 left-6 bg-black/50 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm">
                     BEFORE
