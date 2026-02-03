@@ -139,7 +139,8 @@ export default function FileUpload({ onSessionCreated, sessionId, onValidationCh
       setUploadResults((prev) => ({ ...prev, sales: res.data }))
       setSalesUploaded(true)
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message
+      const error = err as { response?: { data?: { detail?: string } }; message?: string }
+      const msg = error.response?.data?.detail || error.message || 'Upload failed'
       toast.error(`Sales upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
       stopUploading('sales')
@@ -160,7 +161,8 @@ export default function FileUpload({ onSessionCreated, sessionId, onValidationCh
       setUploadResults((prev) => ({ ...prev, menu: res.data }))
       setMenuUploaded(true)
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message
+      const error = err as { response?: { data?: { detail?: string } }; message?: string }
+      const msg = error.response?.data?.detail || error.message || 'Upload failed'
       toast.error(`Menu upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
       stopUploading('menu')
@@ -178,7 +180,8 @@ export default function FileUpload({ onSessionCreated, sessionId, onValidationCh
       setUploadResults((prev) => ({ ...prev, media: res.data }))
       setMediaUploaded(true)
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message
+      const error = err as { response?: { data?: { detail?: string } }; message?: string }
+      const msg = error.response?.data?.detail || error.message || 'Upload failed'
       toast.error(`Media upload failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`)
     } finally {
       stopUploading('media')
@@ -290,7 +293,7 @@ export default function FileUpload({ onSessionCreated, sessionId, onValidationCh
     const isLoading = uploadingTypes.has('sales')
     const salesResult = uploadResults.sales
     const warnings = salesResult?.warnings || []
-    const capabilities = salesResult?.data_capabilities || {}
+    const capabilities = (salesResult?.data_capabilities || {}) as Record<string, boolean>
 
     return (
       <div className="space-y-3">

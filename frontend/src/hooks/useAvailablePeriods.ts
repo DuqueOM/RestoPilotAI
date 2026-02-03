@@ -23,7 +23,7 @@ export function useAvailablePeriods(sessionData: Record<string, unknown> | null)
 
   useEffect(() => {
     if (sessionData?.available_periods) {
-      setPeriodsData(sessionData.available_periods);
+      setPeriodsData(sessionData.available_periods as AvailablePeriodsData);
     }
   }, [sessionData]);
 

@@ -176,7 +176,6 @@ export function LocationInput({
     
     // Set business in backend and enrich
     if (sessionId) {
-      setIsEnriching(true);
       try {
         const formData = new FormData();
         formData.append('session_id', sessionId);
@@ -194,8 +193,6 @@ export function LocationInput({
         });
       } catch (err) {
         console.error('Failed to set business:', err);
-      } finally {
-        setIsEnriching(false);
       }
     }
     
@@ -298,8 +295,6 @@ export function LocationInput({
   // --- COMPETITORS ---
 
   const loadNearbyCompetitors = async (location: Location, enrich: boolean = false) => {
-    setIsLoadingNearby(true);
-    
     try {
       const formData = new FormData();
       formData.append('lat', location.lat.toString());
@@ -321,7 +316,6 @@ export function LocationInput({
       
       const data = await response.json();
       const restaurants = data.restaurants || [];
-      setNearbyCompetitors(restaurants);
       
       if (onLocationSelect) {
         onLocationSelect(location, restaurants);
@@ -329,8 +323,6 @@ export function LocationInput({
     } catch (err) {
       console.error('Nearby search error:', err);
       setError('Failed to load competitors.');
-    } finally {
-      setIsLoadingNearby(false);
     }
   };
 

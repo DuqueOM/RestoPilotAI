@@ -432,7 +432,11 @@ export default function SentimentDashboard({
       {/* Grounding Sources */}
       {analysis.grounding_sources && analysis.grounding_sources.length > 0 && (
         <GroundingSources 
-          sources={analysis.grounding_sources}
+          sources={analysis.grounding_sources.map(s => ({
+            uri: s.web?.uri || s.uri || '',
+            title: s.web?.title || s.title || 'Source',
+            grounded: analysis.grounded || false
+          }))}
           isGrounded={analysis.grounded || false}
           className="mt-4"
         />

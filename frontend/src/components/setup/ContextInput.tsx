@@ -2,6 +2,7 @@
 
 import { FileText, Mic, Pause, Play, Square, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface ContextInputProps {
   label: string;

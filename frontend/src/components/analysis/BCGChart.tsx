@@ -52,7 +52,11 @@ export default function BCGChart({ data }: BCGChartProps) {
       {/* Grounding Sources */}
       {data.grounding_sources && data.grounding_sources.length > 0 && (
         <GroundingSources 
-          sources={data.grounding_sources}
+          sources={data.grounding_sources.map(s => ({
+            uri: s.web?.uri || s.uri || '',
+            title: s.web?.title || s.title || 'Source',
+            grounded: data.grounded || false
+          }))}
           isGrounded={data.grounded || false}
         />
       )}
