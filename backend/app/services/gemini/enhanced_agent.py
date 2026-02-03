@@ -24,6 +24,7 @@ from pydantic import BaseModel, ValidationError
 from app.core.config import get_settings, GeminiModel
 from app.core.rate_limiter import get_rate_limiter
 from app.core.model_fallback import get_fallback_handler
+from app.core.gemini_cache import get_cache_settings
 
 
 class ThinkingLevel(str, Enum):
