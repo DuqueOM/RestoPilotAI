@@ -85,16 +85,6 @@
       "description": "Tequila, triple sec y lim\u00f3n"
     }
   ],
-  "categories": [
-    "Tacos",
-    "Quesadillas",
-    "Platos Fuertes",
-    "Sopas",
-    "Entradas",
-    "Mariscos",
-    "Postres",
-    "Bebidas"
-  ],
   "bcg_analysis": {
     "methodology": "Menu Engineering (Kasavana & Smith)",
     "period": "30d",
@@ -334,5 +324,150 @@
       ]
     }
   ],
-  "created_at": "2026-01-30T12:00:00Z"
+  "predictions": {
+    "horizon_days": 14,
+    "model_type": "ensemble",
+    "confidence_level": 0.85,
+    "daily_predictions": [
+      {
+        "date": "2026-01-31",
+        "predicted_revenue": 9850,
+        "predicted_units": 112,
+        "confidence_interval": [
+          8900,
+          10800
+        ]
+      },
+      {
+        "date": "2026-02-01",
+        "predicted_revenue": 12400,
+        "predicted_units": 142,
+        "confidence_interval": [
+          11200,
+          13600
+        ]
+      },
+      {
+        "date": "2026-02-02",
+        "predicted_revenue": 13100,
+        "predicted_units": 150,
+        "confidence_interval": [
+          11800,
+          14400
+        ]
+      },
+      {
+        "date": "2026-02-03",
+        "predicted_revenue": 8200,
+        "predicted_units": 94,
+        "confidence_interval": [
+          7400,
+          9000
+        ]
+      },
+      {
+        "date": "2026-02-04",
+        "predicted_revenue": 8500,
+        "predicted_units": 97,
+        "confidence_interval": [
+          7700,
+          9300
+        ]
+      },
+      {
+        "date": "2026-02-05",
+        "predicted_revenue": 9100,
+        "predicted_units": 104,
+        "confidence_interval": [
+          8200,
+          10000
+        ]
+      },
+      {
+        "date": "2026-02-06",
+        "predicted_revenue": 10200,
+        "predicted_units": 117,
+        "confidence_interval": [
+          9200,
+          11200
+        ]
+      }
+    ],
+    "weekly_summary": {
+      "total_predicted_revenue": 71350,
+      "avg_daily_revenue": 10193,
+      "peak_day": "2026-02-02",
+      "lowest_day": "2026-02-03"
+    },
+    "top_items_forecast": [
+      {
+        "name": "Tacos al Pastor",
+        "predicted_units": 145,
+        "trend": "stable"
+      },
+      {
+        "name": "Tacos de Birria",
+        "predicted_units": 128,
+        "trend": "growing"
+      },
+      {
+        "name": "Enchiladas Suizas",
+        "predicted_units": 98,
+        "trend": "stable"
+      }
+    ]
+  },
+  "thought_signature": {
+    "plan": [
+      "Analizar datos de ventas para identificar patrones",
+      "Clasificar productos usando metodolog\u00eda BCG",
+      "Generar predicciones con modelo ensemble",
+      "Crear campa\u00f1as personalizadas basadas en insights",
+      "Verificar coherencia de recomendaciones"
+    ],
+    "observations": [
+      "Portfolio bien balanceado con 3 Stars generando crecimiento",
+      "Birria muestra tendencia positiva alineada con tendencias nacionales",
+      "Oportunidad en horario de 17-19h para incrementar ventas",
+      "Margen promedio de 54.9% indica operaci\u00f3n saludable"
+    ],
+    "reasoning": "El an\u00e1lisis revela un negocio con fundamentos s\u00f3lidos. Los productos estrella (Tacos al Pastor, Birria, Enchiladas) tienen alta popularidad Y margen, lo cual es ideal. Las campa\u00f1as propuestas atacan oportunidades espec\u00edficas: capitalizar tendencia de Birria, capturar mercado ejecutivo, y llenar horario bajo con Happy Hour.",
+    "assumptions": [
+      "Costos de ingredientes se mantienen estables",
+      "Capacidad de cocina puede manejar incremento de 20%",
+      "Competencia no lanza promociones agresivas"
+    ],
+    "confidence": 0.87,
+    "verification_checks": [
+      {
+        "check": "BCG classifications align with margin/popularity data",
+        "passed": true
+      },
+      {
+        "check": "Campaign budgets are realistic for business size",
+        "passed": true
+      },
+      {
+        "check": "Predictions within historical variance",
+        "passed": true
+      }
+    ],
+    "thinking_level": "DEEP"
+  },
+  "marathon_agent_context": {
+    "total_steps_executed": 7,
+    "checkpoints_created": 5,
+    "self_corrections": 1,
+    "processing_time_seconds": 45,
+    "gemini_calls": 12,
+    "thinking_mode": "DEEP",
+    "stages_completed": [
+      "data_ingestion",
+      "menu_extraction",
+      "bcg_classification",
+      "sales_prediction",
+      "campaign_generation",
+      "verification"
+    ]
+  }
 }
