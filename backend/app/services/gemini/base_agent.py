@@ -22,6 +22,8 @@ from loguru import logger
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.core.config import get_settings
+from app.core.rate_limiter import get_rate_limiter
+from app.core.model_fallback import get_fallback_handler
 
 
 class GeminiModel(str, Enum):
@@ -136,6 +138,10 @@ class GeminiBaseAgent:
         self.settings = settings  # Store settings for easy access
         self.call_count = 0
         self.total_tokens = 0
+        
+        # Rate limiter and fallback handler
+        self.rate_limiter = get_rate_limiter()
+        self.fallback_handler = get_fallback_handler()
         
         # Enhanced usage stats
         self.usage_stats = {

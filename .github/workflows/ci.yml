@@ -39,9 +39,16 @@ jobs:
       - name: Run tests
         run: |
           cd backend
-          pytest tests/ -v --tb=short
+          pytest tests/ -v --tb=short --cov=app --cov-report=xml
         env:
           GEMINI_API_KEY: test_key_for_ci
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./backend/coverage.xml
+
 
   lint-backend:
     runs-on: ubuntu-latest

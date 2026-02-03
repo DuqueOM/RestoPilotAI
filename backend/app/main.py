@@ -106,6 +106,7 @@ app.include_router(progress_router, prefix="/api/v1", tags=["WebSocket"])
 app.include_router(vibe_router, prefix="/api/v1")
 app.include_router(vibe_engineering_router, prefix="/api/v1")
 app.include_router(marathon_router, prefix="/api/v1")
+app.include_router(monitoring_router, prefix="/api/v1")
 
 # Serve static files for uploads if they exist
 if Path("data/uploads").exists():

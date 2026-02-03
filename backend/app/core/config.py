@@ -9,9 +9,18 @@ Centralized configuration for RestoPilotAI backend with support for:
 
 from functools import lru_cache
 from typing import List
+from enum import Enum
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class GeminiModel(str, Enum):
+    """Available Gemini 3 models with fallback hierarchy."""
+    FLASH_PREVIEW = "gemini-3-flash-preview"  # Primary - Fast & efficient
+    PRO_PREVIEW = "gemini-3-pro-preview"  # Fallback - More capable
+    PRO_IMAGE = "gemini-3-pro-image-preview"  # Image generation
+    FLASH_2 = "gemini-2.0-flash-exp"  # Emergency fallback
 
 
 class Settings(BaseSettings):
@@ -53,33 +62,58 @@ class Settings(BaseSettings):
 
     # ==================== Gemini 3 Configuration ====================
     # CRÍTICO: Usar solo modelos de Gemini 3
-    gemini_model_primary: str = "gemini-3-flash-preview"  # Modelo principal
-    gemini_model_reasoning: str = "gemini-3-flash-preview"  # BCG, competitive intel
-    gemini_model_vision: str = "gemini-3-pro-preview"  # Multimodal (menús, platos)
-    gemini_model_image_gen: str = "gemini-3-pro-image-preview"  # Creative Autopilot
+    
+    # Model Selection with Fallbacks
+    gemini_model_primary: str = GeminiModel.FLASH_PREVIEW.value
+    gemini_model_reasoning: str = GeminiModel.FLASH_PREVIEW.value  # BCG, competitive intel
+    gemini_model_vision: str = GeminiModel.PRO_PREVIEW.value  # Multimodal (menús, platos)
+    gemini_model_image_gen: str = GeminiModel.PRO_IMAGE.value  # Creative Autopilot
+    gemini_fallback_model: str = GeminiModel.PRO_PREVIEW.value  # Si falla primary
+    gemini_emergency_model: str = GeminiModel.FLASH_2.value  # Último recurso
     
     # Backward compatibility
-    gemini_model: str = "gemini-3-flash-preview"
-    gemini_model_pro: str = "gemini-3-pro-preview"
+    gemini_model: str = GeminiModel.FLASH_PREVIEW.value
+    gemini_model_pro: str = GeminiModel.PRO_PREVIEW.value
     
-    # Rate limits alineados con Gemini 3 free tier
+    # Rate Limiting (Gemini 3 free tier)
     gemini_max_retries: int = 3
-    gemini_rate_limit_rpm: int = 15  # Free tier: 15 requests/min
-    gemini_rate_limit_tpm: int = 1000000
+    gemini_rate_limit_rpm: int = 15  # Requests per minute
+    gemini_rate_limit_tpm: int = 1_000_000  # Tokens per minute
+    gemini_rate_limit_window: int = 60  # Window in seconds
     gemini_max_concurrent_requests: int = 3  # Evitar throttling
+    
+    # Token Limits (differentiated by task)
+    gemini_max_input_tokens: int = 128000  # Context window
+    gemini_max_tokens_menu_extraction: int = 4096
+    gemini_max_tokens_analysis: int = 8192  # Default
+    gemini_max_tokens_campaign: int = 2048
+    gemini_max_tokens_reasoning: int = 16384  # Análisis profundos
+    gemini_max_output_tokens: int = 8192  # Flash model default
+    gemini_max_output_tokens_reasoning: int = 16384
     
     # Timeouts optimizados para Marathon Agent
     gemini_timeout_seconds: int = 120  # Requests normales
     gemini_marathon_timeout_seconds: int = 600  # Tareas largas (10 min)
     gemini_connection_timeout: int = 30  # Solo handshake
+    gemini_retry_backoff_factor: float = 2.0  # Exponential backoff
     
-    # Token limits de Gemini 3
-    gemini_max_input_tokens: int = 128000  # Context window
-    gemini_max_output_tokens: int = 8192  # Flash model
-    gemini_max_output_tokens_reasoning: int = 16384  # Análisis profundos
+    # Cost Tracking & Budget Control
+    gemini_cost_per_1k_input_tokens: float = 0.00001  # $0.01 per 1M tokens
+    gemini_cost_per_1k_output_tokens: float = 0.00003  # $0.03 per 1M tokens
+    gemini_budget_limit_usd: float = 50.0  # Max spend per day
+    gemini_enable_cost_tracking: bool = True
     
-    # Cache y features
-    gemini_cache_ttl_seconds: int = 3600
+    # Caching
+    gemini_enable_cache: bool = True
+    gemini_cache_ttl_seconds: int = 604800  # 7 days
+    gemini_cache_max_size_mb: int = 500
+    
+    # Safety & Quality
+    gemini_enable_safety_checks: bool = True
+    gemini_min_confidence_score: float = 0.7
+    gemini_enable_hallucination_detection: bool = True
+    
+    # Features
     gemini_enable_grounding: bool = True
     gemini_enable_streaming: bool = True
 
