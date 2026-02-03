@@ -35,6 +35,7 @@ from app.services.analysis.sales_predictor import SalesPredictor
 from app.services.analysis.sentiment import SentimentAnalyzer
 from app.services.campaigns.generator import CampaignGenerator
 from app.services.gemini.base_agent import GeminiAgent, ThinkingLevel
+from app.services.gemini.creative_autopilot import CreativeAutopilotAgent
 from app.services.gemini.verification import VerificationAgent
 from app.services.gemini.vibe_engineering import VibeEngineeringAgent
 from app.services.intelligence.competitor_finder import ScoutAgent
@@ -1443,13 +1444,68 @@ class AnalysisOrchestrator:
             confidence=0.82,
         )
 
+        # Standard Campaign Generation (Text-based / Strategic)
         campaigns = await self.campaign_generator.generate_campaigns(
             bcg_analysis=state.bcg_analysis,
             predictions=state.predictions,
             num_campaigns=3,
         )
-
+        
         state.campaigns = campaigns.get("campaigns", [])
+
+        # HACKATHON FEATURE: Creative Autopilot (Visual Campaigns for Stars)
+        settings = get_settings()
+        if settings.enable_creative_autopilot and state.bcg_analysis:
+            self._add_thought_trace(
+                state,
+                step="Creative Autopilot",
+                reasoning="Generating full visual campaigns for Star products using Gemini 3 Image Generation",
+                observations=["Identifying Star products for premium campaigns"],
+                decisions=["Launching Creative Autopilot for top performers"],
+                confidence=0.9,
+            )
+            
+            # Find star products
+            products = state.bcg_analysis.get("products", [])
+            stars = [p for p in products if p.get("classification") == "star"]
+            
+            # Limit to top 2 stars to save resources/time
+            for item in stars[:2]:
+                try:
+                    # Construct dish data for the agent
+                    dish_data = {
+                        "name": item.get("name"),
+                        "price": item.get("price"),
+                        "description": item.get("description", f"Delicious {item.get('name')}"),
+                        "category": item.get("category", "Main"),
+                        "bcg_data": item
+                    }
+                    
+                    # Get brand guidelines if available in context
+                    brand_guidelines = state.business_context.get("brand_guidelines", {})
+                    # Default colors if not present
+                    if "colors" not in brand_guidelines:
+                        brand_guidelines["colors"] = "Appetizing, warm, consistent with brand"
+                    
+                    visual_campaign = await self.creative_autopilot.generate_full_campaign(
+                        restaurant_name=state.restaurant_name,
+                        dish_data=dish_data,
+                        bcg_classification="star",
+                        brand_guidelines=brand_guidelines
+                    )
+                    
+                    # Add to campaigns list with a specific type flag
+                    visual_campaign["type"] = "creative_autopilot"
+                    visual_campaign["target_product"] = item.get("name")
+                    visual_campaign["title"] = f"Visual Campaign: {item.get('name')}"
+                    # Add simple assets list for the standard UI to pick up if needed, 
+                    # though Creative UI handles the rich object
+                    visual_campaign["assets"] = visual_campaign.get("visual_assets", [])
+                    
+                    state.campaigns.append(visual_campaign)
+                    
+                except Exception as e:
+                    logger.error(f"Creative Autopilot failed for {item.get('name')}: {e}")
 
         # FEATURE #2: VIBE ENGINEERING - Autonomous Campaign Verification
         if state.auto_verify:

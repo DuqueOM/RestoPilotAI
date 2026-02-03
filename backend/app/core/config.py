@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     # Habilitar/deshabilitar tracks estratégicos
     enable_vibe_engineering: bool = True  # Track: Vibe Engineering
     enable_marathon_agent: bool = True  # Track: Marathon Agent
-    enable_creative_autopilot: bool = False  # TODO: Implementar completamente
+    enable_creative_autopilot: bool = True  # Activo para Hackathon
     enable_grounding: bool = True  # Google Search grounding
     
     # ==================== Vibe Engineering Configuration ====================

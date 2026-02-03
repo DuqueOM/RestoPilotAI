@@ -1,0 +1,64 @@
+{
+  "session_id": "3f16192c-3567-42c6-9d3a-fbdfe50a5615",
+  "current_stage": "menu_extraction",
+  "checkpoints": [
+    {
+      "stage": "menu_extraction",
+      "timestamp": "2026-02-03T02:49:19.408047+00:00",
+      "data": {
+        "menu_items_count": 1,
+        "sales_records_count": 0,
+        "campaigns_count": 0
+      },
+      "thought_trace": [
+        "Session Initialization"
+      ],
+      "success": true,
+      "error": null
+    }
+  ],
+  "thought_traces": [
+    {
+      "step": "Session Initialization",
+      "reasoning": "Creating new analysis session for restaurant optimization",
+      "observations": [
+        "Fresh session created",
+        "All pipeline stages pending"
+      ],
+      "decisions": [
+        "Ready to receive data inputs"
+      ],
+      "confidence": 1.0,
+      "timestamp": "2026-02-03T02:49:19.405391+00:00"
+    }
+  ],
+  "restaurant_name": "Our Restaurant",
+  "location": null,
+  "menu_items": [
+    {
+      "name": "Test Item",
+      "price": 10.0
+    }
+  ],
+  "sales_data": [],
+  "business_context": {},
+  "competitor_urls": [],
+  "image_scores": {},
+  "discovered_competitors": [],
+  "neighborhood_analysis": null,
+  "competitor_analysis": null,
+  "sentiment_analysis": null,
+  "visual_gap_report": null,
+  "context_insights": null,
+  "bcg_analysis": null,
+  "predictions": null,
+  "campaigns": [],
+  "verification_result": null,
+  "verification_history": [],
+  "vibe_status": null,
+  "thinking_level": "standard",
+  "auto_verify": true,
+  "started_at": "2026-02-03T02:49:19.405360+00:00",
+  "completed_at": null,
+  "total_thinking_time_ms": 1
+}
