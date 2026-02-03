@@ -1,0 +1,143 @@
+/* Streaming Analysis Animations */
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes thought-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.thought-bubble {
+  animation: thought-appear 0.4s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.5s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Smooth scrolling for thought stream */
+.thought-stream {
+  scroll-behavior: smooth;
+}
+
+/* Typing indicator */
+@keyframes typing {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.typing-indicator span {
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Confidence badge animations */
+@keyframes confidence-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.confidence-bar {
+  animation: confidence-fill 0.8s ease-out;
+}
+
+/* Thought bubble hover effects */
+.thought-bubble:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+/* Completion celebration */
+@keyframes celebrate {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.05) rotate(-2deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+
+.completion-card {
+  animation: celebrate 0.6s ease-out;
+}
+
+/* Loading spinner enhancement */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.brain-thinking {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 3s ease infinite;
+}

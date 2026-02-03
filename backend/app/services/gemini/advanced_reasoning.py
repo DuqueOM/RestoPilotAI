@@ -7,12 +7,13 @@ Features that set us apart:
 - Uncertainty quantification (honest about limitations)
 - Data quality assessment (garbage in, garbage out awareness)
 - Audience-targeted executive summaries
+- Real-time streaming with thought visualization (WOW factor)
 """
 
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, AsyncGenerator
 
 from loguru import logger
 from pydantic import BaseModel, Field
