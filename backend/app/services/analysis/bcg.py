@@ -21,7 +21,6 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 from app.core.config import get_settings
-from app.core.cache import cached, get_cache_manager
 from app.services.gemini.base_agent import GeminiAgent
 from loguru import logger
 

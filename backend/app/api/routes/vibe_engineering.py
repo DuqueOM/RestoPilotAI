@@ -4,9 +4,9 @@ Vibe Engineering API Routes - Auto-verification and improvement endpoints.
 Implements the Vibe Engineering track from Gemini 3 Hackathon.
 """
 
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, List
 from loguru import logger
 
 from app.services.gemini.vibe_engineering import VibeEngineeringAgent

@@ -5,11 +5,10 @@ Handles WebSocket connections and broadcasting of events.
 Separated from api/websocket.py to avoid circular imports.
 """
 
-import asyncio
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, Optional, Set
 
 from fastapi import WebSocket
 from loguru import logger

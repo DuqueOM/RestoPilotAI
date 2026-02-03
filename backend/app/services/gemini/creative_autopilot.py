@@ -1,12 +1,9 @@
-from typing import Dict, List, Optional
-import asyncio
+from typing import Dict, List
 import json
 from google import genai
 from google.genai import types
 from loguru import logger
 from app.core.config import get_settings
-from PIL import Image
-import io
 import base64
 
 class CreativeAutopilotAgent:

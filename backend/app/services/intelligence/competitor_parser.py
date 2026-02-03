@@ -4,7 +4,6 @@ Competitor Parser Service - Multimodal parsing of mixed competitor inputs.
 
 from typing import Any, Dict, List, Optional
 import json
-import base64
 from loguru import logger
 from google.genai import types
 from app.services.gemini.base_agent import GeminiAgent

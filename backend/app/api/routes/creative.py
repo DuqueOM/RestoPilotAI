@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
-from typing import List, Optional
+from typing import List
+
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from loguru import logger

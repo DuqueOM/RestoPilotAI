@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, AsyncIterator
+from typing import Optional, List
 from google import genai
 from google.genai import types
 from fastapi import WebSocket

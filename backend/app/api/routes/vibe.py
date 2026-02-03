@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 

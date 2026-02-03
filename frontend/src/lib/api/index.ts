@@ -530,13 +530,13 @@ class RestoPilotAIAPI {
     file: File,
     category: string,
     postingTime: string
-  ): Promise<any> {
+  ): Promise<InstagramPredictionResult> {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('restaurant_category', category);
     formData.append('posting_time_iso', postingTime);
 
-    return this.request<any>('/api/v1/creative/instagram-prediction', {
+    return this.request<InstagramPredictionResult>('/api/v1/creative/instagram-prediction', {
       method: 'POST',
       body: formData,
       headers: {},
@@ -573,13 +573,38 @@ export interface VisualAsset {
   variant_type?: string;
 }
 
+export interface CampaignStrategy {
+  target_audience: string;
+  key_message: string;
+  channels: string[];
+}
+
+export interface CreativeConcept {
+  theme: string;
+  visual_style: string;
+  tone: string;
+}
+
 export interface CreativeCampaignData {
-  strategy: any;
-  creative_concept: any;
+  strategy: CampaignStrategy;
+  creative_concept: CreativeConcept;
   visual_assets: VisualAsset[];
   localized_versions?: Record<string, VisualAsset[]>;
   ab_variants?: VisualAsset[];
   estimated_impact?: number;
+}
+
+export interface InstagramPredictionResult {
+  predicted_engagement_rate: number;
+  predicted_likes: number;
+  predicted_comments: number;
+  confidence_score: number;
+  recommendations: string[];
+  visual_analysis: {
+    composition_score: number;
+    color_harmony_score: number;
+    appeal_score: number;
+  };
 }
 
 export interface CreativeAutopilotResult {

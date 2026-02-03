@@ -690,7 +690,8 @@ async def start_new_analysis(
     async def save_audio_files(files: List[UploadFile], prefix: str) -> List[str]:
         saved_paths = []
         for i, file in enumerate(files):
-            if not file: continue
+            if not file:
+                continue
             path = upload_dir / "audio" / f"{prefix}_{i}_{file.filename}"
             path.parent.mkdir(exist_ok=True)
             async with aiofiles.open(path, 'wb') as out_file:

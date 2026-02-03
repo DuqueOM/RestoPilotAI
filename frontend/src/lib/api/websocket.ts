@@ -1,7 +1,7 @@
 export type WebSocketMessage = {
   type: string;
   session_id: string;
-  data?: any;
+  data?: Record<string, unknown>;
   thought?: {
     id: string;
     type: 'thinking' | 'observation' | 'action' | 'verification' | 'result';
@@ -115,7 +115,7 @@ export class AnalysisWebSocket {
     }
   }
 
-  sendMessage(type: string, data: any) {
+  sendMessage(type: string, data: Record<string, unknown>) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({
         type,

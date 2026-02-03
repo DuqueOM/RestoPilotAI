@@ -117,7 +117,7 @@ RESPONSE (JSON):
             elif "```" in response:
                 response = response.split("```")[1].split("```")[0].strip()
             analysis = json.loads(response)
-        except:
+        except Exception:
             analysis = {"error": "Failed to parse neighborhood analysis"}
         
         return analysis

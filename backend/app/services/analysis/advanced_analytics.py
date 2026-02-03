@@ -3,8 +3,8 @@ Advanced Analytics Service for RestoPilotAI.
 Provides demand prediction, seasonal trends, and product analytics.
 """
 
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 from enum import Enum
 import pandas as pd

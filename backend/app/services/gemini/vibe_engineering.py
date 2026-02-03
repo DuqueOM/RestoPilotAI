@@ -1,6 +1,5 @@
-from typing import Dict, List, Optional
+from typing import Dict, List
 import json
-import asyncio
 from google import genai
 from google.genai import types
 from loguru import logger

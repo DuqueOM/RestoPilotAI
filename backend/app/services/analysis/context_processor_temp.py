@@ -1,5 +1,5 @@
 from app.services.gemini.base_agent import GeminiBaseAgent
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 import json
 
 class ContextProcessor(GeminiBaseAgent):
@@ -109,7 +109,7 @@ RESPONSE (JSON):
             elif "```" in response:
                 response = response.split("```")[1].split("```")[0].strip()
             enhanced_analysis = json.loads(response)
-        except:
+        except Exception:
             enhanced_analysis = {"error": "Context integration failed"}
         
         return enhanced_analysis

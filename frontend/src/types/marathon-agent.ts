@@ -24,7 +24,7 @@ export interface PipelineStep {
   completed_at?: string;
   duration_ms?: number;
   error_message?: string;
-  result?: any;
+  result?: Record<string, unknown>;
   retry_count: number;
   max_retries: number;
 }
@@ -34,14 +34,14 @@ export interface Checkpoint {
   task_id: string;
   step_index: number;
   timestamp: string;
-  accumulated_results: Record<string, any>;
-  state_snapshot: any;
+  accumulated_results: Record<string, unknown>;
+  state_snapshot: Record<string, unknown>;
 }
 
 export interface MarathonTaskConfig {
   task_type: 'full_analysis' | 'competitive_intel' | 'campaign_generation';
   session_id: string;
-  input_data: any;
+  input_data: Record<string, unknown>;
   enable_checkpoints: boolean;
   checkpoint_interval_seconds: number;
   max_retries_per_step: number;

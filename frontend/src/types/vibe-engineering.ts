@@ -40,7 +40,7 @@ export interface ImprovementIteration {
 }
 
 export interface VibeEngineeringState {
-  final_analysis: any;
+  final_analysis: Record<string, unknown>;
   verification_history: VerificationResult[];
   iterations_required: number;
   quality_achieved: number;

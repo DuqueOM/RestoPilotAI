@@ -820,7 +820,7 @@ async def get_nearby_restaurants(
                 data = json.loads(text.strip())
                 found_restaurants = data.get("restaurants", [])
                 source_used = "gemini_grounded"
-            except:
+            except Exception:
                 pass
         except Exception:
             pass

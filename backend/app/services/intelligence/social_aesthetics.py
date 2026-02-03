@@ -1,8 +1,7 @@
 from app.services.gemini.base_agent import GeminiBaseAgent
-from typing import List, Dict, Any
+from typing import Dict, List, Optional
 import json
-from datetime import datetime
-import base64
+from loguru import logger
 from google.genai import types
 
 class SocialAestheticsAnalyzer(GeminiBaseAgent):
@@ -271,7 +270,7 @@ RESPONSE (JSON):
             elif "```" in response:
                 response = response.split("```")[1].split("```")[0].strip()
             analysis = json.loads(response)
-        except:
+        except Exception:
             analysis = {"error": "Failed to parse aesthetic analysis"}
         
         return analysis

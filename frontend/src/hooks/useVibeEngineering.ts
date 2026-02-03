@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
 import { vibeAPI } from '@/lib/api/vibe-engineering';
-import { VibeEngineeringState, VibeEngineeringConfig } from '@/types/vibe-engineering';
+import { VibeEngineeringConfig, VibeEngineeringState } from '@/types/vibe-engineering';
+import { useCallback, useEffect, useState } from 'react';
 
 interface UseVibeEngineeringResult {
   state: VibeEngineeringState | null;
@@ -20,13 +20,6 @@ export function useVibeEngineering(sessionId: string): UseVibeEngineeringResult 
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const defaultConfig: VibeEngineeringConfig = {
-    auto_verify: true,
-    auto_improve: true,
-    quality_threshold: 0.85,
-    max_iterations: 3,
-  };
-
   const refreshStatus = useCallback(async () => {
     try {
       const status = await vibeAPI.getVerificationStatus(sessionId);
@@ -42,6 +35,12 @@ export function useVibeEngineering(sessionId: string): UseVibeEngineeringResult 
       analysisType: 'bcg_classification' | 'competitive_analysis' | 'campaign_generation',
       configOverrides?: Partial<VibeEngineeringConfig>
     ) => {
+      const defaultConfig: VibeEngineeringConfig = {
+        auto_verify: true,
+        auto_improve: true,
+        quality_threshold: 0.85,
+        max_iterations: 3,
+      };
       setIsVerifying(true);
       setError(null);
 

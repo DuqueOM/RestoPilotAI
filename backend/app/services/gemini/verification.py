@@ -197,7 +197,7 @@ RESPONSE FORMAT (JSON):
                 response = response.split("```")[1].split("```")[0].strip()
                 
             verification_result = json.loads(response)
-        except:
+        except Exception:
             # Fallback if JSON parsing fails
             verification_result = {
                 "overall_quality_score": 0.5,
@@ -289,7 +289,7 @@ RESPONSE (JSON):
                 response = response.split("```")[1].split("```")[0].strip()
                 
             verification = json.loads(response)
-        except:
+        except Exception:
             verification = {"logic_verified": False, "error": "Parse failed"}
         
         return verification

@@ -52,7 +52,7 @@ Format as JSON:
             elif "```" in response:
                 response = response.split("```")[1].split("```")[0].strip()
             return json.loads(response)
-        except:
+        except Exception:
             return {
                 "transcription": response,
                 "key_points": [],
@@ -127,7 +127,7 @@ RESPONSE (JSON):
             elif "```" in response:
                 response = response.split("```")[1].split("```")[0].strip()
             enhanced_analysis = json.loads(response)
-        except:
+        except Exception:
             enhanced_analysis = {"error": "Context integration failed"}
         
         return enhanced_analysis

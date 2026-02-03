@@ -368,7 +368,7 @@ class MenuOptimizer:
         margin = row.get("margin", 0.6)
         margin_score = row.get("margin_score", 0.5)
         current_price = row.get("price", row["avg_price"])
-        bcg = row.get("bcg_category", "")
+        # bcg_category available but not used in this method
 
         suggested_price = None
 
