@@ -66,6 +66,8 @@ Thumbs.db
 data/uploads/
 data/outputs/
 data/models/*.joblib
+backend/data/uploads/
+backend/data/outputs/
 *.csv
 *.xlsx
 !data/sample/*.csv

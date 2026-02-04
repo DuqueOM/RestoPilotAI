@@ -53,6 +53,7 @@ interface LocationInputProps {
   sessionId?: string;
   placeholder?: string;
   autoFocus?: boolean;
+  onBusinessEnriched?: (profile: any) => void;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
@@ -64,7 +65,8 @@ export function LocationInput({
   initialLocation, 
   sessionId,
   placeholder,
-  autoFocus
+  autoFocus,
+  onBusinessEnriched
 }: LocationInputProps) {
   // Google Maps Loader
   const { isLoaded } = useJsApiLoader({
@@ -110,7 +112,7 @@ export function LocationInput({
     setIsSearching(true);
     setError(null);
     setCandidates([]);
-    setShowCandidates(true);
+    setShowCandidates(false);
     setShowMapPicker(false);
     
     try {
@@ -194,6 +196,26 @@ export function LocationInput({
       } catch (err) {
         console.error('Failed to set business:', err);
       }
+    } else {
+        // No session yet, but we want to enrich to populate the form
+        try {
+            const formData = new FormData();
+            formData.append('place_id', candidate.placeId);
+            
+            const response = await fetch(`${API_BASE}/api/v1/location/enrich-competitor`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.profile && onBusinessEnriched) {
+                    onBusinessEnriched(data.profile);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to enrich business preview:', err);
+        }
     }
     
     // Load nearby competitors with enrichment
@@ -494,7 +516,8 @@ export function LocationInput({
               </div>
               <button 
                 onClick={() => setShowMapPicker(true)}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap"
+                disabled={isSearching}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Change
               </button>

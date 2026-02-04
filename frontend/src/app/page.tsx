@@ -7,6 +7,7 @@ import { ProgressBar } from '@/components/setup/ProgressBar';
 import { TemplateSelector } from '@/components/setup/TemplateSelector';
 import { api } from '@/lib/api';
 import {
+    CheckCircle2,
     FileText,
     Instagram,
     Loader2,
@@ -30,8 +31,43 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 export default function SetupPage() {
   const router = useRouter();
   const [completionScore, setCompletionScore] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingDemo, setIsLoadingDemo] = useState(false);
+  const [loadingState, setLoadingState] = useState<{
+    type: 'demo' | 'analysis' | null;
+    stage: 'idle' | 'loading' | 'success';
+  }>({ type: null, stage: 'idle' });
+  const [loadingMessage, setLoadingMessage] = useState('Initializing...');
+
+  // Rotating loading messages
+  useEffect(() => {
+    if (loadingState.stage !== 'loading') return;
+
+    const demoMessages = [
+      "Spinning up your demo environment...",
+      "Loading sample data...",
+      "Configuring dashboard widgets...",
+      "Preparing your experience..."
+    ];
+
+    const analysisMessages = [
+      "Analyzing your business data...",
+      "Identifying market trends...",
+      "Comparing with local competitors...",
+      "Generating strategic insights...",
+      "Building your growth plan..."
+    ];
+
+    const messages = loadingState.type === 'demo' ? demoMessages : analysisMessages;
+    setLoadingMessage(messages[0]);
+
+    let i = 0;
+    const interval = setInterval(() => {
+      i = (i + 1) % messages.length;
+      setLoadingMessage(messages[i]);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [loadingState.stage, loadingState.type]);
+  
   const [formData, setFormData] = useState({
     // Location (most important - shown first)
     location: '',
@@ -94,27 +130,55 @@ export default function SetupPage() {
   
   const handleDemoClick = async () => {
     try {
-      setIsLoadingDemo(true);
-      toast.loading('Loading Margarita Pinta Demo...');
+      setLoadingState({ type: 'demo', stage: 'loading' });
       
       const result = await api.loadDemo();
       
-      toast.dismiss();
-      toast.success('Demo loaded successfully!');
+      setLoadingState({ type: 'demo', stage: 'success' });
       
-      router.push(`/analysis/${result.session_id}`);
+      // Small delay to show success state before redirecting
+      setTimeout(() => {
+        router.push(`/analysis/${result.session_id}`);
+      }, 1500);
     } catch (error) {
       console.error('Failed to load demo:', error);
-      toast.dismiss();
       toast.error('Failed to load demo experience. Is the backend running?');
-      setIsLoadingDemo(false);
+      setLoadingState({ type: null, stage: 'idle' });
     }
+  };
+
+  const handleBusinessEnriched = (profile: any) => {
+    console.log("Enriched profile received:", profile);
+    
+    // Extract social media
+    let instagram = '';
+    let facebook = '';
+    let tiktok = '';
+    
+    if (profile.social_media) {
+      profile.social_media.forEach((p: any) => {
+        if (p.platform === 'instagram') instagram = p.handle ? `@${p.handle}` : p.url;
+        if (p.platform === 'facebook') facebook = p.url;
+        if (p.platform === 'tiktok') tiktok = p.handle ? `@${p.handle}` : p.url;
+      });
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      businessName: profile.name || prev.businessName,
+      website: profile.website || prev.website,
+      instagram: instagram || prev.instagram,
+      facebook: facebook || prev.facebook,
+      tiktok: tiktok || prev.tiktok,
+    }));
+    
+    toast.success('Business details found and applied!');
   };
 
   const handleSubmit = async () => {
     if (!formData.location) return;
     
-    setIsSubmitting(true);
+    setLoadingState({ type: 'analysis', stage: 'loading' });
     try {
       const data = new FormData();
       
@@ -175,11 +239,17 @@ export default function SetupPage() {
       }
       
       const { analysis_id } = await response.json();
-      router.push(`/analysis/${analysis_id}`);
+      
+      setLoadingState({ type: 'analysis', stage: 'success' });
+      
+      setTimeout(() => {
+        router.push(`/analysis/${analysis_id}`);
+      }, 1500);
+      
     } catch (error) {
       console.error('Error starting analysis:', error);
       toast.error('Failed to start analysis. Please try again.');
-      setIsSubmitting(false);
+      setLoadingState({ type: null, stage: 'idle' });
     }
   };
   
@@ -233,10 +303,10 @@ export default function SetupPage() {
           <div className="flex justify-center mt-6">
             <button
               onClick={handleDemoClick}
-              disabled={isLoadingDemo || isSubmitting}
+              disabled={loadingState.stage !== 'idle'}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all shadow-sm font-medium text-sm disabled:opacity-50"
             >
-              {isLoadingDemo ? (
+              {loadingState.type === 'demo' && loadingState.stage === 'loading' ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Play className="w-4 h-4 fill-gray-500" />
@@ -274,6 +344,7 @@ export default function SetupPage() {
               <LocationInput
                 value={formData.location}
                 onChange={(value) => setFormData({...formData, location: value})}
+                onBusinessEnriched={handleBusinessEnriched}
                 placeholder="123 Main St, New York, NY 10001"
                 autoFocus
               />
@@ -558,14 +629,14 @@ export default function SetupPage() {
             
             <button
               onClick={handleSubmit}
-              disabled={!formData.location || isSubmitting || isLoadingDemo}
+              disabled={!formData.location || loadingState.stage !== 'idle'}
               className={`px-6 py-2.5 rounded-lg font-medium text-white transition-all flex items-center gap-2 shadow-sm ${
-                formData.location && !isSubmitting
+                formData.location && loadingState.stage === 'idle'
                   ? 'bg-blue-600 hover:bg-blue-700 hover:shadow-md'
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
-              {isSubmitting ? (
+              {loadingState.type === 'analysis' && loadingState.stage === 'loading' ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Starting...
@@ -584,6 +655,50 @@ export default function SetupPage() {
       <Suspense fallback={null}>
         <GeminiChat />
       </Suspense>
+
+      {/* Loading Overlay */}
+      {loadingState.stage !== 'idle' && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex items-center justify-center transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 max-w-sm w-full mx-4 text-center transform transition-all duration-300 scale-100 animate-in fade-in zoom-in-95">
+            {loadingState.stage === 'loading' ? (
+              <div className="space-y-4">
+                <div className="relative w-20 h-20 mx-auto">
+                  <div className="w-full h-full border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {loadingState.type === 'demo' ? (
+                      <Sparkles className="w-8 h-8 text-blue-600 animate-pulse" />
+                    ) : (
+                      <Target className="w-8 h-8 text-blue-600 animate-pulse" />
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {loadingState.type === 'demo' ? 'Loading Demo' : 'Analyzing Business'}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-2 min-h-[1.25rem] transition-all duration-300">
+                    {loadingMessage}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto animate-in zoom-in duration-300">
+                  <CheckCircle2 className="w-10 h-10 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Ready!</h3>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {loadingState.type === 'demo'
+                      ? 'Demo loaded successfully'
+                      : 'Analysis complete. Taking you there...'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

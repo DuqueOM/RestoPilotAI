@@ -1360,7 +1360,7 @@ Be critical and thorough."""
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.7,
-                max_output_tokens=4096,
+                max_output_tokens=8192,
             ),
         )
         return response
@@ -1385,7 +1385,7 @@ Be critical and thorough."""
             ],
             config=types.GenerateContentConfig(
                 temperature=0.4,
-                max_output_tokens=4096,
+                max_output_tokens=8192,
             ),
         )
         return response
@@ -1404,7 +1404,7 @@ Be critical and thorough."""
             config=types.GenerateContentConfig(
                 tools=self.tools,
                 temperature=0.7,
-                max_output_tokens=4096,
+                max_output_tokens=8192,
             ),
         )
         return response
@@ -1499,8 +1499,8 @@ Be critical and thorough."""
 
     def _parse_extraction_response(self, response: Any) -> Dict[str, Any]:
         """Parse menu extraction response."""
+        text = response.text
         try:
-            text = response.text
             logger.debug(f"Gemini raw response (first 500 chars): {text[:500]}")
 
             if "```json" in text:
@@ -1514,12 +1514,43 @@ Be critical and thorough."""
             )
             return parsed
         except (json.JSONDecodeError, KeyError, IndexError) as e:
+            logger.warning(f"JSON parse failed, attempting repair: {e}")
+            
+            # Attempt to repair truncated JSON
+            # Strategy: Find the last valid item object closing "}," inside the items array
+            try:
+                # 1. Isolate the "items" array part if possible
+                if '"items":' in text:
+                    # Find the last occurrence of "}," which usually indicates end of a list item
+                    last_item_end = text.rfind('},')
+                    
+                    if last_item_end != -1:
+                        # Construct repaired JSON: closes the array and the root object
+                        # We take everything up to the comma of the last valid item
+                        # text[:last_item_end+1] gives us "...}"
+                        repaired_text = text[:last_item_end+1] + "]}"
+                        
+                        repaired_json = json.loads(repaired_text)
+                        items = repaired_json.get("items", [])
+                        
+                        if items:
+                            logger.info(f"Successfully repaired JSON. Recovered {len(items)} items.")
+                            return {
+                                "items": items,
+                                "confidence": 0.8, # Lower confidence due to truncation
+                                "repaired": True,
+                                "layout_analysis": repaired_json.get("layout_analysis", {})
+                            }
+            except Exception as repair_error:
+                logger.error(f"JSON repair failed: {repair_error}")
+
             logger.error(f"Failed to parse Gemini response: {e}")
-            logger.error(f"Raw response: {response.text[:1000]}")
+            logger.debug(f"Raw response end: {response.text[-500:]}")
             return {
                 "items": [],
-                "confidence": 0.5,
+                "confidence": 0.0,
                 "raw_response": response.text[:1000],
+                "error": str(e)
             }
 
     def _parse_image_analysis(self, response: Any, path: str) -> Dict[str, Any]:
@@ -1611,9 +1642,9 @@ Be critical and thorough."""
             }
 
     def _parse_json_response(self, response_text: str) -> Dict[str, Any]:
-        """Generic JSON response parser."""
+        """Generic JSON response parser with repair capabilities."""
+        text = response_text
         try:
-            text = response_text
             if "```json" in text:
                 text = text.split("```json")[1].split("```")[0]
             elif "```" in text:
@@ -1621,6 +1652,33 @@ Be critical and thorough."""
             
             return json.loads(text.strip())
         except (json.JSONDecodeError, KeyError, IndexError) as e:
+            logger.warning(f"JSON parse failed, attempting repair: {e}")
+            
+            # Attempt to repair truncated JSON
+            try:
+                clean_text = text.strip()
+                # Check if it looks like a JSON object that was cut off
+                if clean_text.startswith("{") and not clean_text.endswith("}"):
+                    # Heuristic: if the last significant char is inside a string, close quote then brace
+                    # This is simple but covers common 'unterminated string' cases
+                    # Find last quote and last brace
+                    last_quote = clean_text.rfind('"')
+                    last_brace = clean_text.rfind('}')
+                    
+                    if last_quote > last_brace:
+                        # Likely inside a string
+                        clean_text += '"}'
+                    else:
+                        # Likely expecting a closing brace
+                        clean_text += "}"
+                    
+                    # Try parsing again
+                    repaired = json.loads(clean_text)
+                    logger.info("Successfully repaired truncated JSON")
+                    return repaired
+            except Exception as repair_err:
+                logger.debug(f"JSON repair failed: {repair_err}")
+
             logger.error(f"Failed to parse JSON response: {e}")
             logger.debug(f"Raw response: {response_text[:500]}")
             return {}

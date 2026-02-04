@@ -364,7 +364,7 @@ RESPOND WITH VALID JSON:
 }}"""
 
         try:
-            response = await self._generate_content(
+            response = await self.generate(
                 prompt=prompt,
                 temperature=0.5,
                 max_output_tokens=2048,
@@ -429,7 +429,7 @@ RESPOND WITH VALID JSON:
 }}"""
 
         try:
-            response = await self._generate_content(
+            response = await self.generate(
                 prompt=prompt,
                 temperature=0.6,
                 max_output_tokens=2048,
@@ -516,7 +516,7 @@ RESPOND WITH VALID JSON:
 }}"""
 
         try:
-            response = await self._generate_content(
+            response = await self.generate(
                 prompt=prompt,
                 temperature=0.6,
                 max_output_tokens=4096,

@@ -1811,6 +1811,8 @@ class AnalysisOrchestrator:
                 "total_thinking_time_ms": state.total_thinking_time_ms,
             },
             "bcg_analysis": state.bcg_analysis,
+            "competitor_analysis": state.competitor_analysis, # Added to ensure data availability
+            "sentiment_analysis": state.sentiment_analysis,   # Added to ensure data availability
             "predictions": state.predictions,
             "campaigns": state.campaigns,
             "verification": state.verification_result,

@@ -367,7 +367,7 @@ class CompetitorEnrichmentService:
             headers = {
                 "Content-Type": "application/json",
                 "X-Goog-Api-Key": self.google_api_key,
-                "X-Goog-FieldMask": ",".join([f"places.{f}" for f in fields]),
+                "X-Goog-FieldMask": ",".join(fields),
                 "X-Goog-LanguageCode": "es"
             }
 
@@ -466,11 +466,6 @@ class CompetitorEnrichmentService:
             return {}
 
         try:
-            from google import genai
-            from google.genai import types
-
-            client = genai.Client(api_key=self.gemini.api_key)
-
             search_query = f"{name}"
             if address:
                 search_query += f" {address}"
@@ -484,7 +479,7 @@ Nombre: {name}
 {f"Dirección: {address}" if address else ""}
 
 BUSCA Y EXTRAE:
-1. Redes sociales (Facebook, Instagram, TikTok, Twitter)
+1. Redes sociales (Facebook, Instagram, TikTok, Twitter, YouTube)
 2. WhatsApp Business (si mencionan número de WhatsApp)
 3. Sitio web o página de delivery
 4. Menú o precios si están disponibles
@@ -497,7 +492,8 @@ Responde en JSON:
     "facebook": "URL o null",
     "instagram": "@handle o URL o null",
     "tiktok": "@handle o null",
-    "twitter": "@handle o null"
+    "twitter": "@handle o null",
+    "youtube": "URL canal o null"
   }},
   "whatsapp": "número con código de país o null",
   "additional_websites": ["URL1", "URL2"],
@@ -509,25 +505,21 @@ Responde en JSON:
   "notes": ["Nota relevante 1", "Nota 2"]
 }}"""
 
-            response = client.models.generate_content(
-                model=self.gemini.MODEL_NAME,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    tools=[types.Tool(google_search=types.GoogleSearch())],
-                    temperature=0.3,
-                    max_output_tokens=4096,
-                ),
+            # Use shared Gemini agent with grounding
+            response = await self.gemini.generate_with_grounding(
+                prompt=prompt,
+                enable_grounding=True,
+                temperature=0.3,
+                max_output_tokens=4096,
+                response_mime_type="application/json"
             )
 
-            response_text = response.text
-
-            # Parse JSON
-            if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0]
-            elif "```" in response_text:
-                response_text = response_text.split("```")[1].split("```")[0]
-
-            result = json.loads(response_text.strip())
+            # Extract answer text
+            response_text = response.get("answer", "")
+            
+            # Use the robust parser from the agent
+            result = self.gemini._parse_json_response(response_text)
+            
             logger.info(f"Web cross-reference completed for {name}")
             return result
 
@@ -585,6 +577,16 @@ Responde en JSON:
                         else f"https://tiktok.com/@{social_data['tiktok'].replace('@', '')}"
                     ),
                     handle=social_data["tiktok"].replace("@", ""),
+                )
+            )
+
+        # YouTube
+        if social_data.get("youtube"):
+            profiles.append(
+                SocialMediaProfile(
+                    platform="youtube",
+                    url=social_data["youtube"],
+                    handle=self._extract_handle_from_url(social_data["youtube"], "youtube"),
                 )
             )
 
@@ -674,11 +676,6 @@ Responde en JSON:
                 return None
 
             # Usar Gemini para analizar las fotos
-            from google import genai
-            from google.genai import types
-
-            client = genai.Client(api_key=self.gemini.api_key)
-
             prompt = """Analiza estas fotos del restaurante competidor y extrae:
 
 1. Tipo de ambiente (casual, elegante, familiar, etc.)
@@ -702,34 +699,16 @@ Responde en JSON:
             # Por limitaciones, usamos solo la primera foto
             # En producción, se procesarían múltiples
             photo_data = await self.http_client.get(photo_urls[0])
-            photo_base64 = base64.b64encode(photo_data.content).decode()
-
-            response = client.models.generate_content(
-                model=self.gemini.MODEL_NAME,
-                contents=[
-                    types.Content(
-                        parts=[
-                            types.Part(text=prompt),
-                            types.Part(
-                                inline_data=types.Blob(
-                                    mime_type="image/jpeg",
-                                    data=base64.b64decode(photo_base64),
-                                )
-                            ),
-                        ]
-                    )
-                ],
-                config=types.GenerateContentConfig(
-                    temperature=0.4,
-                    max_output_tokens=2048,
-                ),
+            
+            # Use shared Gemini agent
+            response_text = await self.gemini.generate(
+                prompt=prompt,
+                images=[photo_data.content],
+                temperature=0.4,
+                max_output_tokens=2048,
             )
 
-            response_text = response.text
-            if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0]
-
-            result = json.loads(response_text.strip())
+            result = self.gemini._parse_json_response(response_text)
             result["photos_analyzed"] = len(photo_urls)
 
             logger.info("Competitor photos analyzed with Gemini Vision")
@@ -807,11 +786,6 @@ Responde en JSON:
             html_content = response.text[:20000]  # Limitar tamaño
 
             # Usar Gemini para extraer menú
-            from google import genai
-            from google.genai import types
-
-            client = genai.Client(api_key=self.gemini.api_key)
-
             prompt = f"""Extrae el menú de este sitio web:
 
 {html_content}
@@ -824,20 +798,15 @@ Responde en JSON:
   "currency": "MXN"
 }}"""
 
-            response = client.models.generate_content(
-                model=self.gemini.MODEL_NAME,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.3,
-                    max_output_tokens=4096,
-                ),
+            # Use shared Gemini agent
+            response_text = await self.gemini.generate(
+                prompt=prompt,
+                temperature=0.3,
+                max_output_tokens=4096,
             )
 
-            response_text = response.text
-            if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0]
-
-            result = json.loads(response_text.strip())
+            result = self.gemini._parse_json_response(response_text)
+            
             logger.info(
                 f"Extracted menu from website: {len(result.get('items', []))} items"
             )
@@ -861,11 +830,6 @@ Responde en JSON:
                 ]
             )
 
-            from google import genai
-            from google.genai import types
-
-            client = genai.Client(api_key=self.gemini.api_key)
-
             prompt = f"""Analiza estas reseñas de un competidor y resume:
 
 {reviews_text}
@@ -879,16 +843,13 @@ Extrae:
 
 Resume en 2-3 párrafos."""
 
-            response = client.models.generate_content(
-                model=self.gemini.MODEL_NAME,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.5,
-                    max_output_tokens=1024,
-                ),
+            response_text = await self.gemini.generate(
+                prompt=prompt,
+                temperature=0.4,
+                max_output_tokens=1024,
             )
 
-            summary = response.text.strip()
+            summary = response_text.strip()
             logger.info("Reviews analyzed and summarized")
             return summary
 
@@ -908,18 +869,13 @@ Resume en 2-3 párrafos."""
         """Consolidar toda la inteligencia con Gemini."""
 
         try:
-            from google import genai
-            from google.genai import types
-
-            client = genai.Client(api_key=self.gemini.api_key)
-
             context = f"""Consolida esta inteligencia competitiva:
 
 RESTAURANTE: {maps_data.get('name')}
 
 GOOGLE MAPS:
 - Rating: {maps_data.get('rating')} ({maps_data.get('user_ratings_total')} reseñas)
-- Price Level: {'$' * maps_data.get('price_level', 2)}
+- Price Level: {'$' * (maps_data.get('price_level') or 2)}
 - Types: {', '.join(maps_data.get('types', [])[:5])}
 
 BÚSQUEDA WEB:
@@ -951,20 +907,14 @@ Responde en JSON:
   "notes": ["Nota importante 1"]
 }}"""
 
-            response = client.models.generate_content(
-                model=self.gemini.MODEL_NAME,
-                contents=context,
-                config=types.GenerateContentConfig(
-                    temperature=0.4,
-                    max_output_tokens=2048,
-                ),
+            # Use shared Gemini agent
+            response_text = await self.gemini.generate(
+                prompt=context,
+                temperature=0.4,
+                max_output_tokens=2048,
             )
 
-            response_text = response.text
-            if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0]
-
-            result = json.loads(response_text.strip())
+            result = self.gemini._parse_json_response(response_text)
             logger.info("Intelligence consolidated with Gemini")
             return result
 
@@ -982,6 +932,14 @@ Responde en JSON:
             return match.group(1) if match else None
         elif platform == "instagram":
             match = re.search(r"instagram\.com/([^/?]+)", url)
+            return match.group(1) if match else None
+        elif platform == "youtube":
+            # Handle user, channel, or custom URL
+            if "youtube.com/channel/" in url:
+                return url.split("youtube.com/channel/")[1].split("/")[0]
+            elif "youtube.com/@" in url:
+                return url.split("youtube.com/@")[1].split("/")[0]
+            match = re.search(r"youtube\.com/user/([^/?]+)", url)
             return match.group(1) if match else None
 
         return None

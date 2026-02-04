@@ -618,23 +618,88 @@ async def load_demo_into_session():
 @router.get("/session/{session_id}", tags=["Session"])
 async def get_session(session_id: str):
     """Get full session data including all analysis results."""
-    session = load_session(session_id)
-    if not session:
+    from app.services.orchestrator import orchestrator
+    
+    # 1. Try loading legacy/business session (from data/sessions)
+    session = load_session(session_id) or {}
+    
+    # 2. Check Orchestrator state (from memory or data/orchestrator_states)
+    orch_state = orchestrator.get_session_status(session_id)
+    
+    if not session and not orch_state:
         raise HTTPException(404, "Session not found")
 
+    # 3. Merge Orchestrator results into session (Orchestrator takes precedence for analysis)
+    if orch_state:
+        # Ensure we have the basic fields if session was empty
+        if not session:
+            session = {
+                "session_id": session_id,
+                "created_at": orch_state.get("started_at"),
+                "status": orch_state.get("status"),
+                "menu_items": [], 
+                "sales_data": [],
+            }
+        
+        # Update status and timestamps
+        if orch_state.get("status"):
+            session["status"] = orch_state.get("status")
+        
+        # Merge analysis results
+        analysis_keys = [
+            "bcg_analysis", 
+            "competitor_analysis", 
+            "sentiment_analysis", 
+            "predictions", 
+            "campaigns", 
+            "verification",
+            "vibe_status"
+        ]
+        
+        for key in analysis_keys:
+            if orch_state.get(key):
+                session[key] = orch_state.get(key)
+                
+        # Embed full orchestrator state for debug/advanced usage
+        session["data"] = orch_state
+
     sales_data = session.get("sales_data", [])
-    period_calc = PeriodCalculator()
-    available_periods_info = period_calc.calculate_available_periods(sales_data)
+    
+    # Safe period calculation
+    try:
+        period_calc = PeriodCalculator()
+        available_periods_info = period_calc.calculate_available_periods(sales_data)
+    except Exception as e:
+        logger.error(f"Error calculating periods for session {session_id}: {e}")
+        available_periods_info = {}
+
+    # Extract analysis results to top level for frontend compatibility
+    # Prioritize the merged values in 'session'
+    bcg = session.get("bcg_analysis")
+    competitor = session.get("competitor_analysis")
+    sentiment = session.get("sentiment_analysis")
+    predictions = session.get("predictions")
+    campaigns = session.get("campaigns")
 
     return {
         "session_id": session_id,
         "created_at": session.get("created_at"),
+        "status": session.get("status", "unknown"),
         "menu_items_count": len(session.get("menu_items", [])),
         "sales_records_count": len(sales_data),
-        "has_bcg_analysis": "bcg_analysis" in session,
-        "has_predictions": "predictions" in session,
-        "campaigns_count": len(session.get("campaigns", [])),
+        "has_bcg_analysis": bool(bcg),
+        "has_predictions": bool(predictions),
+        "campaigns_count": len(campaigns) if isinstance(campaigns, list) else len(campaigns.get("campaigns", [])) if isinstance(campaigns, dict) else 0,
         "available_periods": available_periods_info,
+        
+        # Flattened analysis results
+        "bcg_analysis": bcg,
+        "competitor_analysis": competitor,
+        "sentiment_analysis": sentiment,
+        "predictions": predictions,
+        "campaigns": campaigns,
+        
+        # Keep full data for debug/advanced usage
         "data": session,
     }
 
@@ -918,6 +983,8 @@ async def identify_business(
             raise HTTPException(500, str(e))
 
     try:
+        logger.info(f"Using Google Maps API Key: {google_api_key[:5]}...{google_api_key[-4:] if google_api_key else 'None'}")
+        
         async with httpx.AsyncClient() as client:
             params = {"query": query, "key": google_api_key, "language": "es"}
             if lat and lng:
@@ -928,10 +995,32 @@ async def identify_business(
                 "https://maps.googleapis.com/maps/api/place/textsearch/json",
                 params=params,
             )
-            data = response.json()
+            
+            if response.status_code != 200:
+                logger.error(f"Google Places API returned status {response.status_code}: {response.text}")
+                raise HTTPException(502, f"Google Maps API error: {response.status_code} - {response.text[:200]}")
+
+            try:
+                data = response.json()
+            except Exception as json_err:
+                logger.error(f"Failed to parse Google API response: {response.text}")
+                raise HTTPException(502, f"Invalid JSON from Google API: {str(json_err)}")
+            
+            if data.get("status") not in ["OK", "ZERO_RESULTS"]:
+                error_msg = data.get("error_message", "Unknown Google API error")
+                logger.error(f"Google Places API logic error: {data.get('status')} - {error_msg}")
+                # If API is not authorized, fallback to Gemini or raise distinct error
+                if data.get("status") in ["REQUEST_DENIED", "OVER_QUERY_LIMIT"]:
+                     raise HTTPException(403, f"Google Maps API Error: {error_msg} (Status: {data.get('status')})")
+                
             candidates = []
+            
+            # Process initial results
             for place in data.get("results", [])[:5]:
                 loc = place.get("geometry", {}).get("location", {})
+                types = place.get("types", [])
+                
+                # Add the direct match
                 candidates.append(
                     {
                         "name": place.get("name"),
@@ -940,11 +1029,64 @@ async def identify_business(
                         "lat": loc.get("lat"),
                         "lng": loc.get("lng"),
                         "rating": place.get("rating"),
+                        "types": types,
+                        "is_establishment": "establishment" in types or "point_of_interest" in types
                     }
                 )
+
+                # If the result is a generic location (address, route, locality) and not a specific business,
+                # search for restaurants at this location to help the user find their business.
+                generic_types = [
+                    "street_address", "route", "locality", "sublocality", "postal_code", 
+                    "intersection", "premise", "subpremise", "neighborhood",
+                    "administrative_area_level_1", "administrative_area_level_2", "political"
+                ]
+                is_general_location = any(t in types for t in generic_types)
+                
+                # Also trigger if it's not explicitly an establishment (though premise is sometimes an establishment in G-Maps)
+                # But if the name looks like an address, we should definitely look deeper.
+                
+                if is_general_location and loc.get("lat") and loc.get("lng"):
+                    try:
+                        # Search for businesses at this coordinate
+                        nearby_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+                        nearby_params = {
+                            "location": f"{loc['lat']},{loc['lng']}",
+                            "radius": "50",  # Very tight radius to find businesses AT this address
+                            "type": "restaurant", # Prioritize restaurants
+                            "key": google_api_key,
+                            "language": "es"
+                        }
+                        
+                        nearby_res = await client.get(nearby_url, params=nearby_params)
+                        if nearby_res.status_code == 200:
+                            nearby_data = nearby_res.json()
+                            for biz in nearby_data.get("results", [])[:5]:
+                                # Avoid duplicates
+                                if any(c["placeId"] == biz.get("place_id") for c in candidates):
+                                    continue
+                                    
+                                biz_loc = biz.get("geometry", {}).get("location", {})
+                                candidates.append({
+                                    "name": biz.get("name"),
+                                    "address": biz.get("vicinity"), # nearbysearch uses vicinity
+                                    "placeId": biz.get("place_id"),
+                                    "lat": biz_loc.get("lat"),
+                                    "lng": biz_loc.get("lng"),
+                                    "rating": biz.get("rating"),
+                                    "types": biz.get("types", []),
+                                    "is_establishment": True,
+                                    "parent_address": place.get("formatted_address") # Link to the address searched
+                                })
+                    except Exception as nearby_err:
+                        logger.warning(f"Failed to fetch businesses at address location: {nearby_err}")
+
             return {"status": "success", "candidates": candidates}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(500, str(e))
+        logger.exception("Unexpected error in identify_business")
+        raise HTTPException(500, f"Internal Search Error: {repr(e)}")
 
 
 @router.post("/location/set-business", tags=["Location"])

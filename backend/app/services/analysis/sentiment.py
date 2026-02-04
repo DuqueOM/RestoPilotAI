@@ -114,11 +114,16 @@ class SentimentAnalysisResult:
     overall_sentiment_score: float  # -1 to 1
     overall_nps: Optional[float]  # Net Promoter Score
     sentiment_distribution: Dict[str, int]
+    overall_label: str # Added for frontend
+    overall_trend: str # Added for frontend
 
     # Counts
     total_reviews_analyzed: int
     total_photos_analyzed: int
     sources_used: List[str]
+    
+    # Frontend compatibility - Moved to end to avoid dataclass default value errors
+
 
     # Theme analysis
     common_praises: List[str]
@@ -139,6 +144,12 @@ class SentimentAnalysisResult:
     # Metadata
     confidence: float
     gemini_tokens_used: int
+
+    # Frontend compatibility
+    sources: List[Dict[str, Any]] = field(default_factory=list)
+    topics: List[Dict[str, Any]] = field(default_factory=list)
+    recent_reviews: List[Dict[str, Any]] = field(default_factory=list)
+
     grounding_sources: List[Dict[str, str]] = field(default_factory=list)
     grounded: bool = False
     analyzed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -148,10 +159,16 @@ class SentimentAnalysisResult:
             "analysis_id": self.analysis_id,
             "restaurant_id": self.restaurant_id,
             "overall": {
-                "sentiment_score": self.overall_sentiment_score,
+                "score": self.overall_sentiment_score, # Mapped to 'score' for frontend
+                "sentiment_score": self.overall_sentiment_score, # Keep original
                 "nps": self.overall_nps,
                 "sentiment_distribution": self.sentiment_distribution,
+                "label": self.overall_label,
+                "trend": self.overall_trend
             },
+            "sources": self.sources,
+            "topics": self.topics,
+            "recentReviews": self.recent_reviews, # Mapped to camelCase for frontend
             "counts": {
                 "reviews_analyzed": self.total_reviews_analyzed,
                 "photos_analyzed": self.total_photos_analyzed,
@@ -284,20 +301,54 @@ class SentimentAnalyzer:
     ) -> Dict[str, Any]:
         """Analyze text reviews using Gemini NLP."""
 
-        # Prepare reviews for analysis
+        # Calculate source stats
+        source_stats = {}
+        for r in reviews:
+            s_name = r.source.value if isinstance(r.source, SentimentSource) else str(r.source)
+            # Normalize source names for display
+            if "google" in s_name.lower(): s_name = "Google Reviews"
+            elif "tripadvisor" in s_name.lower(): s_name = "TripAdvisor"
+            elif "yelp" in s_name.lower(): s_name = "Yelp"
+            elif "instagram" in s_name.lower(): s_name = "Instagram"
+            elif "facebook" in s_name.lower(): s_name = "Facebook"
+            
+            if s_name not in source_stats:
+                source_stats[s_name] = {"count": 0, "sum_rating": 0, "rating_count": 0}
+            source_stats[s_name]["count"] += 1
+            if r.rating:
+                source_stats[s_name]["sum_rating"] += r.rating
+                source_stats[s_name]["rating_count"] += 1
+        
+        sources_list = []
+        for name, stats in source_stats.items():
+            avg = stats["sum_rating"] / stats["rating_count"] if stats["rating_count"] > 0 else None
+            sources_list.append({
+                "name": name,
+                "count": stats["count"],
+                "avgRating": round(avg, 1) if avg else None,
+                "sentiment": 0.0 # Placeholder, updated from LLM
+            })
+
+        # Prepare reviews for analysis (Limit to 100 for LLM context window efficiency)
         reviews_text = []
-        for review in reviews[:500]:  # Limit to 500 reviews
+        for review in reviews[:100]: 
             reviews_text.append(
                 {
-                    "text": review.text[:1000],  # Truncate long reviews
+                    "text": review.text[:500],  # Truncate per review
                     "rating": review.rating,
-                    "source": (
-                        review.source.value
-                        if isinstance(review.source, SentimentSource)
-                        else review.source
-                    ),
+                    "source": review.source.value if isinstance(review.source, SentimentSource) else str(review.source),
                 }
             )
+
+        # Recent reviews (top 5 from input list)
+        recent_reviews = []
+        for r in reviews[:5]:
+             recent_reviews.append({
+                 "text": r.text[:150] + "..." if len(r.text) > 150 else r.text,
+                 "rating": r.rating,
+                 "source": r.source.value if isinstance(r.source, SentimentSource) else str(r.source),
+                 "date": r.date or "Reciente"
+             })
 
         menu_context = ""
         if menu_items:
@@ -305,8 +356,8 @@ class SentimentAnalyzer:
 
         prompt = f"""Analyze these restaurant reviews for sentiment and insights.
 
-REVIEWS ({len(reviews_text)} total):
-{json.dumps(reviews_text[:100], indent=2)}
+REVIEWS ({len(reviews)} total, showing sample of {len(reviews_text)}):
+{json.dumps(reviews_text, indent=2)}
 
 {menu_context}
 
@@ -316,10 +367,12 @@ Analyze comprehensively:
    - Distribution (positive/neutral/negative percentages)
    - Net sentiment score (-1 to 1)
    - NPS estimation
+   - Overall Label (e.g. "Excellent", "Good", "Mixed", "Poor")
+   - Trend (improving/stable/declining) based on context
 
-2. KEY THEMES
-   - Top 5 praises (what customers love)
-   - Top 5 complaints (what customers dislike)
+2. TOPICS & THEMES
+   - Identify key topics (Service, Food, Ambiance, Price, Wait Time, etc.)
+   - For each topic: sentiment score (0-1), estimated mentions, trend (up/down/stable)
 
 3. CATEGORY SENTIMENT
    - Service (staff, speed, friendliness)
@@ -337,11 +390,16 @@ Analyze comprehensively:
    - Any competitor names mentioned
    - Context of mentions
 
+6. SOURCE SENTIMENT ESTIMATION
+   - Estimate sentiment score (0-1) for each source platform present in reviews (Google, TripAdvisor, etc.)
+
 RESPOND WITH JSON:
 {{
     "overall": {{
         "sentiment_score": 0.65,
         "nps": 45,
+        "label": "Good",
+        "trend": "stable",
         "distribution": {{
             "very_positive": 25,
             "positive": 40,
@@ -349,6 +407,14 @@ RESPOND WITH JSON:
             "negative": 10,
             "very_negative": 5
         }}
+    }},
+    "topics": [
+        {{"topic": "Service", "sentiment": 0.8, "mentions": 15, "trend": "up"}},
+        {{"topic": "Food", "sentiment": 0.9, "mentions": 30, "trend": "stable"}}
+    ],
+    "source_sentiments": {{
+        "Google": 0.85,
+        "TripAdvisor": 0.7
     }},
     "themes": {{
         "praises": ["Fresh ingredients", "Friendly staff"],
@@ -371,10 +437,6 @@ RESPOND WITH JSON:
     "competitor_mentions": [
         {{"name": "Competitor X", "context": "better prices"}}
     ],
-    "price_sensitivity": {{
-        "level": "moderate",
-        "common_complaints": ["overpriced desserts"]
-    }},
     "confidence": 0.85
 }}"""
 
@@ -389,6 +451,22 @@ RESPOND WITH JSON:
 
             result = self.reasoning._parse_json_response(response.get("answer", response))
             
+            # Enrich sources list with LLM sentiment
+            source_sentiments = result.get("source_sentiments", {})
+            for source in sources_list:
+                # Fuzzy match or direct lookup
+                for key, val in source_sentiments.items():
+                    if key.lower() in source["name"].lower():
+                        source["sentiment"] = val
+                        break
+                # Default to overall if not found
+                if source["sentiment"] == 0.0:
+                    source["sentiment"] = result.get("overall", {}).get("sentiment_score", 0.5)
+
+            # Add calculated fields to result
+            result["sources"] = sources_list
+            result["recent_reviews"] = recent_reviews
+
             # Extract grounding info if available
             if response.get("grounded"):
                 grounding_chunks = response.get("grounding_metadata", {}).get("grounding_chunks", [])
@@ -703,11 +781,16 @@ RESPOND WITH JSON:
             overall_sentiment_score=overall.get("sentiment_score", 0),
             overall_nps=overall.get("nps"),
             sentiment_distribution=overall.get("distribution", {}),
+            overall_label=overall.get("label", "Neutral"),
+            overall_trend=overall.get("trend", "stable"),
             total_reviews_analyzed=reviews_count,
             total_photos_analyzed=photos_count,
             sources_used=[
                 s.value if isinstance(s, SentimentSource) else s for s in sources
             ],
+            sources=text_sentiment.get("sources", []),
+            topics=text_sentiment.get("topics", []),
+            recent_reviews=text_sentiment.get("recent_reviews", []),
             common_praises=themes.get("praises", []),
             common_complaints=themes.get("complaints", []),
             service_sentiment=category_sentiment.get("service"),
@@ -719,7 +802,7 @@ RESPOND WITH JSON:
             item_sentiments=item_sentiments,
             recommendations=recommendations,
             confidence=text_sentiment.get("confidence", 0.7),
-            gemini_tokens_used=self.reasoning.stats.total_tokens.total_tokens,
+            gemini_tokens_used=self.reasoning.total_tokens,
         )
 
     async def get_quick_sentiment(

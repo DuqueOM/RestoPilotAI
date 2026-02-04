@@ -132,6 +132,9 @@ class CompetitiveAnalysisResult:
     gemini_tokens_used: int
     analyzed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
+    # Frontend compatibility
+    competitors: List[Dict[str, Any]] = field(default_factory=list)
+    
     # Grounding metadata
     grounding_sources: Optional[List[Dict[str, Any]]] = None
     grounded: bool = False
@@ -141,10 +144,11 @@ class CompetitiveAnalysisResult:
             "analysis_id": self.analysis_id,
             "our_restaurant": self.our_restaurant,
             "competitors_analyzed": self.competitors_analyzed,
+            "competitors": self.competitors,  # Added for frontend
             "competitive_landscape": {
                 "market_position": self.market_position,
                 "competitive_intensity": self.competitive_intensity,
-               "key_differentiators": self.key_differentiators,
+                "key_differentiators": self.key_differentiators,
                 "competitive_gaps": self.competitive_gaps,
             },
             "price_analysis": {
@@ -636,10 +640,64 @@ Extract all menu items with prices. Return JSON:
         grounding_sources = analysis.get("grounding_sources") or analysis.get("metadata", {}).get("grounding_sources")
         grounded = analysis.get("grounded", False)
 
+        # Build competitors list for frontend
+        competitors_list = []
+        for menu in competitor_menus:
+            # Try to get data from metadata (CompetitorProfile)
+            meta = menu.metadata or {}
+            
+            # Determine type (Direct/Indirect) - default to Direct
+            comp_type = "Directo"
+            
+            # Distance (formatted)
+            distance = "Unknown"
+            if meta.get("distance_meters"):
+                distance = f"{meta['distance_meters'] / 1000:.1f}km"
+            elif meta.get("location", {}).get("distance"): # Handle varied structures
+                distance = str(meta["location"]["distance"])
+            
+            # Price range
+            price_level = meta.get("price_level") or meta.get("google_maps", {}).get("price_level")
+            price_range = "$" * (price_level if price_level else 2)
+            
+            # Rating
+            rating = meta.get("rating") or meta.get("google_maps", {}).get("rating") or 0.0
+            
+            # Strengths/Weaknesses from Analysis or Profile
+            # If the analysis (Gemini) provided specific competitor insights, we could try to map them.
+            # For now, we can use the enriched profile data if available, or empty lists.
+            # The prompt in analyze_competitive_position doesn't currently output per-competitor strengths/weaknesses list in a structured way 
+            # other than potentially in text. 
+            # We will use placeholders or extract from 'competitive_landscape' if mentioned.
+            strengths = meta.get("competitive_intelligence", {}).get("competitive_strengths", [])
+            weaknesses = meta.get("competitive_intelligence", {}).get("competitive_weaknesses", [])
+            
+            # Market Share & Trend (Simulated or estimated as it's hard to get real values without POS data)
+            # We can use confidence score or rating count as a proxy for "Market Share" relative to others
+            review_count = meta.get("user_ratings_total") or 0
+            # Normalize to some share? Let's leave as estimated or random for demo/MVP if not calculated
+            # For now, 0 to indicate unknown
+            market_share = 0 
+            trend = "stable"
+
+            competitors_list.append({
+                "name": menu.competitor_name,
+                "type": comp_type,
+                "distance": distance,
+                "rating": rating,
+                "priceRange": price_range,
+                "strengths": strengths,
+                "weaknesses": weaknesses,
+                "marketShare": market_share,
+                "trend": trend,
+                "place_id": meta.get("place_id") or meta.get("competitor_id")
+            })
+
         return CompetitiveAnalysisResult(
             analysis_id=analysis_id,
             our_restaurant=our_restaurant,
             competitors_analyzed=[m.competitor_name for m in competitor_menus],
+            competitors=competitors_list,
             # Landscape
             market_position=landscape.get("market_position", "unknown"),
             competitive_intensity=landscape.get("competitive_intensity", "medium"),
@@ -663,7 +721,7 @@ Extract all menu items with prices. Return JSON:
             # Metadata
             confidence=analysis.get("confidence", 0.7),
             thinking_level=thinking_level.value,
-            gemini_tokens_used=self.reasoning.stats.total_tokens.total_tokens,
+            gemini_tokens_used=self.reasoning.total_tokens,
             # Grounding
             grounding_sources=grounding_sources,
             grounded=grounded,
