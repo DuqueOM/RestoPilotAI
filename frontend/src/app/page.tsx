@@ -14,6 +14,7 @@ import {
     Mic,
     Play,
     Sparkles,
+    Target,
     Upload
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -24,7 +25,7 @@ import { toast } from 'sonner';
 const GeminiChat = lazy(() => import('@/components/chat/GeminiChat').then(mod => ({ default: mod.GeminiChat })));
 const LocationInput = lazy(() => import('@/components/setup/LocationInput').then(mod => ({ default: mod.LocationInput })));
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function SetupPage() {
   const router = useRouter();
@@ -183,56 +184,64 @@ export default function SetupPage() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header - Matching Analysis Layout */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-blue-600 bg-clip-text text-transparent">
-              🍽️ RestoPilotAI
-            </h1>
-            <div className="flex items-center gap-4 w-1/3">
-              <ProgressBar 
-                value={completionScore} 
-                label={`${completionScore}% Complete`}
-              />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <FileText className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">RestoPilotAI</h1>
+                <p className="text-xs text-gray-500">AI-Powered Restaurant Optimization</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6 w-1/3 justify-end">
+              <div className="flex-1 max-w-xs">
+                 <ProgressBar 
+                  value={completionScore} 
+                  label={`${completionScore}% Ready`}
+                />
+              </div>
             </div>
           </div>
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Hero Section */}
-        <div className="text-center mb-8 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-100 to-blue-100 rounded-full">
-            <Sparkles className="w-4 h-4 text-orange-600" />
-            <span className="text-sm font-medium text-gray-700">
+        <div className="text-center mb-10 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-xs font-medium text-blue-700">
               Powered by Gemini 3 Multimodal AI
             </span>
           </div>
           
-          <h2 className="text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight sm:text-4xl">
             Discover Your Competitive Edge
           </h2>
           
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Just tell us where you are. We'll find your competitors, analyze your market,
-            and create a winning strategy. All in 5 minutes.
+            and create a winning strategy.
           </p>
 
           {/* Live Demo CTA */}
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-6">
             <button
               onClick={handleDemoClick}
               disabled={isLoadingDemo || isSubmitting}
-              className="inline-flex items-center gap-2 px-6 py-2 bg-white text-orange-600 border border-orange-200 rounded-full hover:bg-orange-50 transition-colors shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all shadow-sm font-medium text-sm disabled:opacity-50"
             >
               {isLoadingDemo ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Play className="w-4 h-4 fill-current" />
+                <Play className="w-4 h-4 fill-gray-500" />
               )}
-              View Live Demo (Margarita Pinta)
+              View Live Demo
             </button>
           </div>
         </div>
@@ -240,21 +249,21 @@ export default function SetupPage() {
         {/* Form Sections - Progressive Disclosure */}
         <div className="space-y-6">
           
-          {/* SECTION 1: Location (MOST IMPORTANT - Always visible) */}
-          <section className="bg-white rounded-2xl shadow-lg p-6 border-2 border-orange-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-orange-600" />
+          {/* SECTION 1: Location */}
+          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:shadow-md">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="p-2 bg-blue-50 rounded-lg shrink-0">
+                <MapPin className="w-6 h-6 text-blue-600" />
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Where is your restaurant?
                 </h3>
-                <p className="text-sm text-gray-600">
-                  This is all we need to get started. Everything else is optional but helps.
+                <p className="text-sm text-gray-500 mt-1">
+                  This is all we need to get started. Everything else is optional.
                 </p>
               </div>
-              <InfoTooltip content="We'll use this to find competitors, analyze your neighborhood, and understand local market dynamics. The more specific, the better!" />
+              <InfoTooltip content="We'll use this to find competitors, analyze your neighborhood, and understand local market dynamics." />
             </div>
             
             <Suspense fallback={
@@ -271,31 +280,30 @@ export default function SetupPage() {
             </Suspense>
           </section>
           
-          {/* SECTION 2: Basic Info (Compact) */}
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-blue-600" />
+          {/* SECTION 2: Basic Info */}
+          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:shadow-md">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="p-2 bg-gray-50 rounded-lg shrink-0">
+                <FileText className="w-6 h-6 text-gray-600" />
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Basic Information
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-500 mt-1">
                   Add your social media to help us analyze your current presence.
                 </p>
               </div>
-              <InfoTooltip content="This helps us find your existing social media and online presence automatically." />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Business Name
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm"
                   placeholder="Taquería El Sabor"
                   value={formData.businessName}
                   onChange={(e) => setFormData({...formData, businessName: e.target.value})}
@@ -303,13 +311,13 @@ export default function SetupPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
                   <Instagram className="w-4 h-4" />
                   Instagram
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm"
                   placeholder="@yourbusiness"
                   value={formData.instagram}
                   onChange={(e) => setFormData({...formData, instagram: e.target.value})}
@@ -317,12 +325,12 @@ export default function SetupPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
                    Facebook
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm"
                   placeholder="facebook.com/yourbusiness"
                   value={formData.facebook}
                   onChange={(e) => setFormData({...formData, facebook: e.target.value})}
@@ -330,12 +338,12 @@ export default function SetupPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
                    TikTok
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm"
                   placeholder="@yourbusiness"
                   value={formData.tiktok}
                   onChange={(e) => setFormData({...formData, tiktok: e.target.value})}
@@ -343,12 +351,12 @@ export default function SetupPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
                    Website
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm"
                   placeholder="www.yourrestaurant.com"
                   value={formData.website}
                   onChange={(e) => setFormData({...formData, website: e.target.value})}
@@ -357,17 +365,17 @@ export default function SetupPage() {
             </div>
           </section>
           
-          {/* SECTION 3: Upload Files (Optimized spacing) */}
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <Upload className="w-5 h-5 text-purple-600" />
+          {/* SECTION 3: Upload Files */}
+          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:shadow-md">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="p-2 bg-gray-50 rounded-lg shrink-0">
+                <Upload className="w-6 h-6 text-gray-600" />
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Your Data
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-500 mt-1">
                   Upload what you have. We'll work with anything you provide.
                 </p>
               </div>
@@ -377,9 +385,9 @@ export default function SetupPage() {
               <FileUpload
                 label="Menu"
                 accept=".pdf,image/*"
-                icon={<FileText className="w-6 h-6 text-gray-400" />}
+                icon={<FileText className="w-5 h-5 text-gray-400" />}
                 onChange={(files) => setFormData({...formData, menuFiles: files})}
-                tooltip="Photo of your menu, or PDF. We'll extract all items and prices automatically."
+                tooltip="Photo of your menu, or PDF."
                 compact
                 multiple
               />
@@ -387,9 +395,9 @@ export default function SetupPage() {
               <FileUpload
                 label="Sales Data"
                 accept=".csv,.xlsx"
-                icon={<FileText className="w-6 h-6 text-gray-400" />}
+                icon={<FileText className="w-5 h-5 text-gray-400" />}
                 onChange={(files) => setFormData({...formData, salesFiles: files})}
-                tooltip="CSV or Excel with sales history. Helps us predict trends and do BCG analysis."
+                tooltip="CSV or Excel with sales history."
                 compact
               />
               
@@ -397,42 +405,42 @@ export default function SetupPage() {
                 label="Visual Context"
                 accept="image/*,video/*"
                 multiple
-                icon={<Upload className="w-6 h-6 text-gray-400" />}
+                icon={<Upload className="w-5 h-5 text-gray-400" />}
                 onChange={(files) => setFormData({...formData, photoFiles: files})}
-                tooltip="Upload ANY visual content: Dish photos, videos of the ambiance, screenshots of your social media, decor, or anything else. Gemini 3 will analyze it all for suggestions!"
+                tooltip="Dish photos, ambiance videos, social screenshots."
                 compact
               />
             </div>
           </section>
           
-          {/* SECTION 4: Business Context (Collapsible with Templates) */}
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <Mic className="w-5 h-5 text-green-600" />
+          {/* SECTION 4: Business Context */}
+          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:shadow-md">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="p-2 bg-gray-50 rounded-lg shrink-0">
+                <Mic className="w-6 h-6 text-gray-600" />
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Tell Us Your Story
                 </h3>
-                <p className="text-sm text-gray-600">
-                  The more context you provide, the more personalized your strategy
+                <p className="text-sm text-gray-500 mt-1">
+                  The more context you provide, the more personalized your strategy.
                 </p>
               </div>
-              <InfoTooltip content="This context makes our AI understand YOUR unique situation. Campaigns will reference your authentic story, not generic templates." />
             </div>
             
-            <TemplateSelector
-              onSelect={(templateContext) => {
-                // Pre-fill with template examples
-                setFormData(prev => ({
-                  ...prev,
-                  ...templateContext
-                }));
-              }}
-            />
+            <div className="mb-6">
+              <TemplateSelector
+                onSelect={(templateContext) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    ...templateContext
+                  }));
+                }}
+              />
+            </div>
             
-            <div className="space-y-4 mt-4">
+            <div className="space-y-4">
               <ContextInput
                 label="Your History & Story"
                 placeholder="Example: We've been serving authentic Oaxacan cuisine for 3 generations..."
@@ -440,8 +448,8 @@ export default function SetupPage() {
                 onChange={(value) => setFormData({...formData, historyContext: value})}
                 allowAudio
                 onAudioChange={(audios) => setFormData({...formData, historyAudio: audios})}
-                template="How did you start? What's the story behind your recipes? Any family traditions?"
-                detailedTemplate="Our restaurant was founded in 1985 by my grandmother, bringing authentic recipes from Oaxaca. We started as a small street cart and grew into a family gathering spot. Our signature mole sauce takes 3 days to prepare and has been in the family for 4 generations. We want to preserve this tradition while adapting to modern times."
+                template="How did you start? What's the story behind your recipes?"
+                detailedTemplate="Our restaurant was founded in 1985 by my grandmother, bringing authentic recipes from Oaxaca..."
               />
               
               <ContextInput
@@ -451,8 +459,8 @@ export default function SetupPage() {
                 onChange={(value) => setFormData({...formData, valuesContext: value})}
                 allowAudio
                 onAudioChange={(audios) => setFormData({...formData, valuesAudio: audios})}
-                template="What do you stand for? Sustainability? Community? Authenticity?"
-                detailedTemplate="We believe in 'Farm to Table' integrity. We source 80% of our ingredients from local farmers within 50 miles. We prioritize fair wages for our staff and zero-waste cooking practices. Our mission is to show that fast food can be healthy, sustainable, and deeply connected to the community."
+                template="What do you stand for? Sustainability? Community?"
+                detailedTemplate="We believe in 'Farm to Table' integrity..."
               />
               
               <ContextInput
@@ -463,18 +471,18 @@ export default function SetupPage() {
                 allowAudio
                 onAudioChange={(audios) => setFormData({...formData, targetAudienceAudio: audios})}
                 template="Who comes to your restaurant? Who do you WANT to come?"
-                detailedTemplate="Our core customers are young professionals (25-35) looking for quick but high-quality lunch options. We also attract health-conscious families on weekends. We are trying to reach more of the Gen Z crowd who value aesthetic food for social media, but we struggle to connect with them digitally."
+                detailedTemplate="Our core customers are young professionals (25-35)..."
               />
               
               <ContextInput
                 label="Current Challenges"
-                placeholder="Example: Struggling to attract dinner crowd, mostly lunch customers..."
+                placeholder="Example: Struggling to attract dinner crowd..."
                 value={formData.challengesContext}
                 onChange={(value) => setFormData({...formData, challengesContext: value})}
                 allowAudio
                 onAudioChange={(audios) => setFormData({...formData, challengesAudio: audios})}
-                template="What keeps you up at night? Low traffic? High costs? Staffing?"
-                detailedTemplate="Our biggest challenge is the dinner service on weekdays (Mon-Thu), which is very slow compared to lunch. Food costs have risen 15% this year, squeezing our margins. We also find it hard to retain kitchen staff. We need marketing that drives evening traffic specifically."
+                template="What keeps you up at night? Low traffic? Staffing?"
+                detailedTemplate="Our biggest challenge is the dinner service..."
               />
               
               <ContextInput
@@ -485,48 +493,46 @@ export default function SetupPage() {
                 allowAudio
                 onAudioChange={(audios) => setFormData({...formData, goalsAudio: audios})}
                 template="Where do you see the business in 1-2 years?"
-                detailedTemplate="We want to open a second location in the downtown area next year. To do that, we need to increase our monthly revenue by 20% and stabilize our operations manual. We also want to launch a packaged version of our signature hot sauce for retail sale."
+                detailedTemplate="We want to open a second location in the downtown area..."
               />
             </div>
           </section>
           
-          {/* SECTION 5: Competitors (Optional) */}
-          <section className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
+          {/* SECTION 5: Competitors */}
+          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:shadow-md">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="p-2 bg-gray-50 rounded-lg shrink-0">
+                <Target className="w-6 h-6 text-gray-600" />
+              </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Know Your Competitors?
+                  Competitors (Optional)
                 </h3>
-                <p className="text-sm text-gray-600">
-                  Leave blank and we'll find them automatically based on your location
+                <p className="text-sm text-gray-500 mt-1">
+                  Leave blank and we'll find them automatically based on your location.
                 </p>
               </div>
-              <InfoTooltip content="We'll automatically find 5-10 competitors near you. But if you know specific ones you want to track, add them here." />
             </div>
             
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 text-sm text-blue-800">
-                <strong>New:</strong> You can now upload competitor menus, photos, or paste mixed links and notes!
-              </div>
-
               <ContextInput
                 label="Competitor Notes & Links"
-                placeholder="Paste Instagram links, website URLs, or record audio notes about your competitors..."
+                placeholder="Paste Instagram links or record audio notes..."
                 value={formData.competitorInput}
                 onChange={(value) => setFormData({...formData, competitorInput: value})}
                 allowAudio
                 onAudioChange={(audios) => setFormData({...formData, competitorAudio: audios})}
-                template="Mention specific competitors by name, their strengths/weaknesses, or paste their URLs."
-                detailedTemplate="Our main competitor is 'Taco King' across the street. They have cheaper prices ($2 tacos) but lower quality. Another one is 'Mezcal Bar' which steals our Friday night crowd because they have live music. I want to know how to position against these two specifically."
+                template="Mention specific competitors by name, or paste their URLs."
+                detailedTemplate="Our main competitor is 'Taco King' across the street..."
               />
               
               <FileUpload
                 label="Competitor Menus & Photos"
                 accept=".pdf,image/*,video/*"
                 multiple
-                icon={<Upload className="w-6 h-6 text-gray-400" />}
+                icon={<Upload className="w-5 h-5 text-gray-400" />}
                 onChange={(files) => setFormData({...formData, competitorFiles: files})}
-                tooltip="Upload menus, food photos, or videos of your competitors. We'll extract the data."
+                tooltip="Upload menus, food photos of competitors."
                 compact
               />
             </div>
@@ -535,13 +541,15 @@ export default function SetupPage() {
         </div>
         
         {/* CTA Section */}
-        <div className="mt-8 sticky bottom-0 bg-white/90 backdrop-blur-md border-t p-6 -mx-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div>
-              <div className="text-sm text-gray-600">
-                Data Quality: {completionScore < 30 ? '⚠️ Minimal' : completionScore < 60 ? '✅ Good' : '🚀 Excellent'}
+        <div className="mt-10 sticky bottom-6 z-40">
+           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:px-6 flex items-center justify-between max-w-5xl mx-auto">
+             <div>
+              <div className="text-sm font-medium text-gray-900">
+                Data Quality: <span className={completionScore < 30 ? 'text-red-600' : completionScore < 60 ? 'text-yellow-600' : 'text-green-600'}>
+                  {completionScore < 30 ? 'Minimal' : completionScore < 60 ? 'Good' : 'Excellent'}
+                </span>
               </div>
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-500 mt-0.5">
                 {completionScore < 30 && "Add more info for better insights"}
                 {completionScore >= 30 && completionScore < 60 && "Great start! Add context for personalization"}
                 {completionScore >= 60 && "Perfect! You'll get highly personalized insights"}
@@ -551,20 +559,20 @@ export default function SetupPage() {
             <button
               onClick={handleSubmit}
               disabled={!formData.location || isSubmitting || isLoadingDemo}
-              className={`px-8 py-3 rounded-lg font-semibold text-white transition-all flex items-center gap-2 ${
+              className={`px-6 py-2.5 rounded-lg font-medium text-white transition-all flex items-center gap-2 shadow-sm ${
                 formData.location && !isSubmitting
-                  ? 'bg-gradient-to-r from-orange-500 to-blue-600 hover:shadow-lg hover:scale-105'
+                  ? 'bg-blue-600 hover:bg-blue-700 hover:shadow-md'
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Starting Analysis...
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Starting...
                 </>
               ) : (
                 <>
-                  {formData.location ? '🚀 Analyze My Business' : '📍 Add Location First'}
+                  {formData.location ? 'Analyze My Business' : 'Add Location First'}
                 </>
               )}
             </button>

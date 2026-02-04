@@ -3,7 +3,10 @@
  * Centralized API communication for the frontend
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Force relative path to use Next.js proxy (rewrites in next.config.js)
+// This avoids CORS/Mixed Content issues by ensuring requests go to /api/... 
+// which the Next.js server then forwards to the backend.
+const API_BASE = '';
 
 export interface MenuItem {
   name: string;

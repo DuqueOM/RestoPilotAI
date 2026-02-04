@@ -25,7 +25,7 @@ export function InstagramPredictor() {
     formData.append('posting_time_iso', new Date(postingTime).toISOString());
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/creative/instagram-prediction`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/creative/instagram-prediction`, {
         method: 'POST',
         body: formData,
       });

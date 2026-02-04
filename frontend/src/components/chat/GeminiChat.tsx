@@ -3,7 +3,7 @@
 import { Bot, Image as ImageIcon, Loader2, MessageSquare, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = '';
 
 interface Message {
   role: 'user' | 'assistant';

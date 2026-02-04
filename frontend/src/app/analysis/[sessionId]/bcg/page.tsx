@@ -18,10 +18,30 @@ const ALL_PERIODS = [
 ];
 
 function getAvailablePeriods(sessionData: any) {
-  const available = sessionData?.available_periods?.available_periods || [];
+  // Handle nested data structure
+  const data = sessionData?.data || sessionData;
+  const availableInfo = data?.available_periods;
+  const available = availableInfo?.available_periods || [];
+  
+  // If no available periods info, return all periods
   if (available.length === 0) return ALL_PERIODS;
   
-  return ALL_PERIODS.filter(p => available.includes(p.value));
+  // Filter to only show available periods
+  let filtered = ALL_PERIODS.filter(p => available.includes(p.value));
+
+  // Remove 'all' if redundant (e.g. we have another period that covers the same records)
+  const periodInfo = availableInfo?.period_info;
+  if (periodInfo && filtered.length > 1) {
+    const allInfo = periodInfo['all'];
+    if (allInfo) {
+       const redundant = filtered.some(p => p.value !== 'all' && periodInfo[p.value]?.records === allInfo.records);
+       if (redundant) {
+         filtered = filtered.filter(p => p.value !== 'all');
+       }
+    }
+  }
+
+  return filtered;
 }
 
 const CATEGORY_CONFIG: Record<string, { bg: string; text: string; border: string; icon: string; label: string; desc: string }> = {
@@ -47,8 +67,11 @@ export default function BCGPage({ params }: BCGPageProps) {
         ? await api.getDemoSession()
         : await api.getSession(sessionId);
       setSessionData(session);
-      if (session.bcg) {
-        setData(session.bcg);
+      
+      // Handle nested data structure
+      const sessionData = session.data || session;
+      if (sessionData.bcg_analysis) {
+        setData(sessionData.bcg_analysis);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load analysis');
@@ -63,8 +86,27 @@ export default function BCGPage({ params }: BCGPageProps) {
     setSelectedPeriod(period);
     setLoadingPeriod(true);
     setError(null);
-    await fetchAnalysis(period);
-    setLoadingPeriod(false);
+    
+    try {
+      // Call backend API to recalculate BCG with new period
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      const response = await fetch(
+        `${API_URL}/api/v1/analyze/bcg?session_id=${sessionId}&period=${period}`,
+        { method: 'POST' }
+      );
+      
+      if (!response.ok) throw new Error('Failed to recalculate BCG analysis');
+      
+      const result = await response.json();
+      setData(result);
+      
+      // Refresh session data
+      await fetchAnalysis(period);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update analysis');
+    } finally {
+      setLoadingPeriod(false);
+    }
   };
 
   if (loading) return <LoadingSkeleton />;
@@ -98,6 +140,9 @@ export default function BCGPage({ params }: BCGPageProps) {
     return acc;
   }, {} as Record<string, MenuEngineeringItem[]>);
 
+  // Calculate available periods once
+  const availablePeriods = getAvailablePeriods(sessionData);
+
   return (
     <div className="space-y-6">
       {/* Header with Period Selector */}
@@ -111,26 +156,29 @@ export default function BCGPage({ params }: BCGPageProps) {
             {data.methodology} • {data.items_analyzed} productos analizados
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Período:</span>
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            {getAvailablePeriods(sessionData).map((p) => (
-              <button
-                key={p.value}
-                onClick={() => handlePeriodChange(p.value)}
-                disabled={loadingPeriod}
-                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                  selectedPeriod === p.value
-                    ? 'bg-white text-blue-600 shadow-sm font-medium'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
+        
+        {availablePeriods.length > 1 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Período:</span>
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              {availablePeriods.map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => handlePeriodChange(p.value)}
+                  disabled={loadingPeriod}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                    selectedPeriod === p.value
+                      ? 'bg-white text-blue-600 shadow-sm font-medium'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            {loadingPeriod && <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />}
           </div>
-          {loadingPeriod && <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />}
-        </div>
+        )}
       </div>
 
       {/* Grounding Sources */}

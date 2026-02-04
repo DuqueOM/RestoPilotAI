@@ -198,7 +198,14 @@ class VibeEngineeringAgent:
                 )
             )
             
-            return json.loads(response.text)
+            result = json.loads(response.text)
+            
+            # Ensure result is a dict, not a list
+            if isinstance(result, list):
+                logger.warning(f"Verification returned a list instead of dict: {result}")
+                return {"quality_score": 0, "error": "Invalid response format (list instead of dict)"}
+            
+            return result
         except Exception as e:
             logger.error(f"Verification failed: {e}")
             return {"quality_score": 0, "error": str(e)}
@@ -258,11 +265,18 @@ class VibeEngineeringAgent:
                 contents=improvement_prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    temperature=0.4
+                    temperature=0.5  # Más creatividad para mejoras
                 )
             )
             
-            return json.loads(response.text)
+            result = json.loads(response.text)
+            
+            # Ensure result is a dict, not a list
+            if isinstance(result, list):
+                logger.warning(f"Improvement returned a list instead of dict, using current analysis")
+                return current_analysis
+            
+            return result
         except Exception as e:
             logger.error(f"Improvement failed: {e}")
             return current_analysis
@@ -393,7 +407,14 @@ class VibeEngineeringAgent:
                 )
             )
             
-            return json.loads(response.text)
+            result = json.loads(response.text)
+            
+            # Ensure result is a dict, not a list
+            if isinstance(result, list):
+                logger.warning(f"Visual verification returned a list instead of dict")
+                return {"quality_score": 0, "error": "Invalid response format (list instead of dict)"}
+            
+            return result
         except Exception as e:
             logger.error(f"Visual verification failed: {e}")
             return {"quality_score": 0, "error": str(e)}

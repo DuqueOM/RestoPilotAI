@@ -179,7 +179,8 @@ class AnalysisOrchestrator:
         self.completed_sessions: Dict[str, AnalysisState] = {}
         self._checkpointer_tasks: Dict[str, asyncio.Task] = {} # Track periodic checkpoint tasks
 
-        self.storage_dir = Path("data/sessions")
+        # Use separate directory for orchestrator state to avoid conflicts with business session files
+        self.storage_dir = Path("data/orchestrator_states")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
 
     def _save_session_to_disk(self, state: AnalysisState):
@@ -209,33 +210,44 @@ class AnalysisOrchestrator:
         try:
             with open(file_path, "r") as f:
                 data = json.load(f)
-
-            # Reconstruct datetime objects and Enums
-            data["current_stage"] = PipelineStage(data["current_stage"])
-            if "thinking_level" in data:
-                data["thinking_level"] = ThinkingLevel(data["thinking_level"])
-
-            data["started_at"] = datetime.fromisoformat(data["started_at"])
-            if data.get("completed_at"):
+            
+            # Parse enums and datetime strings
+            if isinstance(data.get("current_stage"), str):
+                data["current_stage"] = PipelineStage(data["current_stage"])
+            
+            if isinstance(data.get("started_at"), str):
+                data["started_at"] = datetime.fromisoformat(data["started_at"])
+            
+            if isinstance(data.get("completed_at"), str):
                 data["completed_at"] = datetime.fromisoformat(data["completed_at"])
-
-            # Reconstruct checkpoints
-            checkpoints = []
-            for cp_data in data.get("checkpoints", []):
-                cp_data["stage"] = PipelineStage(cp_data["stage"])
-                cp_data["timestamp"] = datetime.fromisoformat(cp_data["timestamp"])
-                checkpoints.append(PipelineCheckpoint(**cp_data))
-            data["checkpoints"] = checkpoints
-
-            # Reconstruct thought traces
-            traces = []
-            for t_data in data.get("thought_traces", []):
-                t_data["timestamp"] = datetime.fromisoformat(t_data["timestamp"])
-                traces.append(ThoughtTrace(**t_data))
-            data["thought_traces"] = traces
-
+            
+            # Parse checkpoints
+            if "checkpoints" in data:
+                parsed_checkpoints = []
+                for cp in data["checkpoints"]:
+                    if isinstance(cp.get("stage"), str):
+                        cp["stage"] = PipelineStage(cp["stage"])
+                    if isinstance(cp.get("timestamp"), str):
+                        cp["timestamp"] = datetime.fromisoformat(cp["timestamp"])
+                    parsed_checkpoints.append(PipelineCheckpoint(**cp))
+                data["checkpoints"] = parsed_checkpoints
+            
+            # Parse thought traces
+            if "thought_traces" in data:
+                parsed_traces = []
+                for trace in data["thought_traces"]:
+                    if isinstance(trace.get("timestamp"), str):
+                        trace["timestamp"] = datetime.fromisoformat(trace["timestamp"])
+                    parsed_traces.append(ThoughtTrace(**trace))
+                data["thought_traces"] = parsed_traces
+            
+            # Parse thinking_level if present
+            if "thinking_level" in data and isinstance(data["thinking_level"], str):
+                data["thinking_level"] = ThinkingLevel(data["thinking_level"])
+            
+            # Convert dict back to AnalysisState
             state = AnalysisState(**data)
-
+            
             # Cache in memory depending on state
             if state.current_stage in [PipelineStage.COMPLETED, PipelineStage.FAILED]:
                 self.completed_sessions[session_id] = state
@@ -464,6 +476,9 @@ class AnalysisOrchestrator:
                     self._process_sales_data,
                     sales_csv,
                 )
+            elif state.sales_data:
+                # Sales data already loaded (e.g., from demo session)
+                logger.info(f"Sales data already present ({len(state.sales_data)} records), skipping processing stage")
 
             # 12. BCG & Prediction & Campaigns (Requires Menu & Sales)
             if state.menu_items:
@@ -496,22 +511,35 @@ class AnalysisOrchestrator:
             # 14. Final Verification (Optional extra check or merge with strategic)
             # Keeping original verification as final "holistic" check if desired
             if state.auto_verify and state.bcg_analysis:
+                logger.info(f"Running final verification for session {session_id}")
                 await self._run_stage(
                     state,
                     PipelineStage.VERIFICATION,
                     self._verify_analysis,
                     state.thinking_level,
                 )
+                logger.info(f"Verification completed for session {session_id}")
+            
+            logger.info(f"Marking pipeline as COMPLETED for session {session_id}")
             state.current_stage = PipelineStage.COMPLETED
             state.completed_at = datetime.now(timezone.utc)
+            
+            # Save final checkpoint to DB and broadcast completion
+            logger.info(f"Saving final checkpoint for session {session_id}")
+            await self._save_checkpoint(state, success=True)
 
+            logger.info(f"Moving session {session_id} to completed_sessions")
             self.completed_sessions[session_id] = state
             if session_id in self.active_sessions:
                 del self.active_sessions[session_id]
 
+            logger.info(f"Saving session {session_id} to disk")
             self._save_session_to_disk(state)
 
-            return self._build_final_response(state)
+            logger.info(f"Building final response for session {session_id}")
+            final_response = self._build_final_response(state)
+            logger.info(f"Pipeline COMPLETED successfully for session {session_id}")
+            return final_response
 
         except Exception as e:
             logger.error(f"Pipeline failed: {e}")
@@ -580,7 +608,9 @@ class AnalysisOrchestrator:
             )
 
         except Exception as e:
+            import traceback
             logger.error(f"Stage {stage.value} failed: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             await self._save_checkpoint(state, success=False, error=str(e))
 
             # Broadcast error
@@ -1446,7 +1476,7 @@ class AnalysisOrchestrator:
         # Standard Campaign Generation (Text-based / Strategic)
         campaigns = await self.campaign_generator.generate_campaigns(
             bcg_analysis=state.bcg_analysis,
-            predictions=state.predictions,
+            menu_items=state.menu_items,
             num_campaigns=3,
         )
         
@@ -1598,8 +1628,11 @@ class AnalysisOrchestrator:
 
     def get_session_status(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get the current status of a session."""
-        state = self.active_sessions.get(session_id) or self._load_session_from_disk(
-            session_id
+        # Check active sessions first, then completed sessions, then load from disk
+        state = (
+            self.active_sessions.get(session_id) 
+            or self.completed_sessions.get(session_id)
+            or self._load_session_from_disk(session_id)
         )
 
         if not state:
@@ -1767,7 +1800,10 @@ class AnalysisOrchestrator:
         """Build the final response from the analysis state."""
         return {
             "session_id": state.session_id,
+            "current_stage": state.current_stage.value,
             "status": state.current_stage.value,
+            "started_at": state.started_at.isoformat() if state.started_at else None,
+            "completed_at": state.completed_at.isoformat() if state.completed_at else None,
             "summary": {
                 "products_analyzed": len(state.menu_items),
                 "sales_records_processed": len(state.sales_data),

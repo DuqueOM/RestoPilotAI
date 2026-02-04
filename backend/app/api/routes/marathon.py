@@ -75,35 +75,55 @@ async def start_marathon_task(
         session_id = config.session_id
         if not session_id:
             session_id = await orchestrator.create_session()
+        else:
+            # For existing sessions (like demo), ensure orchestrator state is initialized
+            # Force clean initialization - remove any stale completed states
+            if session_id in orchestrator.completed_sessions:
+                del orchestrator.completed_sessions[session_id]
+                logger.info(f"Removed stale completed state for session {session_id}")
+            
+            if session_id in orchestrator.active_sessions:
+                del orchestrator.active_sessions[session_id]
+                logger.info(f"Removed stale active state for session {session_id}")
+            
+            # Initialize fresh orchestrator state for this session
+            from app.services.orchestrator import AnalysisState, PipelineStage
+            from app.api.deps import load_session
+            
+            # Load business session data if available
+            business_session = load_session(session_id)
+            
+            state = AnalysisState(
+                session_id=session_id,
+                current_stage=PipelineStage.INITIALIZED,
+                checkpoints=[],
+                thought_traces=[],
+                menu_items=business_session.get("menu_items", []) if business_session else [],
+                sales_data=business_session.get("sales_data", []) if business_session else [],
+                restaurant_name=business_session.get("restaurant_info", {}).get("name", "Restaurant") if business_session else "Restaurant",
+            )
+            orchestrator.active_sessions[session_id] = state
+            orchestrator._save_session_to_disk(state)
+            logger.info(f"Initialized fresh orchestrator state for session {session_id} with {len(state.menu_items)} menu items and {len(state.sales_data)} sales records")
         
         # Dispatch based on task_type
         if config.task_type == "full_analysis":
             # Extract parameters from input_data
             input_data = config.input_data
             
+            logger.info(f"Starting full_analysis pipeline for session {session_id}")
+            logger.info(f"Input data keys: {list(input_data.keys()) if input_data else 'None'}")
+            
             # Start Orchestrator Pipeline in background
-            # Note: orchestrator.run_full_pipeline is async, so we wrap it or fire-and-forget
-            # But run_full_pipeline is designed to run completely. 
-            # Ideally we run it in a background task to not block response.
-            
-            # Map input_data to orchestrator arguments
-            # This mapping depends on what the frontend sends.
-            # Assuming input_data contains keys matching run_full_pipeline args roughly
-            
-            # For simplicity in this integration, we'll assume basic args for now
-            # In a real app, strict mapping is needed.
-            
             background_tasks.add_task(
                 orchestrator.run_full_pipeline,
                 session_id=session_id,
-                sales_csv=input_data.get("sales_csv"),
-                # We might need to handle file uploads differently if they aren't passed here
-                # The frontend hook assumes input_data is JSON. 
-                # If files are needed, they should have been uploaded previously 
-                # and paths passed here, or separate endpoints used.
+                sales_csv=input_data.get("sales_csv") if input_data else None,
                 thinking_level=ThinkingLevel.STANDARD, 
                 auto_verify=True
             )
+            
+            logger.info(f"Background task added for session {session_id}")
             
         elif config.task_type == "competitive_intel":
             # TODO: Implement specialized sub-pipeline
@@ -160,7 +180,8 @@ async def get_task_status(task_id: str):
             "max_retries": 3
         })
     
-    if current_stage not in ["completed", "failed"] and current_stage != "initialized":
+    # Only add a running step if the pipeline is actually running (not completed, failed, or initialized)
+    if current_stage not in ["completed", "failed", "initialized"]:
         steps.append({
             "step_id": f"step_{len(steps)}",
             "name": current_stage,
@@ -171,13 +192,22 @@ async def get_task_status(task_id: str):
             "max_retries": 3
         })
 
+    # Format current_step_name for display
+    display_step_name = current_stage
+    if current_stage == "completed":
+        display_step_name = "Analysis Complete"
+    elif current_stage == "failed":
+        display_step_name = "Failed"
+    elif current_stage == "initialized":
+        display_step_name = "Initializing..."
+    
     return {
         "task_id": task_id,
         "status": map_status(current_stage),
         "progress": progress,
         "current_step": stages_completed + 1,
         "total_steps": total_stages_est,
-        "current_step_name": current_stage,
+        "current_step_name": display_step_name,
         "started_at": status.get("started_at"),
         "completed_at": status.get("completed_at"),
         "steps": steps, 
@@ -238,7 +268,7 @@ async def marathon_progress(websocket: WebSocket, task_id: str):
     """
     WebSocket endpoint for real-time Marathon Agent progress.
     """
-    await manager.connect(websocket, task_id)
+    await manager.connect(task_id, websocket)
     try:
         # Send initial status
         state = orchestrator.get_session_status(task_id)
@@ -257,7 +287,7 @@ async def marathon_progress(websocket: WebSocket, task_id: str):
                 await websocket.send_text("pong")
                 
     except WebSocketDisconnect:
-        manager.disconnect(websocket, task_id)
+        manager.disconnect(task_id)
     except Exception as e:
         logger.error(f"WebSocket error for task {task_id}: {e}")
-        manager.disconnect(websocket, task_id)
+        manager.disconnect(task_id)

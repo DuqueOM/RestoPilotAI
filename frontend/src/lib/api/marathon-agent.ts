@@ -1,9 +1,9 @@
-import { MarathonTaskState, MarathonTaskConfig, Checkpoint } from '@/types/marathon-agent';
+import { Checkpoint, MarathonTaskConfig, MarathonTaskState } from '@/types/marathon-agent';
 
 export class MarathonAgentAPI {
   private baseURL: string;
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') {
+  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || '') {
     this.baseURL = baseURL;
   }
 

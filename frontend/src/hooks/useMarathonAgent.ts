@@ -21,9 +21,13 @@ export function useMarathonAgent(initialTaskId?: string | null): UseMarathonAgen
   const isRunning = taskState?.status === TaskStatus.RUNNING || taskState?.status === TaskStatus.RECOVERING;
 
   // WebSocket for real-time progress updates
-  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1';
+  const wsProtocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsHost = typeof window !== 'undefined' ? window.location.host : 'localhost:3000';
+  const defaultWsUrl = `${wsProtocol}//${wsHost}/api/v1`;
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || defaultWsUrl;
+
   const { lastMessage, isConnected } = useWebSocket(
-    currentTaskId ? `${wsUrl}/marathon/${currentTaskId}` : null
+    currentTaskId ? `${wsUrl}/ws/marathon/${currentTaskId}` : null
   );
 
   useEffect(() => {
@@ -78,9 +82,16 @@ export function useMarathonAgent(initialTaskId?: string | null): UseMarathonAgen
       const { task_id } = await marathonAPI.startTask(config);
       setCurrentTaskId(task_id);
 
-      // Initial status fetch
-      const status = await marathonAPI.getTaskStatus(task_id);
-      setTaskState(status);
+      // Wait a bit for the background task to initialize
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Initial status fetch - tolerate 404 as task may still be initializing
+      try {
+        const status = await marathonAPI.getTaskStatus(task_id);
+        setTaskState(status);
+      } catch (statusErr) {
+        console.warn('Initial status fetch failed, will retry via WebSocket:', statusErr);
+      }
 
       return task_id;
     } catch (err) {

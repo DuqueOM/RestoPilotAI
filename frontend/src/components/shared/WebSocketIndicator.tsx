@@ -3,7 +3,13 @@ import { cn } from '@/lib/utils';
 import { Wifi, WifiOff } from 'lucide-react';
 
 export function WebSocketIndicator({ sessionId, className }: { sessionId: string | null, className?: string }) {
-  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1';
+  // Use relative path for WS to leverage proxy if possible, or fallback to direct localhost
+  // Note: Client-side only
+  const wsProtocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsHost = typeof window !== 'undefined' ? window.location.host : 'localhost:3000';
+  const defaultWsUrl = `${wsProtocol}//${wsHost}/api/v1`;
+  
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || defaultWsUrl;
   const { isConnected } = useWebSocket(sessionId ? `${wsUrl}/ws/analysis/${sessionId}` : null);
 
   return (

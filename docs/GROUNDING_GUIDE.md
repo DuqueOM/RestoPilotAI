@@ -625,4 +625,4 @@ El **Grounding con Source Citations** es el diferenciador clave que:
 
 **Última actualización:** 2026-02-03  
 **Versión:** 1.0.0  
-**Autor:** MenuPilot Team
+**Autor:** RestoPilotAI Team

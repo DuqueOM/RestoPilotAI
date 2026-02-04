@@ -17,10 +17,30 @@ const ALL_PERIODS = [
 ];
 
 function getAvailablePeriods(sessionData: any) {
-  const available = sessionData?.available_periods?.available_periods || [];
+  // Handle nested data structure
+  const data = sessionData?.data || sessionData;
+  const availableInfo = data?.available_periods;
+  const available = availableInfo?.available_periods || [];
+  
+  // If no available periods info, return all periods
   if (available.length === 0) return ALL_PERIODS;
   
-  return ALL_PERIODS.filter(p => available.includes(p.value));
+  // Filter to only show available periods
+  let filtered = ALL_PERIODS.filter(p => available.includes(p.value));
+
+  // Remove 'all' if redundant (e.g. we have another period that covers the same records)
+  const periodInfo = availableInfo?.period_info;
+  if (periodInfo && filtered.length > 1) {
+    const allInfo = periodInfo['all'];
+    if (allInfo) {
+       const redundant = filtered.some(p => p.value !== 'all' && periodInfo[p.value]?.records === allInfo.records);
+       if (redundant) {
+         filtered = filtered.filter(p => p.value !== 'all');
+       }
+    }
+  }
+
+  return filtered;
 }
 
 export default function PredictionsPage({ params }: PredictionsPageProps) {
@@ -38,8 +58,11 @@ export default function PredictionsPage({ params }: PredictionsPageProps) {
         ? await api.getDemoSession()
         : await api.getSession(sessionId);
       setSessionData(session);
-      if (session.predictions) {
-        setData(session.predictions);
+      
+      // Handle both formats: direct predictions object or nested in data
+      const sessionData = session.data || session;
+      if (sessionData.predictions) {
+        setData(sessionData.predictions);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load predictions');
@@ -55,7 +78,7 @@ export default function PredictionsPage({ params }: PredictionsPageProps) {
     
     try {
       // Call predictions API with period parameter
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
       const response = await fetch(
         `${API_URL}/api/v1/predict/sales?session_id=${sessionId}&period=${period}`,
         { method: 'POST' }

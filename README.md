@@ -1,4 +1,4 @@
-# 🍽️ RestaurantIQ
+# 🍽️ RestoPilotAI
 
 ### AI-Powered Competitive Intelligence Platform for Restaurants
 ### Built with Google Gemini 3 Multimodal AI
@@ -54,7 +54,7 @@ Traditional Competitive Analysis:
 
 ## 💡 Our Solution
 
-**RestaurantIQ is an autonomous AI platform that:**
+**RestoPilotAI is an autonomous AI platform that:**
 
 1. **📍 Discovers** - Automatically finds and maps competitors based on location
 2. **🔍 Analyzes** - Processes multimodal data: images, videos, audio, text, PDFs
@@ -64,7 +64,7 @@ Traditional Competitive Analysis:
 6. **📊 Visualizes** - Interactive dashboards with real-time streaming insights
 
 ```
-RestaurantIQ:
+RestoPilotAI:
 💰 Cost: ~$2 per analysis
 ⏰ Time: ~5 minutes
 📊 Deliverable: Interactive dashboard + actionable campaigns
@@ -76,11 +76,11 @@ RestaurantIQ:
 
 ## 🌟 Why Gemini 3?
 
-RestaurantIQ is **fundamentally built around Gemini 3's unique capabilities** that competing AI models cannot match:
+RestoPilotAI is **fundamentally built around Gemini 3's unique capabilities** that competing AI models cannot match:
 
 ### 🎯 Native Multimodal Understanding
 
-| Capability | Gemini 3 | GPT-4V | Claude 3.5 Sonnet | Impact for RestaurantIQ |
+| Capability | Gemini 3 | GPT-4V | Claude 3.5 Sonnet | Impact for RestoPilotAI |
 |------------|----------|--------|-------------------|------------------------|
 | **Native Video Processing** | ✅ Direct | ❌ Frames only | ❌ No video | Analyze TikTok/Reels content for competitors |
 | **Native Audio Processing** | ✅ Direct | ❌ Needs Whisper | ❌ No audio | Process owner's business story without transcription |
@@ -105,7 +105,7 @@ RestaurantIQ is **fundamentally built around Gemini 3's unique capabilities** th
 
 ## 🔥 Unique Gemini 3 Capabilities Exploited
 
-RestaurantIQ leverages **10 advanced Gemini 3 features** that create competitive moats:
+RestoPilotAI leverages **10 advanced Gemini 3 features** that create competitive moats:
 
 ### 1. 🎬 **Native Video Analysis** (Unique to Gemini)
 
@@ -823,8 +823,8 @@ Quick Wins:
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/DuqueOM/MenuPilot.git
-cd MenuPilot
+git clone https://github.com/DuqueOM/RestoPilotAI.git
+cd RestoPilotAI
 
 # 2. Configure environment
 cp .env.example .env
@@ -1728,7 +1728,7 @@ async def run_full_intelligence(self, ...):
 
 ### Feature Comparison Matrix
 
-| Capability | RestaurantIQ (Gemini 3) | Competitor A (GPT-4) | Competitor B (Claude 3.5) |
+| Capability | RestoPilotAI (Gemini 3) | Competitor A (GPT-4) | Competitor B (Claude 3.5) |
 |------------|------------------------|---------------------|--------------------------|
 | **Native Video Processing** | ✅ Direct analysis | ❌ Frame extraction only | ❌ No video |
 | **Native Audio Processing** | ✅ Direct analysis | ❌ Needs Whisper API | ❌ No audio |
@@ -1894,7 +1894,7 @@ Time: 2-4 weeks
 Update: $2,000 per refresh
 Annual: $11,000 (quarterly updates)
 
-RestaurantIQ:
+RestoPilotAI:
 Cost: $2 per analysis
 Time: 5 minutes
 Update: Re-run anytime
@@ -1952,7 +1952,7 @@ Savings: $10,976/year (99.8% reduction)
 ```
 [0:00-0:20] Problem: Restaurant owner frustrated
 [0:20-0:40] Traditional solution: Expensive, slow
-[0:40-1:00] RestaurantIQ: "Just give us your address"
+[0:40-1:00] RestoPilotAI: "Just give us your address"
 [1:00-2:00] Live demo: Real-time streaming analysis
 [2:00-2:30] Results: BCG matrix, campaigns, visual insights
 [2:30-3:00] Wow moments: Video analysis, voice context, grounding
@@ -1966,8 +1966,8 @@ Savings: $10,976/year (99.8% reduction)
 - ✅ Deployment guide
 
 **Live Demo**:
-- URL: https://restaurantiq.vercel.app
-- Test credentials: demo@restaurantiq.com / demo
+- URL: https://RestoPilotAI.vercel.app
+- Test credentials: demo@RestoPilotAI.com / demo
 - Pre-loaded examples: Berkeley taquería, NYC café
 
 ---
@@ -1976,7 +1976,7 @@ Savings: $10,976/year (99.8% reduction)
 
 - [x] **New Application**: Built from scratch for Gemini 3
 - [x] **Gemini 3 API**: Core dependency (90%+ of functionality)
-- [x] **Public Repository**: https://github.com/DuqueOM/MenuPilot
+- [x] **Public Repository**: https://github.com/DuqueOM/RestoPilotAI
 - [x] **Demo Video**: 3-minute walkthrough (see link above)
 - [x] **Description**: ~200 words (see Devpost submission)
 - [x] **Working Demo**: Live deployment accessible
@@ -2078,16 +2078,16 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ## 📞 Contact & Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/DuqueOM/MenuPilot/issues)
-- **Email**: omar.duque@restaurantiq.com
-- **Demo**: https://restaurantiq.vercel.app
-- **Documentation**: https://docs.restaurantiq.com
+- **GitHub Issues**: [Report bugs or request features](https://github.com/DuqueOM/RestoPilotAI/issues)
+- **Email**: omar.duque@RestoPilotAI.com
+- **Demo**: https://RestoPilotAI.vercel.app
+- **Documentation**: https://docs.RestoPilotAI.com
 
 ---
 
 ## 🎥 Demo Video
 
-[![RestaurantIQ Demo](./docs/images/video-thumbnail.png)](https://youtu.be/YOUR_VIDEO_ID)
+[![RestoPilotAI Demo](./docs/images/video-thumbnail.png)](https://youtu.be/YOUR_VIDEO_ID)
 
 **Watch the full 3-minute demo** showing:
 - 📍 Location input → Automatic competitor discovery
@@ -2101,9 +2101,9 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 ---
 
 <p align="center">
-  <strong>⭐ If RestaurantIQ helped you, please star this repo!</strong>
+  <strong>⭐ If RestoPilotAI helped you, please star this repo!</strong>
   <br><br>
-  <strong>🏆 Vote for RestaurantIQ in the Gemini 3 Hackathon!</strong>
+  <strong>🏆 Vote for RestoPilotAI in the Gemini 3 Hackathon!</strong>
   <br><br>
   <em>Made with ❤️ and powered by Gemini 3</em>
 </p>
@@ -2129,7 +2129,7 @@ User Satisfaction: 4.8/5.0
 
 ## 🎯 Submission Summary (200 words)
 
-**RestaurantIQ** transforms restaurant competitive intelligence from a $5,000, 2-week consultant engagement into a $2, 5-minute AI-powered analysis. Built exclusively with **Google Gemini 3**, it leverages **10 unique multimodal capabilities** that competing AI models cannot match.
+**RestoPilotAI** transforms restaurant competitive intelligence from a $5,000, 2-week consultant engagement into a $2, 5-minute AI-powered analysis. Built exclusively with **Google Gemini 3**, it leverages **10 unique multimodal capabilities** that competing AI models cannot match.
 
 **Unique Gemini 3 Features Exploited**:
 1. **Native Video Processing**: Analyze TikTok/Instagram Reels directly for content optimization
@@ -2145,4 +2145,4 @@ User Satisfaction: 4.8/5.0
 
 **Technical Stack**: FastAPI backend, Next.js frontend, PostgreSQL, Redis, Docker. **Advanced patterns**: Marathon Agent orchestration, Verification Agent for quality assurance, intelligent caching (60-80% cost reduction).
 
-**Impact**: Democratizes competitive intelligence for 5M+ small restaurants, delivering 2,500x cost reduction and 600x faster insights. Live demo: https://restaurantiq.vercel.app
+**Impact**: Democratizes competitive intelligence for 5M+ small restaurants, delivering 2,500x cost reduction and 600x faster insights. Live demo: https://RestoPilotAI.vercel.app

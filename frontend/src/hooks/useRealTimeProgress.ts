@@ -7,7 +7,11 @@ export function useRealTimeProgress(sessionId: string) {
   const [message, setMessage] = useState<string>('');
   const [isComplete, setIsComplete] = useState(false);
 
-  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1';
+  const wsProtocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsHost = typeof window !== 'undefined' ? window.location.host : 'localhost:3000';
+  const defaultWsUrl = `${wsProtocol}//${wsHost}/api/v1`;
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || defaultWsUrl;
+
   const { lastMessage } = useWebSocket(sessionId ? `${wsUrl}/ws/analysis/${sessionId}` : null);
 
   useEffect(() => {

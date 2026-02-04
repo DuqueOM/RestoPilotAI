@@ -20,8 +20,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import ThinkingStream, { ThoughtStep } from '../common/ProgressTracker'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1'
+const API_URL = ''
 
 interface AnalysisPanelProps {
   sessionId: string
@@ -139,7 +138,12 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
     }, 1500)
   }, [])
 
-  // WebSocket Connection
+  // WebSocket Connection - Dynamic URL derivation
+  const wsProtocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsHost = typeof window !== 'undefined' ? window.location.host : 'localhost:3000'
+  const defaultWsUrl = `${wsProtocol}//${wsHost}/api/v1`
+  const WS_URL = process.env.NEXT_PUBLIC_WS_URL || defaultWsUrl
+  
   const { lastMessage } = useWebSocket(sessionId ? `${WS_URL}/ws/analysis/${sessionId}` : null)
 
   useEffect(() => {

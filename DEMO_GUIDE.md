@@ -1,6 +1,6 @@
 # 🍹 Margarita Pinta Demo - Setup Guide
 
-This guide explains how to run the "Margarita Pinta" demo for MenuPilot locally using Docker. This demo pre-loads a comprehensive dataset for a fully configured experience.
+This guide explains how to run the "Margarita Pinta" demo for RestoPilotAI locally using Docker. This demo pre-loads a comprehensive dataset for a fully configured experience.
 
 ## Demo Features
 
@@ -24,7 +24,7 @@ This guide explains how to run the "Margarita Pinta" demo for MenuPilot locally 
 1. **Clone the repository:**
    ```bash
    git clone <repo-url>
-   cd MenuPilot
+   cd RestoPilotAI
    ```
 
 2. **Configure Environment:**

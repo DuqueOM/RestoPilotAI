@@ -128,7 +128,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
       {/* Sources Breakdown */}
       <div className="grid md:grid-cols-3 gap-4">
         {sentimentData.sources.map((source: any, idx: number) => (
-          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-gray-900">{source.name}</h3>
               <span className={`px-2 py-1 rounded text-sm font-medium ${getSentimentColor(source.sentiment)}`}>
@@ -147,6 +147,16 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                     <Star className="h-4 w-4 text-yellow-500" /> {source.avgRating}
                   </span>
                 </div>
+              )}
+              {source.url && (
+                <a 
+                  href={source.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 text-xs underline flex items-center gap-1 mt-2"
+                >
+                  Ver en {source.name} →
+                </a>
               )}
             </div>
           </div>
@@ -193,7 +203,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
         <h3 className="font-semibold text-gray-900 mb-4">💬 Reseñas Recientes</h3>
         <div className="space-y-4">
           {sentimentData.recentReviews.map((review: any, idx: number) => (
-            <div key={idx} className="flex gap-4 p-3 bg-gray-50 rounded-lg">
+            <div key={idx} className="flex gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
               <div className={`p-2 rounded-full h-fit ${review.rating >= 4 ? 'bg-green-100' : 'bg-yellow-100'}`}>
                 {review.rating >= 4 ? <ThumbsUp className="h-4 w-4 text-green-600" /> : <ThumbsDown className="h-4 w-4 text-yellow-600" />}
               </div>
@@ -207,6 +217,16 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                   </span>
                   <span>{review.source}</span>
                   <span>{review.date}</span>
+                  {review.url && (
+                    <a 
+                      href={review.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                    >
+                      Ver original →
+                    </a>
+                  )}
                 </div>
               </div>
             </div>

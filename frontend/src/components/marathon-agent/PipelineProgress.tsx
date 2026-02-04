@@ -185,11 +185,11 @@ export function PipelineProgress({ taskState, onCancel, onRecover }: PipelinePro
         {taskState.status === TaskStatus.RUNNING && (
           <Button
             onClick={onCancel}
-            variant="outline"
+            variant="destructive"
             size="sm"
             className="flex-1"
           >
-            <PauseCircle className="h-4 w-4 mr-2" />
+            <XCircle className="h-4 w-4 mr-2" />
             Cancel Task
           </Button>
         )}

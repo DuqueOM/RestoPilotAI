@@ -27,8 +27,15 @@ export class AnalysisWebSocket {
   private handlers: Set<MessageHandler> = new Set();
   private sessionId: string | null = null;
 
-  constructor(baseUrl: string = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1') {
-    this.baseUrl = baseUrl;
+  constructor(baseUrl?: string) {
+    if (baseUrl) {
+      this.baseUrl = baseUrl;
+    } else if (typeof window !== 'undefined') {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      this.baseUrl = process.env.NEXT_PUBLIC_WS_URL || `${protocol}//${window.location.host}/api/v1`;
+    } else {
+      this.baseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1';
+    }
   }
 
   connect(urlOrId: string) {

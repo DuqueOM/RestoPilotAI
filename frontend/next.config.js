@@ -70,6 +70,24 @@ const nextConfig = {
     ]
   },
 
+  // Rewrites to proxy API requests to backend
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:8000/api/:path*',
+      },
+      {
+        source: '/health',
+        destination: 'http://localhost:8000/health',
+      },
+      {
+        source: '/uploads/:path*',
+        destination: 'http://localhost:8000/uploads/:path*',
+      },
+    ]
+  },
+
   // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts', 'clsx'],

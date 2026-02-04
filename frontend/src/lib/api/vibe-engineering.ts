@@ -1,9 +1,9 @@
-import { VibeEngineeringState, VibeEngineeringConfig } from '@/types/vibe-engineering';
+import { VibeEngineeringConfig, VibeEngineeringState } from '@/types/vibe-engineering';
 
 export class VibeEngineeringAPI {
   private baseURL: string;
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') {
+  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || '') {
     this.baseURL = baseURL;
   }
 

@@ -71,6 +71,17 @@ data/models/*.joblib
 !data/sample/*.csv
 !docs/*.csv
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Session and orchestration data
+data/sessions/
+data/orchestrator_states/
+backend/data/sessions/
+backend/data/orchestrator_states/
+
 # Secrets
 .env
 .env.local

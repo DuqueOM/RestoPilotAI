@@ -36,8 +36,7 @@ type WebSocketMessage = {
   timestamp?: string
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-const WS_BASE = API_BASE.replace('http', 'ws')
+const API_BASE = ''
 
 export function useThinkingStream({
   sessionId,
@@ -74,6 +73,12 @@ export function useThinkingStream({
 
   const connect = useCallback(() => {
     if (!sessionId || wsRef.current?.readyState === WebSocket.OPEN) return
+
+    // Dynamic WS URL derivation
+    const wsProtocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const wsHost = typeof window !== 'undefined' ? window.location.host : 'localhost:3000'
+    const defaultWsUrl = `${wsProtocol}//${wsHost}/api/v1`
+    const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || defaultWsUrl
 
     const wsUrl = `${WS_BASE}/ws/analysis/${sessionId}`
     
