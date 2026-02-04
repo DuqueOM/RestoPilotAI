@@ -106,15 +106,15 @@ class SalesPredictor:
             n_jobs=-1,  # Use all cores
         )
 
-        logger.info("Fitting XGBoost model...")
-        # Run blocking fit in a separate thread to avoid blocking the event loop
-        await asyncio.to_thread(self.model.fit, X_train, y_train)
+        logger.info(f"Fitting XGBoost model on {len(X_train)} samples...")
+        # Run fit directly in main thread to avoid threading state issues with XGBoost wrapper
+        self.model.fit(X_train, y_train)
 
         duration = (datetime.now() - start_time).total_seconds()
         logger.info(f"Model training completed in {duration:.2f}s")
 
-        # Run blocking predict in a separate thread
-        y_pred = await asyncio.to_thread(self.model.predict, X_test)
+        # Run predict directly
+        y_pred = self.model.predict(X_test)
         self.model_metrics = {
             "mae": round(mean_absolute_error(y_test, y_pred), 2),
             "rmse": round(np.sqrt(mean_squared_error(y_test, y_pred)), 2),
@@ -159,8 +159,8 @@ class SalesPredictor:
                 )
                 X = pd.DataFrame([features])[self.feature_columns].fillna(0)
 
-                # Run prediction in thread to avoid blocking
-                pred_array = await asyncio.to_thread(self.model.predict, X)
+                # Run prediction directly
+                pred_array = self.model.predict(X)
                 pred = float(max(0, pred_array[0]))
                 predictions.append(round(pred, 1))
 
