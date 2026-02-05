@@ -348,8 +348,8 @@ class CompetitorEnrichmentService:
             logger.warning("No Google Maps API key configured")
             return None
 
-        if place_id and place_id.startswith("custom_"):
-            logger.info(f"Skipping Places API for custom place_id: {place_id}")
+        if place_id and (place_id.startswith("custom_") or place_id.startswith("gemini_fallback_")):
+            logger.info(f"Skipping Places API for custom/fallback place_id: {place_id}")
             return None
 
         try:

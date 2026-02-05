@@ -1075,6 +1075,17 @@ class AnalysisOrchestrator:
             confidence=0.85,
         )
 
+        if not state.discovered_competitors:
+            self._add_thought_trace(
+                state,
+                step="Competitor Analysis Skipped",
+                reasoning="No competitors discovered to analyze",
+                observations=[],
+                decisions=["Skipping analysis"],
+                confidence=1.0,
+            )
+            return
+
         # Convert discovered competitors to sources
         sources = []
         for comp in state.discovered_competitors:
@@ -1096,12 +1107,12 @@ class AnalysisOrchestrator:
                     )
                 )
 
-        # Prepare our menu data
+        # Prepare our menu data (handle empty case gracefully)
         our_menu = {
-            "items": state.menu_items,
+            "items": state.menu_items or [],
             "categories": list(
                 set(item.get("category", "Other") for item in state.menu_items)
-            ),
+            ) if state.menu_items else [],
         }
 
         result = await self.competitor_intelligence.analyze_competitors(
@@ -1150,11 +1161,33 @@ class AnalysisOrchestrator:
             confidence=0.8,
         )
 
-        # Collect reviews from discovered competitors (as proxy or if we had own reviews)
-        # For this hackathon flow, we might simulate 'our' reviews or use what Scout found
-        # Here we'll try to use data if Scout Agent found reviews
+        # Collect reviews from discovered competitors
+        # This acts as a proxy for market sentiment or our own if we are in the list
         reviews = []
-        # TODO: Scout Agent doesn't fully scrape text reviews yet, so this might be limited
+        for comp in state.discovered_competitors:
+            # Check for reviews in the enriched competitor profile
+            comp_reviews = comp.get("reviews", [])
+            for r in comp_reviews:
+                # Normalize review data structure
+                if isinstance(r, dict):
+                    reviews.append(
+                        ReviewData(
+                            source=SentimentSource.GOOGLE, # Defaulting to Google for now
+                            text=r.get("text", ""),
+                            rating=r.get("rating"),
+                            reviewer=r.get("author_name"),
+                            date=r.get("relative_time_description"),
+                        )
+                    )
+        
+        self._add_thought_trace(
+            state,
+            step="Review Aggregation",
+            reasoning=f"Aggregated {len(reviews)} reviews from discovered competitors",
+            observations=[f"Source count: {len(state.discovered_competitors)}"],
+            decisions=["Proceeding with multi-modal sentiment analysis"],
+            confidence=0.9,
+        )
 
         result = await self.sentiment_analyzer.analyze_customer_sentiment(
             restaurant_id=state.session_id,
@@ -1176,7 +1209,7 @@ class AnalysisOrchestrator:
             )
             state.sentiment_analysis = verified_analysis['final_analysis']
             state.vibe_status = verified_analysis
-
+            
             self._add_thought_trace(
                 state,
                 step="Sentiment Vibe Verification",
@@ -1798,6 +1831,12 @@ class AnalysisOrchestrator:
 
     def _build_final_response(self, state: AnalysisState) -> Dict[str, Any]:
         """Build the final response from the analysis state."""
+        
+        # Fallback for competitor analysis if missing but data exists
+        competitor_analysis = state.competitor_analysis
+        if not competitor_analysis and state.discovered_competitors:
+            competitor_analysis = self._generate_fallback_competitor_analysis(state)
+
         return {
             "session_id": state.session_id,
             "current_stage": state.current_stage.value,
@@ -1810,13 +1849,25 @@ class AnalysisOrchestrator:
                 "campaigns_generated": len(state.campaigns),
                 "total_thinking_time_ms": state.total_thinking_time_ms,
             },
+            # Core Data
+            "menu_items": state.menu_items,
+            "sales_data": state.sales_data,
+            "business_context": state.business_context, # Full context object
+            
+            # Mapped Context for Frontend (Strings)
+            "competitor_context": state.business_context.get("competitor_input", ""),
+            "business_info_context": state.business_context.get("history", "") or state.business_context.get("description", ""),
+
+            # Analysis Results
             "bcg_analysis": state.bcg_analysis,
-            "competitor_analysis": state.competitor_analysis, # Added to ensure data availability
+            "competitor_analysis": competitor_analysis, 
             "sentiment_analysis": state.sentiment_analysis,   # Added to ensure data availability
             "predictions": state.predictions,
             "campaigns": state.campaigns,
             "verification": state.verification_result,
             "vibe_status": state.vibe_status, # Expose Vibe status
+            
+            # Transparency
             "thought_signature": {
                 "traces": [
                     {
@@ -1845,6 +1896,62 @@ class AnalysisOrchestrator:
                 }
                 for c in state.checkpoints
             ],
+        }
+
+    def _generate_fallback_competitor_analysis(self, state: AnalysisState) -> Dict[str, Any]:
+        """Generate a basic competitor analysis structure from discovered competitors."""
+        competitors_list = []
+        
+        for comp in state.discovered_competitors:
+            # Determine values with defaults
+            price_level = comp.get("price_level")
+            price_range = "$" * (price_level if price_level else 2)
+            
+            distance = "Unknown"
+            if comp.get("distance_meters"):
+                distance = f"{comp['distance_meters'] / 1000:.1f}km"
+            
+            competitors_list.append({
+                "name": comp.get("name", "Unknown Competitor"),
+                "type": "Directo", # Default
+                "distance": distance,
+                "rating": comp.get("rating", 0.0),
+                "priceRange": price_range,
+                "strengths": comp.get("strengths", []),
+                "weaknesses": comp.get("weaknesses", []),
+                "marketShare": 0, # Placeholder
+                "trend": "stable", # Placeholder
+                "place_id": comp.get("place_id") or comp.get("placeId")
+            })
+            
+        return {
+            "analysis_id": state.session_id,
+            "competitors_analyzed": [c.get("name") for c in state.discovered_competitors],
+            "competitors": competitors_list,
+            "competitive_landscape": {
+                "market_position": "Analysis Pending",
+                "competitive_intensity": "Unknown",
+                "key_differentiators": [],
+                "competitive_gaps": []
+            },
+            "price_analysis": {
+                "price_positioning": "Unknown",
+                "price_gaps": [],
+                "pricing_opportunities": []
+            },
+            "product_analysis": {
+                "our_unique_items": [],
+                "competitor_unique_items": {},
+                "category_gaps": [],
+                "trending_items_missing": []
+            },
+            "strategic_recommendations": [],
+            "competitive_threats": [],
+            "market_opportunities": [],
+            "metadata": {
+                "confidence": 0.5,
+                "note": "Preliminary analysis from discovery phase"
+            }
         }
 
     async def resume_session(

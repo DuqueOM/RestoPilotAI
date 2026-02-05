@@ -218,6 +218,84 @@ class ScoutAgent(GeminiBaseAgent):
             max_results=max_competitors * 2,
         )
 
+        # Fallback: If Places API returns nothing (e.g. key issues), use Gemini Grounding
+        if not competitors_raw:
+            self._add_thought(
+                action=ScoutAction.DISCOVER,
+                reasoning="Google Places API returned no results. Attempting fallback with Gemini Grounding.",
+                observations=["Primary search yielded 0 results"],
+                confidence=0.5,
+            )
+            
+            try:
+                prompt = f"""Find top {max_competitors} competitors (restaurants) near {address} (Lat: {our_location['lat']}, Lng: {our_location['lng']}).
+                Cuisine focus: {our_cuisine_type}.
+                
+                For each competitor, provide:
+                - Name
+                - Address
+                - Rating (0-5)
+                - Price Level (1-4)
+                - Cuisine types
+                
+                Return JSON:
+                {{
+                    "competitors": [
+                        {{
+                            "name": "Restaurant Name",
+                            "address": "Full Address",
+                            "rating": 4.5,
+                            "price_level": 2,
+                            "cuisine_types": ["Type1", "Type2"],
+                            "description": "Brief description"
+                        }}
+                    ]
+                }}"""
+                
+                # Use generate_with_grounding
+                result = await self.generate_with_grounding(
+                    prompt=prompt,
+                    enable_grounding=True,
+                    thinking_level="STANDARD"
+                )
+                
+                parsed_res = self._parse_json_response(result.get("answer", ""))
+                fallback_comps = parsed_res.get("competitors", [])
+                
+                from app.services.intelligence.location import PlaceResult
+                for i, comp in enumerate(fallback_comps):
+                    # Create a pseudo-PlaceResult
+                    competitors_raw.append(
+                        PlaceResult(
+                            place_id=f"gemini_fallback_{i}_{int(time.time())}",
+                            name=comp.get("name", "Unknown"),
+                            address=comp.get("address", "Unknown area"),
+                            latitude=our_location["lat"], # Approx
+                            longitude=our_location["lng"], # Approx
+                            rating=comp.get("rating", 4.0),
+                            total_ratings=10, # Estimate
+                            price_level=comp.get("price_level", 2),
+                            types=comp.get("cuisine_types", ["restaurant"]),
+                            photos=[]
+                        )
+                    )
+                
+                self._add_thought(
+                    action=ScoutAction.DISCOVER,
+                    reasoning=f"Recovered {len(competitors_raw)} competitors using Gemini Grounding.",
+                    observations=[c.name for c in competitors_raw],
+                    confidence=0.7,
+                )
+                
+            except Exception as e:
+                logger.error(f"Gemini fallback for scout failed: {e}")
+                self._add_thought(
+                    action=ScoutAction.DISCOVER,
+                    reasoning=f"Fallback search also failed: {e}",
+                    observations=["No competitors found"],
+                    confidence=0.0,
+                )
+
         self._add_thought(
             action=ScoutAction.DISCOVER,
             reasoning=f"Encontrados {len(competitors_raw)} lugares. Filtrando y enriqueciendo datos.",

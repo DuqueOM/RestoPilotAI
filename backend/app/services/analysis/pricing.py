@@ -274,7 +274,8 @@ class CompetitorIntelligenceService:
         for source in sources:
             try:
                 menu = await self._extract_competitor_menu(source)
-                if menu and menu.items:
+                # Allow menus without items to be included for basic competitor info
+                if menu:
                     menus.append(menu)
             except Exception as e:
                 logger.error(f"Failed to extract menu from {source.name}: {e}")
