@@ -133,6 +133,7 @@ class AnalysisState:
 
     thinking_level: ThinkingLevel = ThinkingLevel.STANDARD
     auto_verify: bool = True
+    auto_improve: bool = True
 
     started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
@@ -294,6 +295,7 @@ class AnalysisOrchestrator:
         cuisine_type: str = "general",
         thinking_level: Optional[ThinkingLevel] = None,
         auto_verify: Optional[bool] = None,
+        auto_improve: Optional[bool] = None,
         business_context: Optional[Dict[str, Any]] = None,
         competitor_urls: Optional[List[str]] = None,
         auto_find_competitors: bool = True,
@@ -311,6 +313,7 @@ class AnalysisOrchestrator:
             cuisine_type: Type of cuisine for competitor matching
             thinking_level: Depth of AI analysis
             auto_verify: Whether to run verification loop
+            auto_improve: Whether to autonomously improve results
             business_context: Rich context about business (history, values, etc.)
             competitor_urls: Explicit list of competitors to analyze
             auto_find_competitors: Whether to run automatic competitor discovery
@@ -334,6 +337,8 @@ class AnalysisOrchestrator:
             state.thinking_level = thinking_level
         if auto_verify is not None:
             state.auto_verify = auto_verify
+        if auto_improve is not None:
+            state.auto_improve = auto_improve
         
         # Update context
         if business_context:
@@ -1131,7 +1136,7 @@ class AnalysisOrchestrator:
                     "competitors_count": len(sources),
                     "our_items_count": len(state.menu_items)
                 },
-                auto_improve=True
+                auto_improve=state.auto_improve
             )
             state.competitor_analysis = verified_analysis['final_analysis']
             state.vibe_status = verified_analysis
@@ -1205,7 +1210,7 @@ class AnalysisOrchestrator:
                     "reviews_count": len(reviews),
                     "menu_items_count": len(state.menu_items)
                 },
-                auto_improve=True
+                auto_improve=state.auto_improve
             )
             state.sentiment_analysis = verified_analysis['final_analysis']
             state.vibe_status = verified_analysis
@@ -1387,7 +1392,7 @@ class AnalysisOrchestrator:
                     "menu_items_count": len(state.menu_items),
                     "sales_data_count": len(state.sales_data)
                 },
-                auto_improve=True
+                auto_improve=state.auto_improve
             )
             
             result = verified_analysis['final_analysis']
@@ -1472,7 +1477,7 @@ class AnalysisOrchestrator:
                     "sales_records": len(state.sales_data),
                     "scenarios_count": len(scenarios)
                 },
-                auto_improve=True
+                auto_improve=state.auto_improve
             )
             state.predictions = verified_analysis['final_analysis']
             state.vibe_status = verified_analysis
@@ -1577,7 +1582,7 @@ class AnalysisOrchestrator:
                     verification = await self.vibe_agent.verify_campaign_assets(
                          campaign_assets=camp["assets"],
                          brand_guidelines=state.business_context.get("brand_guidelines", {}),
-                         auto_improve=True
+                         auto_improve=state.auto_improve
                     )
                     camp["assets"] = verification["verified_assets"]
                     verified_count += len(verification["verified_assets"])
@@ -1626,7 +1631,7 @@ class AnalysisOrchestrator:
         result = await self.verification_agent.verify_analysis(
             analysis_data,
             thinking_level=thinking_level,
-            auto_improve=True,
+            auto_improve=state.auto_improve,
         )
 
         state.verification_result = {

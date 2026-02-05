@@ -1,23 +1,39 @@
 'use client';
 
 import { api } from '@/lib/api';
-import { BarChart3, Brain, ChefHat, Megaphone, MessageSquare, Palette, Sparkles, Target, TrendingUp } from 'lucide-react';
+import { BarChart3, Brain, ChefHat, Loader2, Megaphone, MessageSquare, Sparkles, Target } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, use, useEffect, useState } from 'react';
+import { createContext, ReactNode, use, useCallback, useContext, useEffect, useState } from 'react';
 
 interface AnalysisLayoutProps {
   children: ReactNode;
   params: Promise<{ sessionId: string }>;
 }
 
+// SessionContext to share data across tabs
+interface SessionContextType {
+  sessionData: any;
+  isLoading: boolean;
+  error: string | null;
+  taskState: any;
+  refreshSession: () => Promise<void>;
+}
+
+export const SessionContext = createContext<SessionContextType | null>(null);
+
+// Custom hook to use the context
+export const useSessionData = () => {
+  const ctx = useContext(SessionContext);
+  if (!ctx) throw new Error('useSessionData must be used within SessionContext.Provider');
+  return ctx;
+};
+
+// Tabs reduced from 8 to 5
 const tabs = [
   { value: 'overview', label: 'Overview', href: '', icon: Sparkles },
-  { value: 'creative', label: 'Creative Studio', href: '/creative', icon: Palette },
-  { value: 'menu', label: 'Menu', href: '/menu', icon: ChefHat },
   { value: 'bcg', label: 'BCG Matrix', href: '/bcg', icon: BarChart3 },
   { value: 'competitors', label: 'Competitors', href: '/competitors', icon: Target },
   { value: 'sentiment', label: 'Sentiment', href: '/sentiment', icon: MessageSquare },
-  { value: 'predictions', label: 'Predictions', href: '/predictions', icon: TrendingUp },
   { value: 'campaigns', label: 'Campaigns', href: '/campaigns', icon: Megaphone },
 ];
 
@@ -26,28 +42,47 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
   const router = useRouter();
   const pathname = usePathname();
   const [sessionData, setSessionData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [taskState, setTaskState] = useState<any>(null);
   
   const pathParts = pathname.split('/');
   const lastPart = pathParts[pathParts.length - 1];
   const currentTab = tabs.find(t => t.href === `/${lastPart}`)?.value || 
                      (pathname.endsWith(sessionId) ? 'overview' : 'overview');
 
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
-          ? await api.getDemoSession()
-          : await api.getSession(sessionId);
-        setSessionData(data);
-      } catch (err) {
-        console.error('Failed to load session:', err);
+  // Centralized fetch - RUNS ONLY ONCE
+  const fetchSession = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
+        ? await api.getDemoSession()
+        : await api.getSession(sessionId);
+      
+      setSessionData(data);
+      
+      // Extract taskState if it exists (handle nested backend structure)
+      const unwrappedData = (data as any)?.data || data;
+      const activeTaskId = unwrappedData?.active_task_id || unwrappedData?.marathon_agent_context?.active_task_id;
+      if (activeTaskId) {
+        setTaskState(unwrappedData?.task_state || null);
       }
-    };
-    fetchSession();
+    } catch (err) {
+      console.error('Failed to load session:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load session');
+    } finally {
+      setIsLoading(false);
+    }
   }, [sessionId]);
 
+  useEffect(() => {
+    fetchSession();
+  }, [fetchSession]);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <SessionContext.Provider value={{ sessionData, isLoading, error, taskState, refreshSession: fetchSession }}>
+      <div className="min-h-screen bg-gray-50">
       {/* Header - Matching main page style */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -100,7 +135,25 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
 
         {/* Content */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          {children}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              <span className="ml-3 text-gray-600">Loading session data...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <div className="text-red-500 text-lg mb-2">⚠️ Error</div>
+              <p className="text-gray-600">{error}</p>
+              <button
+                onClick={fetchSession}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            children
+          )}
         </div>
 
         {/* Marathon Agent Footer - if available */}
@@ -113,8 +166,8 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
               <div className="flex-1">
                 <p className="text-sm font-medium text-violet-900">Marathon Agent Active</p>
                 <p className="text-xs text-violet-600">
-                  {sessionData.marathon_agent_context.session_count} sesiones • 
-                  {sessionData.marathon_agent_context.total_analyses} análisis
+                  {sessionData.marathon_agent_context.session_count} sessions • 
+                  {sessionData.marathon_agent_context.total_analyses} analyses
                 </p>
               </div>
             </div>
@@ -130,6 +183,7 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
           </p>
         </div>
       </footer>
-    </div>
+      </div>
+    </SessionContext.Provider>
   );
 }

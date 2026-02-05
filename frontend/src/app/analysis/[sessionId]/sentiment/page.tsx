@@ -1,36 +1,15 @@
 'use client';
 
-import { api } from '@/lib/api';
 import { MessageCircle, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
+import { useSessionData } from '../layout';
 
 
-interface SentimentPageProps {
-  params: Promise<{ sessionId: string }>;
-}
+export default function SentimentPage() {
+  const { sessionData, isLoading } = useSessionData();
 
-export default function SentimentPage({ params }: SentimentPageProps) {
-  const { sessionId } = use(params);
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const unwrappedSession = (sessionData as any)?.data || sessionData;
 
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
-          ? await api.getDemoSession()
-          : await api.getSession(sessionId);
-        setSession(data);
-      } catch (err) {
-        console.error('Failed to load session:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSession();
-  }, [sessionId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="animate-pulse space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48"></div>
@@ -42,20 +21,20 @@ export default function SentimentPage({ params }: SentimentPageProps) {
   }
 
   // Get sentiment data from session
-  const sentimentData = session?.sentiment_analysis;
+  const sentimentData = unwrappedSession?.sentiment_analysis || sessionData?.sentiment_analysis;
 
-  if (!sentimentData && !loading) {
+  if (!sentimentData && !isLoading) {
     return (
       <div className="text-center py-12 text-gray-500">
         <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-        <p className="text-lg">No hay análisis de sentimiento disponible</p>
-        <p className="text-sm mt-2">Ejecuta el análisis para ver la percepción de tus clientes.</p>
+        <p className="text-lg">No sentiment analysis available</p>
+        <p className="text-sm mt-2">Run the analysis to see customer perception.</p>
       </div>
     );
   }
 
-  const audioContext = session?.audio_analysis;
-  const businessContext = session?.business_context || "";
+  const audioContext = unwrappedSession?.audio_analysis || sessionData?.audio_analysis;
+  const businessContext = unwrappedSession?.business_context || sessionData?.business_context || "";
 
   const getSentimentColor = (score: number) => {
     if (score >= 0.7) return 'text-green-600 bg-green-100';
@@ -68,7 +47,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <MessageCircle className="h-6 w-6 text-blue-500" />
-          Análisis de Sentimiento
+          Sentiment Analysis
         </h2>
       </div>
 
@@ -76,26 +55,26 @@ export default function SentimentPage({ params }: SentimentPageProps) {
       <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
         <div className="grid md:grid-cols-4 gap-6">
           <div className="text-center">
-            <p className="text-blue-100 text-sm mb-1">Sentimiento General</p>
+            <p className="text-blue-100 text-sm mb-1">Overall Sentiment</p>
             <p className="text-4xl font-bold">{(sentimentData.overall.score * 100).toFixed(0)}%</p>
             <p className="text-blue-200">{sentimentData.overall.label}</p>
           </div>
           <div className="text-center">
-            <p className="text-blue-100 text-sm mb-1">Tendencia</p>
+            <p className="text-blue-100 text-sm mb-1">Trend</p>
             <p className="text-2xl font-bold flex items-center justify-center gap-2">
               <TrendingUp className="h-6 w-6" />
-              {sentimentData.overall.trend === 'improving' ? 'Mejorando' : 
-               sentimentData.overall.trend === 'declining' ? 'Declinando' : 'Estable'}
+              {sentimentData.overall.trend === 'improving' ? 'Improving' : 
+               sentimentData.overall.trend === 'declining' ? 'Declining' : 'Stable'}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-blue-100 text-sm mb-1">Total Reseñas</p>
+            <p className="text-blue-100 text-sm mb-1">Total Reviews</p>
             <p className="text-2xl font-bold">
               {sentimentData.sources.reduce((sum: number, s: any) => sum + s.count, 0)}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-blue-100 text-sm mb-1">Rating Promedio</p>
+            <p className="text-blue-100 text-sm mb-1">Average Rating</p>
             <p className="text-2xl font-bold flex items-center justify-center gap-1">
               <Star className="h-5 w-5 text-yellow-300" />
               {(sentimentData.sources.filter((s: any) => s.avgRating).reduce((sum: number, s: any) => sum + s.avgRating, 0) / 
@@ -108,11 +87,11 @@ export default function SentimentPage({ params }: SentimentPageProps) {
       {/* Audio Analysis Results if available */}
       {audioContext && (audioContext.business?.length > 0 || audioContext.competitor?.length > 0) && (
         <div className="bg-violet-50 rounded-xl p-5 border border-violet-200">
-          <h3 className="font-semibold text-violet-900 mb-3">🎙️ Análisis de Audio (Gemini Multimodal)</h3>
+          <h3 className="font-semibold text-violet-900 mb-3">🎙️ Audio Analysis (Gemini Multimodal)</h3>
           <div className="space-y-3">
             {audioContext.business?.map((analysis: any, idx: number) => (
               <div key={idx} className="bg-white/60 rounded-lg p-3">
-                <p className="text-sm font-medium text-violet-800">Audio de Negocio #{idx + 1}</p>
+                <p className="text-sm font-medium text-violet-800">Business Audio #{idx + 1}</p>
                 <p className="text-sm text-gray-700 mt-1">{analysis.summary}</p>
                 <div className="flex gap-2 mt-2">
                   {analysis.key_points?.slice(0, 3).map((point: string, i: number) => (
@@ -137,7 +116,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Reseñas</span>
+                <span className="text-gray-500">Reviews</span>
                 <span className="font-medium">{source.count}</span>
               </div>
               {source.avgRating && (
@@ -155,7 +134,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 text-xs underline flex items-center gap-1 mt-2"
                 >
-                  Ver en {source.name} →
+                  View on {source.name} →
                 </a>
               )}
             </div>
@@ -165,7 +144,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
 
       {/* Topics Analysis */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="font-semibold text-gray-900 mb-4">📊 Análisis por Tema</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">📊 Topic Analysis</h3>
         <div className="space-y-4">
           {sentimentData.topics.map((topic: any, idx: number) => (
             <div key={idx} className="flex items-center gap-4">
@@ -185,7 +164,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                 {(topic.sentiment * 100).toFixed(0)}%
               </div>
               <div className="w-20 text-right text-xs text-gray-500">
-                {topic.mentions} menciones
+                {topic.mentions} mentions
               </div>
               <div className={`w-8 text-center ${
                 topic.trend === 'up' ? 'text-green-500' :
@@ -200,7 +179,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
 
       {/* Recent Reviews */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="font-semibold text-gray-900 mb-4">💬 Reseñas Recientes</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">💬 Recent Reviews</h3>
         <div className="space-y-4">
           {sentimentData.recentReviews.map((review: any, idx: number) => (
             <div key={idx} className="flex gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
@@ -224,7 +203,7 @@ export default function SentimentPage({ params }: SentimentPageProps) {
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
                     >
-                      Ver original →
+                      View original →
                     </a>
                   )}
                 </div>
@@ -236,8 +215,8 @@ export default function SentimentPage({ params }: SentimentPageProps) {
 
       {/* Add Links Suggestion */}
       <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 text-sm text-gray-600">
-        <p className="font-medium mb-1">💡 Enriquece este análisis</p>
-        <p>Agrega links de Google Reviews, TripAdvisor, Yelp o redes sociales en la página de carga. También puedes subir audios con feedback de clientes para que Gemini los analice directamente.</p>
+        <p className="font-medium mb-1">💡 Enrich this analysis</p>
+        <p>Add links from Google Reviews, TripAdvisor, Yelp, or social media on the setup page. You can also upload audio with customer feedback for Gemini to analyze directly.</p>
       </div>
     </div>
   );

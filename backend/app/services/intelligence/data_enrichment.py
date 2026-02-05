@@ -1,12 +1,12 @@
 """
-Competitor Enrichment Service - Sistema avanzado de inteligencia competitiva.
+Competitor Enrichment Service - Advanced competitive intelligence system.
 
-Capacidades:
-- Extracción completa de metadatos de Google Maps (Place Details API)
-- Cross-referencing inteligente con búsqueda web
-- Scraping de redes sociales (Facebook, Instagram, WhatsApp Business)
-- Consolidación de perfiles con Gemini multimodal
-- Análisis de contenido multimedia (fotos, videos, menús)
+Capabilities:
+- Full metadata extraction from Google Maps (Place Details API)
+- Smart cross-referencing with web search
+- Social media scraping (Facebook, Instagram, WhatsApp Business)
+- Profile consolidation with multimodal Gemini
+- Multimedia content analysis (photos, videos, menus)
 """
 
 import base64
@@ -25,7 +25,7 @@ from app.services.gemini.base_agent import GeminiAgent
 
 @dataclass
 class SocialMediaProfile:
-    """Perfil de red social de un competidor."""
+    """Competitor social media profile."""
 
     platform: str  # facebook, instagram, whatsapp_business, twitter, tiktok
     url: str
@@ -40,13 +40,13 @@ class SocialMediaProfile:
 
 @dataclass
 class CompetitorProfile:
-    """Perfil completo y enriquecido de un competidor."""
+    """Complete, enriched competitor profile."""
 
-    # Identificación
+    # Identification
     competitor_id: str
     name: str
 
-    # Ubicación
+    # Location
     address: str
     lat: float
     lng: float
@@ -59,18 +59,18 @@ class CompetitorProfile:
     user_ratings_total: Optional[int] = None
     price_level: Optional[int] = None  # 1-4 ($ to $$$$)
 
-    # Horarios
+    # Hours
     opening_hours: Optional[Dict[str, Any]] = None
 
-    # Reseñas (muestra)
+    # Reviews (sample)
     reviews: List[Dict[str, Any]] = field(default_factory=list)
     reviews_summary: Optional[str] = None
 
-    # Fotos
+    # Photos
     photos: List[str] = field(default_factory=list)  # URLs
     photo_analysis: Optional[Dict[str, Any]] = None
 
-    # Redes sociales
+    # Social media
     social_profiles: List[SocialMediaProfile] = field(default_factory=list)
 
     # WhatsApp Business
@@ -78,11 +78,11 @@ class CompetitorProfile:
     whatsapp_menu: Optional[Dict[str, Any]] = None
     whatsapp_catalog: List[Dict[str, Any]] = field(default_factory=list)
 
-    # Menú extraído
+    # Extracted menu
     menu_items: List[Dict[str, Any]] = field(default_factory=list)
     menu_sources: List[str] = field(default_factory=list)
 
-    # Análisis de competencia
+    # Competitive analysis
     cuisine_types: List[str] = field(default_factory=list)
     specialties: List[str] = field(default_factory=list)
     unique_offerings: List[str] = field(default_factory=list)
@@ -164,14 +164,14 @@ class CompetitorProfile:
 
 class CompetitorEnrichmentService:
     """
-    Servicio avanzado de enriquecimiento de perfiles de competencia.
+    Advanced competitor profile enrichment service.
 
-    Implementa un pipeline completo:
-    1. Extracción de Google Maps (Place Details)
-    2. Cross-referencing con búsqueda web
-    3. Identificación de redes sociales
-    4. Scraping y análisis multimodal
-    5. Consolidación con Gemini
+    Implements a full pipeline:
+    1. Google Maps extraction (Place Details)
+    2. Cross-referencing with web search
+    3. Social media identification
+    4. Multimodal scraping and analysis
+    5. Consolidation with Gemini
     """
 
     def __init__(
@@ -199,14 +199,14 @@ class CompetitorEnrichmentService:
         basic_info: Optional[Dict[str, Any]] = None,
     ) -> CompetitorProfile:
         """
-        Enriquecer perfil completo de un competidor desde place_id.
+        Enrich a complete competitor profile from a place_id.
 
         Args:
             place_id: Google Maps Place ID
-            basic_info: Información básica si ya está disponible
+            basic_info: Basic information if already available
 
         Returns:
-            CompetitorProfile completo y enriquecido
+            Fully enriched CompetitorProfile
         """
         competitor_id = str(uuid4())
 
@@ -247,14 +247,14 @@ class CompetitorEnrichmentService:
                 logger.warning(f"Could not get place details for {place_id}")
                 return self._create_minimal_profile(competitor_id, basic_info or {})
 
-        # Step 2: Cross-reference con búsqueda web
+        # Step 2: Cross-reference with web search
         web_data = await self._cross_reference_web_search(
             name=maps_data.get("name"),
             phone=maps_data.get("formatted_phone_number"),
             address=maps_data.get("formatted_address"),
         )
 
-        # Step 3: Identificar redes sociales
+        # Step 3: Identify social media
         social_profiles = await self._identify_social_media(
             name=maps_data.get("name"),
             website=maps_data.get("website"),
@@ -262,18 +262,18 @@ class CompetitorEnrichmentService:
             web_results=web_data,
         )
 
-        # Step 4: Extraer WhatsApp Business si está disponible
+        # Step 4: Extract WhatsApp Business data if available
         whatsapp_data = await self._extract_whatsapp_business(
             phone=maps_data.get("formatted_phone_number"),
             social_profiles=social_profiles,
         )
 
-        # Step 5: Analizar fotos con Gemini Vision
+        # Step 5: Analyze photos with Gemini Vision
         photo_analysis = await self._analyze_competitor_photos(
             maps_data.get("photos", [])
         )
 
-        # Step 6: Extraer menú de todas las fuentes
+        # Step 6: Extract menu from all sources
         menu_data = await self._extract_menu_all_sources(
             maps_data=maps_data,
             web_data=web_data,
@@ -281,10 +281,10 @@ class CompetitorEnrichmentService:
             photo_analysis=photo_analysis,
         )
 
-        # Step 7: Procesar reseñas con Gemini
+        # Step 7: Process reviews with Gemini
         reviews_summary = await self._analyze_reviews(maps_data.get("reviews", []))
 
-        # Step 8: Consolidar todo con Gemini
+        # Step 8: Consolidate everything with Gemini
         intelligence = await self._consolidate_intelligence(
             maps_data=maps_data,
             web_data=web_data,
@@ -342,7 +342,7 @@ class CompetitorEnrichmentService:
         return profile
 
     async def _get_place_details(self, place_id: str) -> Optional[Dict[str, Any]]:
-        """Obtener detalles completos usando Google Places API (New)."""
+        """Get full place details using the Google Places API (New)."""
         # Check for custom/manual place ID
         if not self.google_api_key:
             logger.warning("No Google Maps API key configured")
@@ -458,8 +458,8 @@ class CompetitorEnrichmentService:
         address: Optional[str],
     ) -> Dict[str, Any]:
         """
-        Cross-reference con búsqueda web para encontrar información adicional.
-        Usa Gemini con Google Search grounding.
+        Cross-reference with web search to find additional information.
+        Uses Gemini with Google Search grounding.
         """
 
         if not name:
@@ -472,37 +472,37 @@ class CompetitorEnrichmentService:
             if phone:
                 search_query += f" {phone}"
 
-            prompt = f"""Busca información completa sobre este restaurante/negocio:
+            prompt = f"""Find complete information about this restaurant/business:
 
-Nombre: {name}
-{f"Teléfono: {phone}" if phone else ""}
-{f"Dirección: {address}" if address else ""}
+Name: {name}
+{f"Phone: {phone}" if phone else ""}
+{f"Address: {address}" if address else ""}
 
-BUSCA Y EXTRAE:
-1. Redes sociales (Facebook, Instagram, TikTok, Twitter, YouTube)
-2. WhatsApp Business (si mencionan número de WhatsApp)
-3. Sitio web o página de delivery
-4. Menú o precios si están disponibles
-5. Tipo de comida/especialidades
-6. Horarios de atención
+SEARCH AND EXTRACT:
+1. Social media (Facebook, Instagram, TikTok, Twitter, YouTube)
+2. WhatsApp Business (if they mention a WhatsApp number)
+3. Website or delivery page
+4. Menu or prices (if available)
+5. Cuisine type / specialties
+6. Hours of operation
 
-Responde en JSON:
+Respond in JSON:
 {{
   "social_media": {{
-    "facebook": "URL o null",
-    "instagram": "@handle o URL o null",
-    "tiktok": "@handle o null",
-    "twitter": "@handle o null",
-    "youtube": "URL canal o null"
+    "facebook": "URL or null",
+    "instagram": "@handle or URL or null",
+    "tiktok": "@handle or null",
+    "twitter": "@handle or null",
+    "youtube": "Channel URL or null"
   }},
-  "whatsapp": "número con código de país o null",
+  "whatsapp": "number with country code or null",
   "additional_websites": ["URL1", "URL2"],
   "menu_found": true/false,
-  "menu_url": "URL o null",
-  "cuisine_type": "Tipo de comida",
-  "specialties": ["Especialidad1", "Especialidad2"],
+  "menu_url": "URL or null",
+  "cuisine_type": "Cuisine type",
+  "specialties": ["Specialty1", "Specialty2"],
   "delivery_platforms": ["Rappi", "Uber Eats"],
-  "notes": ["Nota relevante 1", "Nota 2"]
+  "notes": ["Relevant note 1", "Note 2"]
 }}"""
 
             # Use shared Gemini agent with grounding
@@ -534,7 +534,7 @@ Responde en JSON:
         phone: Optional[str],
         web_results: Dict[str, Any],
     ) -> List[SocialMediaProfile]:
-        """Identificar y validar perfiles de redes sociales."""
+        """Identify and validate social media profiles."""
 
         profiles = []
         social_data = web_results.get("social_media", {})
@@ -612,9 +612,9 @@ Responde en JSON:
         social_profiles: List[SocialMediaProfile],
     ) -> Dict[str, Any]:
         """
-        Extraer datos de WhatsApp Business.
-        Nota: Esto requeriría la API de WhatsApp Business.
-        Por ahora, identificamos el número y simulamos capacidad.
+        Extract WhatsApp Business data.
+        Note: This would require the WhatsApp Business API.
+        For now, we identify the number and simulate capabilities.
         """
 
         whatsapp_number = None
@@ -629,8 +629,8 @@ Responde en JSON:
         if not whatsapp_number:
             return {}
 
-        # En producción, aquí se usaría WhatsApp Business API
-        # Por ahora, retornamos estructura indicando la capacidad
+        # In production, this would use the WhatsApp Business API
+        # For now, we return a structure indicating potential capability
 
         logger.info(f"WhatsApp Business number identified: {whatsapp_number}")
 
@@ -650,13 +650,13 @@ Responde en JSON:
         self,
         photos: List[Dict[str, Any]],
     ) -> Optional[Dict[str, Any]]:
-        """Analizar fotos del competidor con Gemini Vision."""
+        """Analyze competitor photos with Gemini Vision."""
 
         if not photos or not self.google_api_key:
             return None
 
         try:
-            # Tomar primeras 5 fotos
+            # Take first 5 photos
             photo_urls = []
             for photo in photos[:5]:
                 photo_ref = photo.get("photo_reference")
@@ -675,29 +675,29 @@ Responde en JSON:
             if not photo_urls:
                 return None
 
-            # Usar Gemini para analizar las fotos
-            prompt = """Analiza estas fotos del restaurante competidor y extrae:
+            # Use Gemini to analyze photos
+            prompt = """Analyze these photos of the competitor restaurant and extract:
 
-1. Tipo de ambiente (casual, elegante, familiar, etc.)
-2. Platos visibles (nombres si puedes identificarlos)
-3. Nivel de precio aparente (económico, medio, premium)
-4. Estilo de presentación de comida
-5. Calidad visual de los platillos
-6. Elementos destacados (decoración, concepto)
+1. Ambiance type (casual, upscale, family-friendly, etc.)
+2. Visible dishes (names if you can identify them)
+3. Apparent price level (economic, mid-range, premium)
+4. Food presentation style
+5. Visual quality of dishes
+6. Standout elements (decor, concept)
 
-Responde en JSON:
+Respond in JSON:
 {
-  "ambiance": "Descripción del ambiente",
-  "visible_dishes": ["Platillo 1", "Platillo 2"],
+  "ambiance": "Ambiance description",
+  "visible_dishes": ["Dish 1", "Dish 2"],
   "price_perception": "economic/mid-range/premium",
-  "presentation_style": "Descripción",
+  "presentation_style": "Description",
   "visual_quality_score": 0.85,
-  "standout_elements": ["Elemento 1", "Elemento 2"],
-  "competitive_advantages": ["Ventaja visual 1"]
+  "standout_elements": ["Element 1", "Element 2"],
+  "competitive_advantages": ["Visual advantage 1"]
 }"""
 
-            # Por limitaciones, usamos solo la primera foto
-            # En producción, se procesarían múltiples
+            # Due to constraints, we only use the first photo
+            # In production, multiple photos would be processed
             photo_data = await self.http_client.get(photo_urls[0])
             
             # Use shared Gemini agent
@@ -725,12 +725,12 @@ Responde en JSON:
         whatsapp_data: Dict[str, Any],
         photo_analysis: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """Consolidar menú de todas las fuentes disponibles."""
+        """Consolidate menu from all available sources."""
 
         menu_items = []
         sources = []
 
-        # Fuente 1: Website del restaurante
+        # Source 1: Restaurant website
         if maps_data.get("website"):
             try:
                 website_menu = await self._scrape_menu_from_website(
@@ -742,7 +742,7 @@ Responde en JSON:
             except Exception as e:
                 logger.warning(f"Website menu extraction failed: {e}")
 
-        # Fuente 2: Fotos con items visibles
+        # Source 2: Photos with visible items
         if photo_analysis and photo_analysis.get("visible_dishes"):
             for dish in photo_analysis["visible_dishes"]:
                 menu_items.append(
@@ -754,12 +754,12 @@ Responde en JSON:
                 )
             sources.append("google_photos")
 
-        # Fuente 3: WhatsApp Business (simulado)
+        # Source 3: WhatsApp Business (simulated)
         if whatsapp_data.get("catalog"):
             menu_items.extend(whatsapp_data["catalog"])
             sources.append("whatsapp_business")
 
-        # Calcular price range
+        # Calculate price range
         prices = [item.get("price") for item in menu_items if item.get("price")]
         price_range = None
         if prices:
@@ -779,21 +779,21 @@ Responde en JSON:
     async def _scrape_menu_from_website(
         self, website_url: str
     ) -> Optional[Dict[str, Any]]:
-        """Scrape menú del sitio web del competidor con Gemini."""
+        """Scrape competitor menu from their website using Gemini."""
 
         try:
             response = await self.http_client.get(website_url, timeout=15.0)
-            html_content = response.text[:20000]  # Limitar tamaño
+            html_content = response.text[:20000]  # Limit size
 
-            # Usar Gemini para extraer menú
-            prompt = f"""Extrae el menú de este sitio web:
+            # Use Gemini to extract the menu
+            prompt = f"""Extract the menu from this website:
 
 {html_content}
 
-Responde en JSON:
+Respond in JSON:
 {{
   "items": [
-    {{"name": "Nombre", "price": 150.00, "category": "Categoría", "description": ""}}
+    {{"name": "Name", "price": 150.00, "category": "Category", "description": ""}}
   ],
   "currency": "MXN"
 }}"""
@@ -817,7 +817,7 @@ Responde en JSON:
             return None
 
     async def _analyze_reviews(self, reviews: List[Dict[str, Any]]) -> Optional[str]:
-        """Analizar reseñas con Gemini para extraer insights."""
+        """Analyze competitor reviews with Gemini to extract insights."""
 
         if not reviews:
             return None
@@ -830,18 +830,18 @@ Responde en JSON:
                 ]
             )
 
-            prompt = f"""Analiza estas reseñas de un competidor y resume:
+            prompt = f"""Analyze these competitor reviews and summarize:
 
 {reviews_text}
 
-Extrae:
-- Fortalezas mencionadas frecuentemente
-- Debilidades o quejas comunes
-- Platos más elogiados
-- Aspectos del servicio destacados
-- Oportunidades que vemos
+Extract:
+- Frequently mentioned strengths
+- Common weaknesses or complaints
+- Most praised dishes
+- Notable service aspects
+- Opportunities we see
 
-Resume en 2-3 párrafos."""
+Summarize in 2-3 paragraphs."""
 
             response_text = await self.gemini.generate(
                 prompt=prompt,
@@ -866,45 +866,45 @@ Resume en 2-3 párrafos."""
         reviews_summary: Optional[str],
         photo_analysis: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """Consolidar toda la inteligencia con Gemini."""
+        """Consolidate all competitive intelligence with Gemini."""
 
         try:
-            context = f"""Consolida esta inteligencia competitiva:
+            context = f"""Consolidate this competitive intelligence:
 
-RESTAURANTE: {maps_data.get('name')}
+RESTAURANT: {maps_data.get('name')}
 
 GOOGLE MAPS:
-- Rating: {maps_data.get('rating')} ({maps_data.get('user_ratings_total')} reseñas)
+- Rating: {maps_data.get('rating')} ({maps_data.get('user_ratings_total')} reviews)
 - Price Level: {'$' * (maps_data.get('price_level') or 2)}
 - Types: {', '.join(maps_data.get('types', [])[:5])}
 
-BÚSQUEDA WEB:
+WEB SEARCH:
 {json.dumps(web_data, indent=2)[:1000]}
 
-MENÚ:
-- {menu_data.get('total_items')} items encontrados
-- Fuentes: {', '.join(menu_data.get('sources', []))}
-- Rango de precios: {menu_data.get('price_range')}
+MENU:
+- {menu_data.get('total_items')} items found
+- Sources: {', '.join(menu_data.get('sources', []))}
+- Price range: {menu_data.get('price_range')}
 
-FOTOS:
-{json.dumps(photo_analysis, indent=2)[:500] if photo_analysis else 'No analizadas'}
+PHOTOS:
+{json.dumps(photo_analysis, indent=2)[:500] if photo_analysis else 'Not analyzed'}
 
-RESEÑAS:
-{reviews_summary[:300] if reviews_summary else 'No disponibles'}
+REVIEWS:
+{reviews_summary[:300] if reviews_summary else 'Not available'}
 
-REDES SOCIALES:
-{len(social_data.get('profiles', []))} perfiles encontrados
+SOCIAL MEDIA:
+{len(social_data.get('profiles', []))} profiles found
 
-Responde en JSON:
+Respond in JSON:
 {{
-  "cuisine_types": ["Tipo 1", "Tipo 2"],
-  "specialties": ["Especialidad 1", "Especialidad 2"],
-  "unique_offerings": ["Oferta única 1"],
-  "target_audience": "Descripción del público objetivo",
-  "brand_positioning": "Posicionamiento de marca",
-  "competitive_strengths": ["Fortaleza 1", "Fortaleza 2"],
-  "competitive_weaknesses": ["Debilidad 1"],
-  "notes": ["Nota importante 1"]
+  "cuisine_types": ["Type 1", "Type 2"],
+  "specialties": ["Specialty 1", "Specialty 2"],
+  "unique_offerings": ["Unique offering 1"],
+  "target_audience": "Target audience description",
+  "brand_positioning": "Brand positioning",
+  "competitive_strengths": ["Strength 1", "Strength 2"],
+  "competitive_weaknesses": ["Weakness 1"],
+  "notes": ["Important note 1"]
 }}"""
 
             # Use shared Gemini agent
@@ -923,7 +923,7 @@ Responde en JSON:
             return {}
 
     def _extract_handle_from_url(self, url: str, platform: str) -> Optional[str]:
-        """Extraer handle de una URL de red social."""
+        """Extract handle from a social media URL."""
         if not url:
             return None
 
@@ -945,11 +945,11 @@ Responde en JSON:
         return None
 
     def _extract_whatsapp_from_phone(self, phone: Optional[str]) -> Optional[str]:
-        """Formatear teléfono para WhatsApp."""
+        """Format phone number for WhatsApp."""
         if not phone:
             return None
 
-        # Remover caracteres no numéricos excepto +
+        # Remove non-numeric characters except +
         clean = re.sub(r"[^\d+]", "", phone)
         if clean and len(clean) >= 10:
             return clean
@@ -962,7 +962,7 @@ Responde en JSON:
         social_profiles: List[SocialMediaProfile],
         whatsapp_data: Dict[str, Any],
     ) -> List[str]:
-        """Recolectar todas las fuentes de datos utilizadas."""
+        """Collect all data sources used."""
         sources = ["google_maps_place_details"]
 
         if web_data:
@@ -984,7 +984,7 @@ Responde en JSON:
         web_data: Dict[str, Any],
         menu_data: Dict[str, Any],
     ) -> float:
-        """Calcular score de confianza del perfil."""
+        """Calculate a profile confidence score."""
         confidence = 0.0
 
         # Google Maps data (base)
@@ -1014,7 +1014,7 @@ Responde en JSON:
         competitor_id: str,
         basic_info: Dict[str, Any],
     ) -> CompetitorProfile:
-        """Crear perfil mínimo cuando no hay datos completos."""
+        """Create a minimal profile when full enrichment data is not available."""
         return CompetitorProfile(
             competitor_id=competitor_id,
             name=basic_info.get("name", "Unknown"),
@@ -1028,5 +1028,5 @@ Responde en JSON:
         )
 
     async def close(self):
-        """Cerrar cliente HTTP."""
+        """Close the HTTP client."""
         await self.http_client.aclose()

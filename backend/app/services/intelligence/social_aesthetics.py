@@ -17,60 +17,60 @@ class SocialAestheticsAnalyzer(GeminiBaseAgent):
         posting_time: datetime
     ) -> Dict[str, Any]:
         """
-        Predice el performance de una foto en Instagram.
+        Predict the performance of a photo on Instagram.
         
-        ANÁLISIS MULTIMODAL:
-        - Composición visual
-        - Iluminación
-        - Apetitosidad del plato
-        - Contexto de posting (hora, día)
-        - Tendencias actuales (grounded search)
+        MULTIMODAL ANALYSIS:
+        - Visual composition
+        - Lighting
+        - Appetite appeal of the dish
+        - Posting context (time, day)
+        - Current trends (grounded search)
         """
         
         prompt = f"""
-        Analiza esta foto de plato de restaurante y predice su performance en Instagram.
+        Analyze this restaurant dish photo and predict its performance on Instagram.
         
-        CONTEXTO:
-        - Categoría del restaurante: {restaurant_category}
-        - Hora de publicación planeada: {posting_time.strftime('%H:%M, %A')}
+        CONTEXT:
+        - Restaurant Category: {restaurant_category}
+        - Planned Posting Time: {posting_time.strftime('%H:%M, %A')}
         
-        INVESTIGACIÓN (usa Google Search):
-        1. Busca las tendencias actuales de food photography en Instagram
-        2. Identifica qué estilos están generando más engagement este mes
-        3. Revisa ejemplos de posts exitosos en la categoría {restaurant_category}
+        RESEARCH (use Google Search):
+        1. Search for current food photography trends on Instagram
+        2. Identify which styles are generating the most engagement this month
+        3. Review examples of successful posts in the {restaurant_category} category
         
-        ANÁLISIS DE LA FOTO:
-        Evalúa en escala 0-10:
-        1. COMPOSICIÓN
-           - Regla de tercios
-           - Balance visual
-           - Punto focal claro
+        PHOTO ANALYSIS:
+        Evaluate on a scale of 0-10:
+        1. COMPOSITION
+           - Rule of thirds
+           - Visual balance
+           - Clear focal point
         
-        2. ILUMINACIÓN
-           - Calidad de luz
-           - Sombras apropiadas
-           - Brillo general
+        2. LIGHTING
+           - Light quality
+           - Appropriate shadows
+           - General brightness
         
-        3. APETITOSIDAD
-           - Colores vibrantes
-           - Textura visible
-           - Presentación del plato
+        3. APPETITE APPEAL
+           - Vibrant colors
+           - Visible texture
+           - Dish presentation
         
-        4. "INSTAGRAMABILIDAD"
-           - Estética trending
-           - Elementos visuales únicos
-           - Potencial de compartir
+        4. "INSTAGRAMABILITY"
+           - Trending aesthetic
+           - Unique visual elements
+           - Share potential
         
         5. TIMING
-           - ¿Es buena hora para este tipo de contenido?
-           - ¿Qué día de la semana funciona mejor?
+           - Is this a good time for this type of content?
+           - Which day of the week works best?
         
-        PREDICCIÓN:
-        Devuelve JSON con:
+        PREDICTION:
+        Return JSON with:
         {{
             "predicted_performance": {{
-                "likes_estimate": "rango estimado de likes",
-                "engagement_rate": "% estimado",
+                "likes_estimate": "estimated likes range",
+                "engagement_rate": "estimated %",
                 "virality_score": 0-10,
                 "confidence": 0-1
             }},
@@ -83,14 +83,14 @@ class SocialAestheticsAnalyzer(GeminiBaseAgent):
             }},
             "improvements": [
                 {{
-                    "issue": "problema detectado",
-                    "suggestion": "cómo mejorarlo",
-                    "impact": "alto|medio|bajo"
+                    "issue": "detected issue",
+                    "suggestion": "how to improve it",
+                    "impact": "high|medium|low"
                 }}
             ],
-            "optimal_posting_time": "mejor hora/día para publicar",
+            "optimal_posting_time": "best time/day to post",
             "trending_hashtags": ["#hashtag1", "#hashtag2", ...],
-            "comparison_to_trends": "cómo se compara con tendencias actuales"
+            "comparison_to_trends": "how it compares to current trends"
         }}
         """
         
@@ -132,7 +132,7 @@ class SocialAestheticsAnalyzer(GeminiBaseAgent):
         Args:
             user_photos: User's Instagram/social photos
             competitor_photos: Dict of {competitor_name: [photos]}
-            context: Business context (e.g., "casual taquería")
+            context: Business context (e.g., "casual taco shop")
         """
         
         # Combine all photos for batch analysis

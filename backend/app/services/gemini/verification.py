@@ -169,7 +169,7 @@ RESPONSE FORMAT (JSON):
   "overall_quality_score": 0.85,
   "issues_found": [
     {{
-      "competitor": "Taquería X",
+      "competitor": "Taco Shop X",
       "severity": "high|medium|low",
       "issue": "Price data from 2023 vs 2025 shows 40% inflation",
       "recommendation": "Accept but flag as market trend"

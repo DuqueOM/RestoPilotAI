@@ -8,7 +8,7 @@ export class MarathonAgentAPI {
   }
 
   /**
-   * Inicia una tarea de larga duración
+   * Starts a long-running task
    */
   async startTask(config: MarathonTaskConfig): Promise<{ task_id: string }> {
     const response = await fetch(`${this.baseURL}/api/v1/marathon/start`, {
@@ -27,7 +27,7 @@ export class MarathonAgentAPI {
   }
 
   /**
-   * Obtiene el estado actual de una tarea
+   * Gets the current status of a task
    */
   async getTaskStatus(taskId: string): Promise<MarathonTaskState> {
     const response = await fetch(`${this.baseURL}/api/v1/marathon/status/${taskId}`);
@@ -40,7 +40,7 @@ export class MarathonAgentAPI {
   }
 
   /**
-   * Recupera una tarea desde el último checkpoint
+   * Recovers a task from the last checkpoint
    */
   async recoverTask(taskId: string): Promise<{ task_id: string }> {
     const response = await fetch(`${this.baseURL}/api/v1/marathon/recover/${taskId}`, {
@@ -55,7 +55,7 @@ export class MarathonAgentAPI {
   }
 
   /**
-   * Cancela una tarea en ejecución
+   * Cancels a running task
    */
   async cancelTask(taskId: string): Promise<void> {
     const response = await fetch(`${this.baseURL}/api/v1/marathon/cancel/${taskId}`, {
@@ -68,7 +68,7 @@ export class MarathonAgentAPI {
   }
 
   /**
-   * Lista todos los checkpoints de una tarea
+   * Lists all checkpoints for a task
    */
   async getCheckpoints(taskId: string): Promise<Checkpoint[]> {
     const response = await fetch(`${this.baseURL}/api/v1/marathon/checkpoints/${taskId}`);

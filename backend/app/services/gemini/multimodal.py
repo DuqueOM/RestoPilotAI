@@ -315,7 +315,7 @@ Be objective and constructive in your analysis."""
         """
         Professional gastronomy critic analysis of dish photograph.
         
-        CRÍTICO PARA HACKATHON: "Food Porn AI" - Análisis de clase mundial.
+        CRITICAL FOR HACKATHON: "Food Porn AI" - world-class analysis.
         
         Args:
             image_source: Dish photo
@@ -337,48 +337,48 @@ Be objective and constructive in your analysis."""
 
         mime_type = self._detect_mime_type(image_base64)
 
-        prompt = f"""Actúa como CRÍTICO GASTRONÓMICO DE CLASE MUNDIAL especializado en fotografía culinaria y presentación profesional.
+        prompt = f"""Act as a WORLD-CLASS GASTRONOMY CRITIC specialized in culinary photography and professional presentation.
 
-Analiza esta foto del plato: "{dish_name}" (Categoría: {dish_category})
+Analyze this dish photo: "{dish_name}" (Category: {dish_category})
 
-Evalúa en escala 0-10 con criterios PROFESIONALES:
+Evaluate on a 0-10 scale using PROFESSIONAL criteria:
 
-1. COMPOSICIÓN VISUAL
-   - Regla de tercios aplicada
-   - Balance de elementos en el plato
-   - Punto focal claro y definido
-   - Uso efectivo del espacio negativo
-   - Ángulo de fotografía apropiado
+1. VISUAL COMPOSITION
+   - Rule of thirds usage
+   - Balance of elements on the plate
+   - Clear and defined focal point
+   - Effective use of negative space
+   - Appropriate photography angle
 
-2. ILUMINACIÓN PROFESIONAL
-   - Dirección y calidad de luz
-   - Sombras apropiadas que añaden profundidad
-   - Destacado de texturas
-   - Color temperature correcto
-   - Evita sobreexposición/subexposición
+2. PROFESSIONAL LIGHTING
+   - Light direction and quality
+   - Shadows that add depth (appropriate and intentional)
+   - Texture highlight
+   - Correct color temperature
+   - Avoids overexposure/underexposure
 
-3. EMPLATADO PROFESIONAL
-   - Precisión y limpieza del plato
-   - Altura y volumen (dimensionalidad)
-   - Uso estratégico del color
-   - Garnish apropiado y no excesivo
-   - Técnicas de emplatado modernas
+3. PROFESSIONAL PLATING
+   - Precision and cleanliness
+   - Height and volume (dimensionality)
+   - Strategic use of color
+   - Appropriate garnish (not excessive)
+   - Modern plating techniques
 
-4. APETITOSIDAD ("Food Porn Factor")
-   - Texturas visibles y atractivas
-   - Colores vibrantes y naturales
-   - Frescura aparente de ingredientes
-   - Factor "craveable" (provoca deseo)
-   - Steam/moisture visible si aplica
+4. APPETIZING FACTOR ("Food Porn Factor")
+   - Visible, attractive textures
+   - Vibrant, natural colors
+   - Apparent ingredient freshness
+   - "Craveable" factor (makes you want it)
+   - Visible steam/moisture when applicable
 
-5. "INSTAGRAMABILIDAD"
-   - Aesthetic trending actual
-   - Shareability en redes sociales
+5. "INSTAGRAMABILITY"
+   - Current trending aesthetic
+   - Social media shareability
    - Visual storytelling
-   - Elementos únicos/memorables
+   - Unique/memorable elements
    - Wow factor
 
-RESPONDE CON JSON VÁLIDO:
+RESPOND WITH VALID JSON:
 {{
     "overall_score": 8.5,
     "scores": {{
@@ -389,30 +389,30 @@ RESPONDE CON JSON VÁLIDO:
         "instagramability": 8.0
     }},
     "strengths": [
-        "Iluminación natural perfecta que resalta texturas",
-        "Colores vibrantes del plato contrastan con fondo neutro",
-        "Garnish minimalista pero efectivo"
+        "Perfect natural lighting that highlights textures",
+        "Vibrant dish colors contrast with a neutral background",
+        "Minimalist garnish but effective"
     ],
     "weaknesses": [
-        "Composición ligeramente descentrada",
-        "Podría beneficiarse de más altura en el emplatado"
+        "Composition is slightly off-center",
+        "Could benefit from more height in the plating"
     ],
     "specific_improvements": [
         {{
-            "issue": "Composición no sigue regla de tercios",
-            "suggestion": "Reposicionar plato 1/3 hacia la izquierda",
+            "issue": "Composition does not follow the rule of thirds",
+            "suggestion": "Reposition the plate 1/3 toward the left",
             "priority": "medium",
-            "expected_impact": "Mejorará balance visual en 15%"
+            "expected_impact": "Will improve visual balance by 15%"
         }},
         {{
-            "issue": "Falta profundidad en el plato",
-            "suggestion": "Agregar altura con técnica de stacking",
+            "issue": "Dish lacks depth (dimensionality)",
+            "suggestion": "Add height using stacking techniques",
             "priority": "high",
-            "expected_impact": "Aumentará percepción de valor en 20%"
+            "expected_impact": "Will increase perceived value by 20%"
         }}
     ],
-    "professional_assessment": "Plato bien ejecutado con potencial comercial alto. La iluminación natural es excepcional y los colores son vibrantes. Con ajustes menores en composición y altura, podría alcanzar nivel de revista gastronómica.",
-    "comparable_to": "Nivel de Pujol o Quintonil en presentación, pero con estilo más casual",
+    "professional_assessment": "Well-executed dish with strong commercial potential. The natural lighting is exceptional and the colors are vibrant. With minor adjustments to composition and height, it could reach food-magazine quality.",
+    "comparable_to": "Pujol or Quintonil-level presentation, but with a more casual style",
     "market_positioning": {{
         "current_level": "upscale_casual",
         "potential_level": "fine_dining",
@@ -427,9 +427,9 @@ RESPONDE CON JSON VÁLIDO:
         "portion_size_perception": "generous"
     }},
     "actionable_recommendations": [
-        "Usar este estilo de iluminación consistentemente",
-        "Invertir en platos de color neutro para mejor contraste",
-        "Capacitar staff en técnicas de altura en emplatado"
+        "Use this lighting style consistently",
+        "Invest in neutral-colored plates for better contrast",
+        "Train staff on height/stacking plating techniques"
     ],
     "instagram_optimization": {{
         "hashtag_suggestions": ["#FoodPorn", "#MexicanCuisine", "#Foodie"],
@@ -439,7 +439,7 @@ RESPONDE CON JSON VÁLIDO:
     }}
 }}
 
-Sé específico, profesional y constructivo. Este análisis será usado para mejorar el negocio."""
+Be specific, professional, and constructive. This analysis will be used to improve the business."""
 
         try:
             # Use Gemini 3 Vision with DEEP thinking for professional analysis

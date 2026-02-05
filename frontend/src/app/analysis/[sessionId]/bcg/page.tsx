@@ -1,20 +1,24 @@
 'use client';
 
+import { MenuItemsTable } from '@/components/analysis/MenuItemsTable';
 import { GroundingSources } from '@/components/common/GroundingSources';
-import { api, BCGAnalysisResult, MenuEngineeringItem } from '@/lib/api';
+import { MenuTransformationIntegrated } from '@/components/creative/MenuTransformationIntegrated';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { BCGAnalysisResult, MenuEngineeringItem } from '@/lib/api';
 import { AlertTriangle, BarChart3, RefreshCw, TrendingUp } from 'lucide-react';
 import { use, useCallback, useEffect, useState } from 'react';
+import { useSessionData } from '../layout';
 
 interface BCGPageProps {
   params: Promise<{ sessionId: string }>;
 }
 
 const ALL_PERIODS = [
-  { value: '30d', label: '30 días' },
-  { value: '90d', label: '3 meses' },
-  { value: '180d', label: '6 meses' },
-  { value: '365d', label: '1 año' },
-  { value: 'all', label: 'Todo' },
+  { value: '30d', label: '30 days' },
+  { value: '90d', label: '3 months' },
+  { value: '180d', label: '6 months' },
+  { value: '365d', label: '1 year' },
+  { value: 'all', label: 'All Time' },
 ];
 
 function getAvailablePeriods(sessionData: any) {
@@ -45,42 +49,43 @@ function getAvailablePeriods(sessionData: any) {
 }
 
 const CATEGORY_CONFIG: Record<string, { bg: string; text: string; border: string; icon: string; label: string; desc: string }> = {
-  star: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-400', icon: '⭐', label: 'Estrellas', desc: 'Alta popularidad + Alto margen. Proteger y promocionar.' },
-  plowhorse: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-400', icon: '🐴', label: 'Caballos de Trabajo', desc: 'Alta popularidad + Bajo margen. Mejorar rentabilidad.' },
-  puzzle: { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-400', icon: '🧩', label: 'Rompecabezas', desc: 'Baja popularidad + Alto margen. Promocionar más.' },
-  dog: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-400', icon: '🐕', label: 'Perros', desc: 'Baja popularidad + Bajo margen. Evaluar eliminación.' },
+  star: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-400', icon: '⭐', label: 'Stars', desc: 'High popularity + High margin. Protect and promote.' },
+  plowhorse: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-400', icon: '🐴', label: 'Plowhorses', desc: 'High popularity + Low margin. Improve profitability.' },
+  puzzle: { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-400', icon: '🧩', label: 'Puzzles', desc: 'Low popularity + High margin. Promote more.' },
+  dog: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-400', icon: '🐕', label: 'Dogs', desc: 'Low popularity + Low margin. Consider removal.' },
 };
 
 export default function BCGPage({ params }: BCGPageProps) {
   const { sessionId } = use(params);
+  const { sessionData, isLoading: sessionLoading } = useSessionData();
   const [data, setData] = useState<BCGAnalysisResult | null>(null);
-  const [sessionData, setSessionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadingPeriod, setLoadingPeriod] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [showMenuList, setShowMenuList] = useState(false);
+  const [showMenuTransform, setShowMenuTransform] = useState(false);
 
   const fetchAnalysis = useCallback(async (period: string) => {
     try {
-      const session = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
-        ? await api.getDemoSession()
-        : await api.getSession(sessionId);
-      setSessionData(session);
-      
-      // Handle nested data structure
-      const sessionData = session.data || session;
-      if (sessionData.bcg_analysis) {
-        setData(sessionData.bcg_analysis);
+      // Use data from SessionContext
+      const unwrappedData = (sessionData as any)?.data || sessionData;
+      if (unwrappedData?.bcg_analysis) {
+        setData(unwrappedData.bcg_analysis);
+      } else if (unwrappedData?.bcg) {
+        setData(unwrappedData.bcg);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load analysis');
     }
-  }, [sessionId]);
+  }, [sessionData]);
 
   useEffect(() => {
-    fetchAnalysis(selectedPeriod).finally(() => setLoading(false));
-  }, [fetchAnalysis, selectedPeriod]);
+    if (!sessionLoading && sessionData) {
+      fetchAnalysis(selectedPeriod).finally(() => setLoading(false));
+    }
+  }, [fetchAnalysis, selectedPeriod, sessionLoading, sessionData]);
 
   const handlePeriodChange = async (period: string) => {
     setSelectedPeriod(period);
@@ -117,7 +122,7 @@ export default function BCGPage({ params }: BCGPageProps) {
         <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <p className="text-red-600 font-medium">{error}</p>
         <button onClick={() => fetchAnalysis(selectedPeriod)} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          Reintentar
+          Retry
         </button>
       </div>
     );
@@ -127,8 +132,8 @@ export default function BCGPage({ params }: BCGPageProps) {
     return (
       <div className="text-center py-12 text-gray-500">
         <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-        <p className="text-lg">No hay análisis disponible</p>
-        <p className="text-sm mt-2">Ejecuta el análisis para clasificar tus productos.</p>
+        <p className="text-lg">No analysis available</p>
+        <p className="text-sm mt-2">Run the analysis to classify your products.</p>
       </div>
     );
   }
@@ -142,24 +147,46 @@ export default function BCGPage({ params }: BCGPageProps) {
 
   // Calculate available periods once
   const availablePeriods = getAvailablePeriods(sessionData);
+  
+  // Extract menu items from sessionData
+  const unwrappedData = (sessionData as any)?.data || sessionData;
+  const menuItems = unwrappedData?.menu?.items || [];
 
   return (
     <div className="space-y-6">
+      {/* Section 1: Menu List */}
+      <CollapsibleSection
+        title="📋 Full Menu List"
+        count={menuItems.length}
+        isOpen={showMenuList}
+        onToggle={() => setShowMenuList(!showMenuList)}
+      >
+        <MenuItemsTable items={menuItems} />
+      </CollapsibleSection>
+      
+      {/* Section 2: Menu Transformation */}
+      <CollapsibleSection
+        title="🎨 Menu Style Transformation"
+        isOpen={showMenuTransform}
+        onToggle={() => setShowMenuTransform(!showMenuTransform)}
+      >
+        <MenuTransformationIntegrated sessionId={sessionId} />
+      </CollapsibleSection>
       {/* Header with Period Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2">
             <BarChart3 className="w-6 h-6" />
-            Ingeniería de Menú
+            Menu Engineering
           </h2>
           <p className="text-sm text-gray-500">
-            {data.methodology} • {data.items_analyzed} productos analizados
+            {data.methodology} • {data.items_analyzed} items analyzed
           </p>
         </div>
         
         {availablePeriods.length > 1 && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Período:</span>
+            <span className="text-sm text-gray-600">Period:</span>
             <div className="flex bg-gray-100 rounded-lg p-1">
               {availablePeriods.map((p) => (
                 <button
@@ -192,17 +219,17 @@ export default function BCGPage({ params }: BCGPageProps) {
       {/* Date Range Info */}
       {data.date_range?.start && (
         <div className="text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
-          Datos del {new Date(data.date_range.start).toLocaleDateString('es')} al {new Date(data.date_range.end || '').toLocaleDateString('es')}
-          {' • '}{data.total_records} registros de venta
+          Data from {new Date(data.date_range.start).toLocaleDateString('en-US')} to {new Date(data.date_range.end || '').toLocaleDateString('en-US')}
+          {' • '}{data.total_records} sales records
         </div>
       )}
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KPICard label="Ingresos Totales" value={`$${data.summary?.total_revenue?.toLocaleString() || 0}`} icon={<TrendingUp className="w-5 h-5" />} color="blue" />
-        <KPICard label="Contribución Total" value={`$${data.summary?.total_contribution?.toLocaleString() || 0}`} icon={<BarChart3 className="w-5 h-5" />} color="green" />
-        <KPICard label="Unidades Vendidas" value={data.summary?.total_units?.toLocaleString() || '0'} icon={<span className="text-lg">📦</span>} color="purple" />
-        <KPICard label="CM Promedio" value={`$${data.summary?.avg_cm?.toFixed(2) || 0}`} icon={<span className="text-lg">💰</span>} color="amber" />
+        <KPICard label="Total Revenue" value={`$${data.summary?.total_revenue?.toLocaleString() || 0}`} icon={<TrendingUp className="w-5 h-5" />} color="blue" />
+        <KPICard label="Total Contribution" value={`$${data.summary?.total_contribution?.toLocaleString() || 0}`} icon={<BarChart3 className="w-5 h-5" />} color="green" />
+        <KPICard label="Units Sold" value={data.summary?.total_units?.toLocaleString() || '0'} icon={<span className="text-lg">📦</span>} color="purple" />
+        <KPICard label="Avg CM" value={`$${data.summary?.avg_cm?.toFixed(2) || 0}`} icon={<span className="text-lg">💰</span>} color="amber" />
       </div>
 
       {/* Menu Engineering Matrix */}
@@ -227,7 +254,7 @@ export default function BCGPage({ params }: BCGPageProps) {
 
       {/* Category Distribution Chart */}
       <div className="bg-white rounded-lg border p-6">
-        <h3 className="font-semibold mb-4">Distribución por Categoría</h3>
+        <h3 className="font-semibold mb-4">Category Distribution</h3>
         <div className="space-y-3">
           {data.summary?.categories?.map((cat) => {
             const config = CATEGORY_CONFIG[cat.category] || { bg: 'bg-gray-100', text: 'text-gray-800', icon: '📊', label: cat.category };
@@ -248,7 +275,7 @@ export default function BCGPage({ params }: BCGPageProps) {
             );
           })}
         </div>
-        <p className="text-xs text-gray-500 mt-4">Porcentaje de contribución total por categoría</p>
+        <p className="text-xs text-gray-500 mt-4">Total contribution percentage by category</p>
       </div>
 
       {/* Attention Needed */}
@@ -256,10 +283,10 @@ export default function BCGPage({ params }: BCGPageProps) {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-red-800 font-medium mb-2">
             <AlertTriangle className="w-5 h-5" />
-            {data.summary.attention_needed} productos requieren atención
+            {data.summary.attention_needed} products require attention
           </div>
           <p className="text-sm text-red-700">
-            Los siguientes productos tienen baja popularidad y bajo margen: {data.summary.dogs_list?.join(', ')}
+            The following products have low popularity and low margin: {data.summary.dogs_list?.join(', ')}
           </p>
         </div>
       )}
@@ -267,7 +294,7 @@ export default function BCGPage({ params }: BCGPageProps) {
       {/* Top Performers */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white rounded-lg border p-4">
-          <h4 className="font-semibold mb-3 flex items-center gap-2">🏆 Top por Contribución</h4>
+          <h4 className="font-semibold mb-3 flex items-center gap-2">🏆 Top by Contribution</h4>
           <ul className="space-y-2">
             {data.summary?.top_by_contribution?.map((item, i) => (
               <li key={i} className="flex justify-between text-sm">
@@ -278,7 +305,7 @@ export default function BCGPage({ params }: BCGPageProps) {
           </ul>
         </div>
         <div className="bg-white rounded-lg border p-4">
-          <h4 className="font-semibold mb-3 flex items-center gap-2">🔥 Top por Popularidad</h4>
+          <h4 className="font-semibold mb-3 flex items-center gap-2">🔥 Top by Popularity</h4>
           <ul className="space-y-2">
             {data.summary?.top_by_popularity?.map((item, i) => (
               <li key={i} className="flex justify-between text-sm">
@@ -292,22 +319,22 @@ export default function BCGPage({ params }: BCGPageProps) {
 
       {/* Thresholds Info */}
       <div className="bg-gray-50 rounded-lg p-4 text-sm">
-        <h4 className="font-medium mb-2">Umbrales de Clasificación</h4>
+        <h4 className="font-medium mb-2">Classification Thresholds</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-gray-600">
           <div>
-            <span className="block text-xs text-gray-500">Umbral Popularidad</span>
+            <span className="block text-xs text-gray-500">Popularity Threshold</span>
             <span className="font-mono">{data.thresholds?.popularity_threshold?.toFixed(2)}%</span>
           </div>
           <div>
-            <span className="block text-xs text-gray-500">Umbral CM</span>
+            <span className="block text-xs text-gray-500">CM Threshold</span>
             <span className="font-mono">${data.thresholds?.cm_threshold?.toFixed(2)}</span>
           </div>
           <div>
-            <span className="block text-xs text-gray-500">Popularidad Esperada</span>
+            <span className="block text-xs text-gray-500">Expected Popularity</span>
             <span className="font-mono">{data.thresholds?.expected_popularity?.toFixed(2)}%</span>
           </div>
           <div>
-            <span className="block text-xs text-gray-500">Total Productos</span>
+            <span className="block text-xs text-gray-500">Total Items</span>
             <span className="font-mono">{data.thresholds?.n_items}</span>
           </div>
         </div>
@@ -374,10 +401,10 @@ function QuadrantCard({ category, config, items, summary, expandedItem, onToggle
               {expandedItem === item.name && (
                 <div className="mt-2 pt-2 border-t text-xs space-y-1">
                   <div className="grid grid-cols-2 gap-2">
-                    <span>Unidades: {item.units_sold}</span>
-                    <span>Precio: ${item.price?.toFixed(2)}</span>
-                    <span>Costo: ${item.cost?.toFixed(2)}</span>
-                    <span>Margen: {item.margin_pct?.toFixed(1)}%</span>
+                    <span>Units: {item.units_sold}</span>
+                    <span>Price: ${item.price?.toFixed(2)}</span>
+                    <span>Cost: ${item.cost?.toFixed(2)}</span>
+                    <span>Margin: {item.margin_pct?.toFixed(1)}%</span>
                   </div>
                   <div className="mt-2 p-2 bg-white rounded space-y-2">
                     <div>
@@ -410,7 +437,7 @@ function QuadrantCard({ category, config, items, summary, expandedItem, onToggle
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-500 text-center py-4">Sin productos en esta categoría</p>
+        <p className="text-sm text-gray-500 text-center py-4">No products in this category</p>
       )}
     </div>
   );

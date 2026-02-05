@@ -8,8 +8,8 @@ import base64
 
 class CreativeAutopilotAgent:
     """
-    Implementa el track 'Creative Autopilot' del hackathon.
-    Genera campañas visuales completas usando Nano Banana Pro.
+    Implements the hackathon 'Creative Autopilot' track.
+    Generates complete visual campaigns using Nano Banana Pro.
     """
     
     def __init__(self):
@@ -27,30 +27,30 @@ class CreativeAutopilotAgent:
         brand_guidelines: Dict = None
     ) -> Dict:
         """
-        Genera una campaña visual COMPLETA para un plato específico.
+        Generates a COMPLETE visual campaign for a specific dish.
         """
         
-        # PASO 1: Razonamiento estratégico (Gemini 3 Pro)
+        # STEP 1: Strategic reasoning (Gemini 3 Pro)
         strategy = await self._analyze_campaign_strategy(
             dish_data, bcg_classification
         )
         
-        # PASO 2: Generación de concepto creativo
+        # STEP 2: Creative concept generation
         creative_concept = await self._generate_creative_concept(
             restaurant_name, dish_data, strategy
         )
         
-        # PASO 3: Generar assets visuales con Nano Banana Pro
+        # STEP 3: Generate visual assets with Nano Banana Pro
         visual_assets = await self._generate_visual_assets(
             creative_concept,
             brand_guidelines
         )
         
-        # PASO 4: Generar variaciones A/B
+        # STEP 4: Generate A/B variants
         ab_variants = []
         if visual_assets:
             ab_variants = await self._generate_ab_variants(
-                visual_assets[0],  # Partir del primer asset
+                visual_assets[0],  # Start from the first asset
                 strategy
             )
         
@@ -68,38 +68,38 @@ class CreativeAutopilotAgent:
         target_style: str  # "modern_minimalist", "rustic_vintage", "luxury_fine_dining"
     ) -> Dict:
         """
-        Transforma el diseño visual de un menú manteniendo contenido.
+        Transforms the visual design of a menu while maintaining content.
         
-        USO DE NANO BANANA PRO:
-        - Mantiene TODO el texto/precios exactos
-        - Cambia completamente el diseño visual
-        - Genera variaciones profesionales
+        USING NANO BANANA PRO:
+        - Keeps ALL text/prices exactly as is
+        - Completely changes the visual design
+        - Generates professional variations
         """
         
         style_prompts = {
             "modern_minimalist": """
-                Rediseña este menú con un estilo minimalista moderno:
-                - Tipografía: Sans-serif limpia (similar a Helvetica)
-                - Colores: Blanco, negro, un acento dorado sutil
-                - Layout: Abundante espacio en blanco, grid organizado
-                - Elementos: Líneas delgadas, iconos simples
-                MANTÉN TODO EL TEXTO Y PRECIOS EXACTAMENTE IGUALES.
+                Redesign this menu with a modern minimalist style:
+                - Typography: Clean Sans-serif (similar to Helvetica)
+                - Colors: White, black, a subtle gold accent
+                - Layout: Abundant white space, organized grid
+                - Elements: Thin lines, simple icons
+                KEEP ALL TEXT AND PRICES EXACTLY THE SAME.
             """,
             "rustic_vintage": """
-                Rediseña este menú con un estilo rústico vintage:
-                - Tipografía: Serif clásica con detalles ornamentales
-                - Colores: Sepia, marrones cálidos, crema
-                - Layout: Asimétrico, con viñetas decorativas
-                - Elementos: Bordes ornamentados, ilustraciones vintage
-                MANTÉN TODO EL TEXTO Y PRECIOS EXACTAMENTE IGUALES.
+                Redesign this menu with a rustic vintage style:
+                - Typography: Classic Serif with ornamental details
+                - Colors: Sepia, warm browns, cream
+                - Layout: Asymmetrical, with decorative vignettes
+                - Elements: Ornate borders, vintage illustrations
+                KEEP ALL TEXT AND PRICES EXACTLY THE SAME.
             """,
             "luxury_fine_dining": """
-                Rediseña este menú con un estilo de alta gastronomía:
-                - Tipografía: Serif elegante (similar a Didot)
-                - Colores: Negro profundo, dorado, blanco puro
-                - Layout: Centrado, simétrico, sofisticado
-                - Elementos: Detalles dorados, textura papel premium
-                MANTÉN TODO EL TEXTO Y PRECIOS EXACTAMENTE IGUALES.
+                Redesign this menu with a high-end fine dining style:
+                - Typography: Elegant Serif (similar to Didot)
+                - Colors: Deep black, gold, pure white
+                - Layout: Centered, symmetrical, sophisticated
+                - Elements: Gold details, premium paper texture
+                KEEP ALL TEXT AND PRICES EXACTLY THE SAME.
             """
         }
         
@@ -139,24 +139,24 @@ class CreativeAutopilotAgent:
             }
 
     async def _analyze_campaign_strategy(self, dish_data: Dict, bcg_class: str) -> Dict:
-        """Determina la estrategia basada en la matriz BCG."""
+        """Determines the strategy based on the BCG matrix."""
         prompt = f"""
-        Actúa como un estratega de marketing gastronómico.
-        Analiza este plato para una campaña publicitaria:
+        Act as a gastronomic marketing strategist.
+        Analyze this dish for an advertising campaign:
         
-        PLATO: {dish_data['name']}
-        PRECIO: {dish_data['price']}
-        DESCRIPCIÓN: {dish_data['description']}
-        CATEGORÍA: {dish_data.get('category', 'General')}
-        CLASIFICACIÓN BCG: {bcg_class}
+        DISH: {dish_data['name']}
+        PRICE: {dish_data['price']}
+        DESCRIPTION: {dish_data['description']}
+        CATEGORY: {dish_data.get('category', 'General')}
+        BCG CLASSIFICATION: {bcg_class}
         
-        Define la estrategia:
-        1. Objetivo principal (ej: Maximizar margen, Aumentar volumen, Crear tráfico).
-        2. Público objetivo ideal.
-        3. Tono de comunicación.
-        4. Ángulo psicológico de venta.
+        Define the strategy:
+        1. Main objective (e.g., Maximize margin, Increase volume, Create traffic).
+        2. Ideal target audience.
+        3. Communication tone.
+        4. Psychological sales angle.
         
-        Responde en JSON.
+        Respond in JSON.
         """
         
         response = self.client.models.generate_content(
@@ -169,22 +169,22 @@ class CreativeAutopilotAgent:
         return json.loads(response.text)
 
     async def _generate_creative_concept(self, restaurant_name: str, dish_data: Dict, strategy: Dict) -> Dict:
-        """Crea el concepto visual y de copy."""
+        """Creates the visual and copy concept."""
         prompt = f"""
-        Crea un concepto creativo visual para esta campaña:
+        Create a visual creative concept for this campaign:
         
-        RESTAURANTE: {restaurant_name}
-        PLATO: {dish_data['name']}
-        ESTRATEGIA: {strategy}
+        RESTAURANT: {restaurant_name}
+        DISH: {dish_data['name']}
+        STRATEGY: {strategy}
         
         Define:
-        1. "headline": Un titular pegadizo en ESPAÑOL (máx 5 palabras).
-        2. "main_message": Mensaje principal.
-        3. "visual_description": Descripción detallada de la imagen a generar.
-        4. "photo_style": Estilo fotográfico (ej: Dark mood, High key, Lifestyle).
-        5. "key_elements": Elementos clave en la composición.
+        1. "headline": A catchy headline in ENGLISH (max 5 words).
+        2. "main_message": Main message.
+        3. "visual_description": Detailed description of the image to generate.
+        4. "photo_style": Photographic style (e.g., Dark mood, High key, Lifestyle).
+        5. "key_elements": Key elements in the composition.
         
-        Responde en JSON.
+        Respond in JSON.
         """
         
         response = self.client.models.generate_content(
@@ -202,16 +202,16 @@ class CreativeAutopilotAgent:
         brand_guidelines: Dict = None
     ) -> List[Dict]:
         """
-        Genera múltiples assets usando Nano Banana Pro.
+        Generates multiple assets using Nano Banana Pro.
         """
         
         assets = []
         
-        # Asset 1: Post de Instagram (1:1)
+        # Asset 1: Instagram post (1:1)
         instagram_post = await self._generate_instagram_post(concept, brand_guidelines)
         assets.append(instagram_post)
         
-        # Asset 2: Story de Instagram (9:16)
+        # Asset 2: Instagram story (9:16)
         instagram_story = await self._generate_instagram_story(concept, brand_guidelines)
         assets.append(instagram_story)
         
@@ -236,9 +236,9 @@ class CreativeAutopilotAgent:
         language: str = "es"
     ) -> Dict:
         """
-        Método genérico para generar assets visuales con Nano Banana Pro.
+        Generic method to generate visual assets with Nano Banana Pro.
         """
-        # Preparar referencias de marca
+        # Prepare brand references
         reference_images = []
         if brand_guidelines and 'logo_path' in brand_guidelines:
             reference_images.append({
@@ -250,18 +250,18 @@ class CreativeAutopilotAgent:
         if language != "es" and "translated_headlines" in concept and language in concept["translated_headlines"]:
              headline = concept["translated_headlines"][language]
 
-        # Construir prompt final
+        # Build final prompt
         prompt = prompt_template.format(
             visual_description=concept.get('visual_description', ''),
             main_message=concept.get('main_message', ''),
             headline=headline,
-            colors=brand_guidelines.get('colors', 'cálidos y apetitosos') if brand_guidelines else 'cálidos y apetitosos',
-            photo_style=concept.get('photo_style', 'food photography profesional'),
+            colors=brand_guidelines.get('colors', 'warm and appetizing') if brand_guidelines else 'warm and appetizing',
+            photo_style=concept.get('photo_style', 'professional food photography'),
             key_elements=concept.get('key_elements', '')
         )
         
         try:
-            # Construir contenido para Gemini
+            # Build content for Gemini
             content_parts = [{"text": prompt}]
             for ref_img in reference_images[:5]: # Limit refs
                 try:
@@ -275,7 +275,7 @@ class CreativeAutopilotAgent:
                 except Exception as e:
                     logger.warning(f"Could not load ref image {ref_img['path']}: {e}")
 
-            # Llamada al modelo
+            # Model call
             response = self.client.models.generate_content(
                 model=self.image_model,
                 contents=content_parts,
@@ -286,7 +286,7 @@ class CreativeAutopilotAgent:
                 )
             )
             
-            # Extraer resultados
+            # Extract results
             generated_image = None
             reasoning = None
             sources = self._extract_sources(response)
@@ -329,19 +329,19 @@ class CreativeAutopilotAgent:
 
     async def _generate_instagram_post(self, concept: Dict, brand_guidelines: Dict = None) -> Dict:
         prompt = """
-        Crea un POST DE INSTAGRAM (Cuadrado 1:1) profesional:
+        Create a professional INSTAGRAM POST (Square 1:1):
         
-        DESCRIPCIÓN VISUAL: {visual_description}
-        MENSAJE: {main_message}
+        VISUAL DESCRIPTION: {visual_description}
+        MESSAGE: {main_message}
         
-        REQUISITOS:
-        - Formato cuadrado perfecto.
-        - TEXTO EN LA IMAGEN: "{headline}" (Tipografía moderna, legible, integrada).
-        - Colores: {colors}.
-        - Estilo: {photo_style}.
-        - Elementos clave: {key_elements}.
+        REQUIREMENTS:
+        - Perfect square format.
+        - TEXT IN IMAGE: "{headline}" (Modern typography, legible, integrated).
+        - Colors: {colors}.
+        - Style: {photo_style}.
+        - Key elements: {key_elements}.
         
-        Usa composición centrada o regla de tercios. El texto debe ser el héroe junto al plato.
+        Use centered composition or rule of thirds. Text should be the hero alongside the dish.
         """
         return await self._generate_image_asset(
             concept, "1080x1080", "1080x1080", "instagram_post", prompt, brand_guidelines
@@ -349,18 +349,18 @@ class CreativeAutopilotAgent:
 
     async def _generate_instagram_story(self, concept: Dict, brand_guidelines: Dict = None) -> Dict:
         prompt = """
-        Crea una INSTAGRAM STORY (Vertical 9:16) inmersiva:
+        Create an immersive INSTAGRAM STORY (Vertical 9:16):
         
-        DESCRIPCIÓN VISUAL: {visual_description}
+        VISUAL DESCRIPTION: {visual_description}
         
-        REQUISITOS:
-        - Formato vertical alto (9:16).
-        - Dejar espacio libre arriba y abajo para UI de Instagram.
-        - TEXTO EN LA IMAGEN: "{headline}" (Grande, llamativo, en el centro o tercio superior).
-        - Colores: {colors}.
-        - Estilo: {photo_style}.
+        REQUIREMENTS:
+        - Tall vertical format (9:16).
+        - Leave free space at top and bottom for Instagram UI.
+        - TEXT IN IMAGE: "{headline}" (Large, eye-catching, in center or top third).
+        - Colors: {colors}.
+        - Style: {photo_style}.
         
-        La imagen debe invitar a hacer 'Tap'. Haz que el plato se vea grandioso y alto.
+        The image should invite a 'Tap'. Make the dish look grand and tall.
         """
         return await self._generate_image_asset(
             concept, "Vertical", "1080x1920", "instagram_story", prompt, brand_guidelines
@@ -368,17 +368,17 @@ class CreativeAutopilotAgent:
 
     async def _generate_web_banner(self, concept: Dict, brand_guidelines: Dict = None) -> Dict:
         prompt = """
-        Crea un BANNER WEB (Landscape 1.91:1) para sitio web:
+        Create a WEB BANNER (Landscape 1.91:1) for website:
         
-        DESCRIPCIÓN VISUAL: {visual_description}
+        VISUAL DESCRIPTION: {visual_description}
         
-        REQUISITOS:
-        - Formato horizontal ancho.
-        - Espacio negativo amplio a la derecha o izquierda para texto superpuesto (si se añade después) o incluir el texto "{headline}" limpiamente.
-        - Colores: {colors}.
-        - Estilo: {photo_style}.
+        REQUIREMENTS:
+        - Wide horizontal format.
+        - Ample negative space on right or left for overlaid text (if added later) or include the text "{headline}" cleanly.
+        - Colors: {colors}.
+        - Style: {photo_style}.
         
-        Composición limpia, editorial, estilo página de inicio de restaurante de lujo.
+        Clean composition, editorial, luxury restaurant homepage style.
         """
         return await self._generate_image_asset(
             concept, "Landscape", "1200x628", "web_banner", prompt, brand_guidelines
@@ -386,51 +386,51 @@ class CreativeAutopilotAgent:
 
     async def _generate_printable_flyer(self, concept: Dict, brand_guidelines: Dict = None) -> Dict:
         prompt = """
-        Crea un FLYER IMPRIMIBLE (Formato A4 vertical) de alta resolución:
+        Create a PRINTABLE FLYER (A4 Vertical format) high resolution:
         
-        DESCRIPCIÓN VISUAL: {visual_description}
+        VISUAL DESCRIPTION: {visual_description}
         
-        REQUISITOS:
-        - Formato papel vertical.
-        - Diseño tipo poster/cartel.
-        - TEXTO PRINCIPAL: "{headline}" en la parte superior.
-        - Incluir espacio visual para "Escanea para ordenar" (simulado).
-        - Colores: {colors}.
-        - Estilo: {photo_style}.
+        REQUIREMENTS:
+        - Vertical paper format.
+        - Poster/signage style design.
+        - MAIN TEXT: "{headline}" at the top.
+        - Include visual space for "Scan to order" (simulated).
+        - Colors: {colors}.
+        - Style: {photo_style}.
         
-        Debe verse como un póster impreso de alta calidad pegado en una pared o vitrina.
+        Must look like a high-quality printed poster stuck on a wall or display case.
         """
         return await self._generate_image_asset(
             concept, "A4", "2480x3508", "printable_flyer", prompt, brand_guidelines
         )
 
     async def _generate_ab_variants(self, base_asset: Dict, strategy: Dict) -> List[Dict]:
-        """Genera variantes A/B cambiando el enfoque creativo."""
+        """Generates A/B variants by changing the creative focus."""
         if not base_asset or not base_asset.get('concept'):
             return []
             
         variants = []
         
-        # Variant A: Enfoque en Producto (Macro/Close-up)
-        # Reutilizamos el concepto pero forzamos el estilo
+        # Variant A: Product Focus (Macro/Close-up)
+        # Reuse concept but force style
         concept_a = {
             "headline": base_asset['concept'],
-            "visual_description": "Extremo close-up macro del plato, enfocando texturas, gotas, brillo. Fondo desenfocado (bokeh).",
-            "main_message": "Sabor intenso",
+            "visual_description": "Extreme macro close-up of the dish, focusing on textures, droplets, shine. Blurred background (bokeh).",
+            "main_message": "Intense flavor",
             "photo_style": "Macro food photography",
-            "key_elements": "Textura, detalle, frescura"
+            "key_elements": "Texture, detail, freshness"
         }
         variant_a = await self._generate_instagram_post(concept_a)
         variant_a['variant_type'] = "macro_focus"
         variants.append(variant_a)
         
-        # Variant B: Enfoque en Lifestyle (Mesa, gente, ambiente)
+        # Variant B: Lifestyle Focus (Table, people, ambiance)
         concept_b = {
             "headline": base_asset['concept'],
-            "visual_description": "Plano abierto mostrando el plato en una mesa de restaurante con comensales felices difusos al fondo. Ambiente cálido y social.",
-            "main_message": "Experiencia compartida",
+            "visual_description": "Wide shot showing the dish on a restaurant table with happy diners blurred in the background. Warm and social atmosphere.",
+            "main_message": "Shared experience",
             "photo_style": "Lifestyle dining",
-            "key_elements": "Ambiente, mesa puesta, bebidas"
+            "key_elements": "Ambiance, set table, drinks"
         }
         variant_b = await self._generate_instagram_post(concept_b)
         variant_b['variant_type'] = "lifestyle_focus"
@@ -444,11 +444,11 @@ class CreativeAutopilotAgent:
         target_languages: List[str]
     ) -> Dict[str, List[Dict]]:
         """
-        Localiza la campaña regenerando assets con texto traducido.
+        Localizes the campaign by regenerating assets with translated text.
         """
         localized = {}
         
-        # Traducir conceptos primero (usando Reasoning model para rapidez)
+        # Translate concepts first (using Reasoning model for speed)
         headlines = [a.get('concept') for a in campaign_assets if a.get('concept')]
         headlines = list(set(headlines)) # Unique
         
@@ -456,14 +456,14 @@ class CreativeAutopilotAgent:
             return {}
             
         translation_prompt = f"""
-        Traduce estos titulares de marketing a los idiomas solicitados.
-        Mantén el tono persuasivo y corto.
+        Translate these marketing headlines to the requested languages.
+        Keep the persuasive and short tone.
         
-        Titulares: {json.dumps(headlines)}
-        Idiomas: {json.dumps(target_languages)}
+        Headlines: {json.dumps(headlines)}
+        Languages: {json.dumps(target_languages)}
         
-        Responde JSON: {{ "original": {{ "lang": "translated" }} }}
-        Ejemplo: {{ "Sabor Real": {{ "en": "Real Flavor", "fr": "Goût Royal" }} }}
+        Respond JSON: {{ "original": {{ "lang": "translated" }} }}
+        Example: {{ "Real Flavor": {{ "es": "Sabor Real", "fr": "Goût Royal" }} }}
         """
         
         try:
@@ -477,13 +477,13 @@ class CreativeAutopilotAgent:
             logger.error(f"Translation failed: {e}")
             translations = {}
 
-        # Regenerar assets para cada idioma
+        # Regenerate assets for each language
         for lang in target_languages:
             lang_assets = []
             for asset in campaign_assets:
-                # Recuperar concepto base para regenerar
-                # (En un caso real, guardaríamos el 'concept' dict completo en el asset,
-                # aquí reconstruimos uno parcial para la demo)
+                # Recover base concept to regenerate
+                # (In a real case, we would store the full 'concept' dict in the asset,
+                # here we reconstruct a partial one for the demo)
                 
                 original_headline = asset.get('concept')
                 translated_headline = original_headline
@@ -491,15 +491,15 @@ class CreativeAutopilotAgent:
                 if original_headline in translations and lang in translations[original_headline]:
                     translated_headline = translations[original_headline][lang]
                 
-                # Reconstruir concepto mínimo
+                # Reconstruct minimal concept
                 concept_recreated = {
                     "headline": translated_headline,
-                    "visual_description": f"Same visual as original: {asset.get('reasoning', '')}", # Simplificación
+                    "visual_description": f"Same visual as original: {asset.get('reasoning', '')}", # Simplification
                     "main_message": "Localized content",
                     "key_elements": "Same as original"
                 }
                 
-                # Determinar tipo y regenerar
+                # Determine type and regenerate
                 new_asset = None
                 if asset['type'] == 'instagram_post':
                     new_asset = await self._generate_instagram_post(concept_recreated)

@@ -77,6 +77,6 @@ class GeocodingService:
             longitude=-99.133209,
             formatted_address=address or "Av. Presidente Masaryk, Polanco, CDMX",
             neighborhood="Polanco",
-            city="Ciudad de México",
-            country="México"
+            city="Mexico City",
+            country="Mexico"
         )

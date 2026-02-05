@@ -60,7 +60,7 @@ const TEMPLATES = [
   },
   {
     id: 'neighborhood_cafe',
-    name: 'Neighborhood Café',
+    name: 'Neighborhood Cafe',
     icon: '☕',
     description: 'Community gathering spot',
     context: {

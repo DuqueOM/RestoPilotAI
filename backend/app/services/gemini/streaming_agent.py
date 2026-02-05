@@ -9,13 +9,13 @@ from app.core.cache import get_cache_manager
 
 class StreamingAgent:
     """
-    Implementa streaming de respuestas Gemini 3 para transparencia del pensamiento.
+    Implements Gemini 3 response streaming for transparent model thinking.
     
-    Características:
-    - Streaming en tiempo real de respuestas multimodales
-    - Buffer inteligente para chunks pequeños
-    - Caché de respuestas completas
-    - Manejo robusto de errores
+    Features:
+    - Real-time streaming of multimodal responses
+    - Smart buffering for small chunks
+    - Full-response caching
+    - Robust error handling
     """
     
     def __init__(self):
@@ -23,7 +23,7 @@ class StreamingAgent:
         self.api_key = settings.gemini_api_key
         self.client = genai.Client(api_key=self.api_key)
         self.model = "gemini-3-flash-preview"
-        self.chunk_buffer_size = 50  # Buffer pequeños chunks para mejor UX
+        self.chunk_buffer_size = 50  # Buffer small chunks for better UX
 
     async def stream_analysis(
         self,
@@ -34,21 +34,21 @@ class StreamingAgent:
         cache_key: Optional[str] = None
     ):
         """
-        Stream de análisis en tiempo real con soporte multimodal.
-        El usuario VE el pensamiento del modelo mientras se genera.
+        Real-time analysis stream with multimodal support.
+        The user SEES the model's thinking while it is being generated.
         
         Args:
-            prompt: Texto del prompt
-            client_websocket: WebSocket para enviar chunks
-            images: Imágenes opcionales para análisis multimodal
-            system_instruction: Instrucción del sistema
-            cache_key: Clave para cachear la respuesta completa
+            prompt: Prompt text
+            client_websocket: WebSocket used to send chunks
+            images: Optional images for multimodal analysis
+            system_instruction: System instruction
+            cache_key: Key to cache the complete response
         """
         full_response = []
         buffer = ""
         
         try:
-            # Preparar contenido multimodal
+            # Prepare multimodal content
             parts = [types.Part(text=prompt)]
             
             if images:
@@ -70,20 +70,20 @@ class StreamingAgent:
             if system_instruction:
                 config_kwargs["system_instruction"] = system_instruction
             
-            # Stream con Gemini 3
+            # Stream with Gemini 3
             response_stream = self.client.models.generate_content(
                 model=self.model,
                 contents=[types.Content(parts=parts)],
                 config=types.GenerateContentConfig(**config_kwargs)
             )
             
-            # Procesar chunks con buffering inteligente
+            # Process chunks with smart buffering
             for chunk in response_stream:
                 if hasattr(chunk, 'text') and chunk.text:
                     buffer += chunk.text
                     full_response.append(chunk.text)
                     
-                    # Enviar cuando el buffer alcanza el tamaño mínimo
+                    # Send when the buffer reaches the minimum size
                     if len(buffer) >= self.chunk_buffer_size:
                         await client_websocket.send_json({
                             "type": "thinking_chunk",
@@ -92,7 +92,7 @@ class StreamingAgent:
                         })
                         buffer = ""
             
-            # Enviar buffer restante
+            # Send remaining buffer
             if buffer:
                 await client_websocket.send_json({
                     "type": "thinking_chunk",
@@ -100,21 +100,21 @@ class StreamingAgent:
                     "timestamp": datetime.now().isoformat()
                 })
             
-            # Señal de completado
+            # Completion signal
             await client_websocket.send_json({
                 "type": "thinking_complete",
                 "timestamp": datetime.now().isoformat()
             })
             
-            # Cachear respuesta completa si se proporciona cache_key
+            # Cache full response if cache_key is provided
             if cache_key:
                 complete_text = "".join(full_response)
                 cache_manager = await get_cache_manager()
                 await cache_manager.set(
                     cache_key,
                     complete_text,
-                    l1_ttl=1800,  # 30 min en L1
-                    l2_ttl=3600,  # 1 hora en L2
+                    l1_ttl=1800,  # 30 min in L1
+                    l2_ttl=3600,  # 1 hour in L2
                     tags=["gemini_stream"]
                 )
                 logger.info(f"Streamed response cached: {cache_key}")
@@ -134,8 +134,8 @@ class StreamingAgent:
         tools: Optional[List[types.Tool]] = None
     ):
         """
-        Stream con soporte para function calling de Gemini 3.
-        Útil para agentes que necesitan ejecutar herramientas durante el streaming.
+        Stream with Gemini 3 function-calling support.
+        Useful for agents that need to execute tools during streaming.
         """
         try:
             config_kwargs = {
@@ -153,7 +153,7 @@ class StreamingAgent:
             )
             
             for chunk in response_stream:
-                # Manejar function calls
+                # Handle function calls
                 if hasattr(chunk, 'candidates') and chunk.candidates:
                     for candidate in chunk.candidates:
                         if hasattr(candidate, 'content') and candidate.content.parts:
@@ -166,7 +166,7 @@ class StreamingAgent:
                                         "timestamp": datetime.now().isoformat()
                                     })
                 
-                # Manejar texto
+                # Handle text
                 if hasattr(chunk, 'text') and chunk.text:
                     await client_websocket.send_json({
                         "type": "thinking_chunk",

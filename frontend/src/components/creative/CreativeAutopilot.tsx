@@ -1,23 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import { api, CreativeAutopilotResult } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Sparkles, Image as ImageIcon, Copy, Check } from 'lucide-react';
+import { api, CreativeAutopilotResult } from '@/lib/api';
+import { Image as ImageIcon, Loader2, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface CreativeAutopilotProps {
   sessionId: string;
+  initialRestaurantName?: string;
+  menuItems?: any[];
 }
 
-export function CreativeAutopilot({ sessionId }: CreativeAutopilotProps) {
-  const [restaurantName, setRestaurantName] = useState('');
+export function CreativeAutopilot({ sessionId, initialRestaurantName = '', menuItems = [] }: CreativeAutopilotProps) {
+  const [restaurantName, setRestaurantName] = useState(initialRestaurantName);
   const [dishId, setDishId] = useState('');
-  const [targetLanguages, setTargetLanguages] = useState('es');
+  const [targetLanguages, setTargetLanguages] = useState('en, es');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<CreativeAutopilotResult | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -72,20 +74,35 @@ export function CreativeAutopilot({ sessionId }: CreativeAutopilotProps) {
               <Label htmlFor="restaurant-name">Restaurant Name</Label>
               <Input
                 id="restaurant-name"
-                placeholder="e.g. El Sabor Auténtico"
+                placeholder="e.g. The Authentic Flavor"
                 value={restaurantName}
                 onChange={(e) => setRestaurantName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dish-id">Dish ID (from Menu)</Label>
-              <Input
-                id="dish-id"
-                type="number"
-                placeholder="e.g. 1"
-                value={dishId}
-                onChange={(e) => setDishId(e.target.value)}
-              />
+              <Label htmlFor="dish-id">Select Dish</Label>
+              {menuItems.length > 0 ? (
+                <Select value={dishId} onValueChange={setDishId}>
+                  <SelectTrigger id="dish-id">
+                    <SelectValue placeholder="Select a dish..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {menuItems.map((item) => (
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="dish-id"
+                  type="number"
+                  placeholder="e.g. 1"
+                  value={dishId}
+                  onChange={(e) => setDishId(e.target.value)}
+                />
+              )}
             </div>
           </div>
           
@@ -93,7 +110,7 @@ export function CreativeAutopilot({ sessionId }: CreativeAutopilotProps) {
             <Label htmlFor="languages">Target Languages (comma separated)</Label>
             <Input
               id="languages"
-              placeholder="e.g. es, en"
+              placeholder="e.g. en, es, fr"
               value={targetLanguages}
               onChange={(e) => setTargetLanguages(e.target.value)}
             />

@@ -20,12 +20,12 @@ export function GroundingSources({ sources, isGrounded, className }: GroundingSo
         <div className="flex items-center gap-2">
           <Globe className="w-4 h-4 text-green-600" />
           <CardTitle className="text-sm font-medium">
-            Fuentes Verificables (Google Search Grounding)
+            Verifiable Sources (Google Search Grounding)
           </CardTitle>
           {isGrounded && (
             <Badge variant="outline" className="ml-auto text-green-600 border-green-600">
               <CheckCircle2 className="w-3 h-3 mr-1" />
-              Verificado
+              Verified
             </Badge>
           )}
         </div>
@@ -47,7 +47,7 @@ export function GroundingSources({ sources, isGrounded, className }: GroundingSo
           ))}
         </ul>
         <p className="text-xs text-muted-foreground mt-3">
-          Análisis enriquecido con datos en tiempo real de Google Search.
+          Analysis enriched with real-time data from Google Search.
         </p>
       </CardContent>
     </Card>

@@ -7,16 +7,16 @@ import { ProgressBar } from '@/components/setup/ProgressBar';
 import { TemplateSelector } from '@/components/setup/TemplateSelector';
 import { api } from '@/lib/api';
 import {
-    CheckCircle2,
-    FileText,
-    Instagram,
-    Loader2,
-    MapPin,
-    Mic,
-    Play,
-    Sparkles,
-    Target,
-    Upload
+  CheckCircle2,
+  FileText,
+  Instagram,
+  Loader2,
+  MapPin,
+  Mic,
+  Play,
+  Sparkles,
+  Target,
+  Upload
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { lazy, Suspense, useEffect, useState } from 'react';
@@ -36,6 +36,10 @@ export default function SetupPage() {
     stage: 'idle' | 'loading' | 'success';
   }>({ type: null, stage: 'idle' });
   const [loadingMessage, setLoadingMessage] = useState('Initializing...');
+  
+  // New states for analysis configuration
+  const [autoVerify, setAutoVerify] = useState(true);
+  const [autoImprove, setAutoImprove] = useState(true);
 
   // Rotating loading messages
   useEffect(() => {
@@ -190,6 +194,10 @@ export default function SetupPage() {
       if (formData.tiktok) data.append('tiktok', formData.tiktok);
       if (formData.website) data.append('website', formData.website);
       
+      // Analysis configuration
+      data.append('auto_verify', autoVerify.toString());
+      data.append('auto_improve', autoImprove.toString());
+      
       // Context
       if (formData.historyContext) data.append('historyContext', formData.historyContext);
       if (formData.valuesContext) data.append('valuesContext', formData.valuesContext);
@@ -239,6 +247,24 @@ export default function SetupPage() {
       }
       
       const { analysis_id } = await response.json();
+      
+      // AUTO-START MARATHON AGENT (full analysis)
+      try {
+        await fetch(`${API_BASE}/api/v1/marathon/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            task_type: 'full_analysis',
+            session_id: analysis_id,
+            enable_checkpoints: true,
+            auto_verify: autoVerify,
+            auto_improve: autoImprove,
+          }),
+        });
+      } catch (marathonErr) {
+        console.warn('Marathon Agent auto-start failed:', marathonErr);
+        // Continue anyway
+      }
       
       setLoadingState({ type: 'analysis', stage: 'success' });
       
@@ -375,7 +401,7 @@ export default function SetupPage() {
                 <input
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm"
-                  placeholder="Taquería El Sabor"
+                  placeholder="Taqueria El Sabor"
                   value={formData.businessName}
                   onChange={(e) => setFormData({...formData, businessName: e.target.value})}
                 />
@@ -613,40 +639,76 @@ export default function SetupPage() {
         
         {/* CTA Section */}
         <div className="mt-10 sticky bottom-6 z-40">
-           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:px-6 flex items-center justify-between max-w-5xl mx-auto">
-             <div>
-              <div className="text-sm font-medium text-gray-900">
-                Data Quality: <span className={completionScore < 30 ? 'text-red-600' : completionScore < 60 ? 'text-yellow-600' : 'text-green-600'}>
-                  {completionScore < 30 ? 'Minimal' : completionScore < 60 ? 'Good' : 'Excellent'}
-                </span>
+           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:px-6 max-w-5xl mx-auto">
+             {/* Configuration Toggles */}
+             <div className="flex flex-wrap items-center gap-4 mb-4 pb-4 border-b">
+               <div className="flex items-center gap-2">
+                 <input
+                   type="checkbox"
+                   id="autoVerify"
+                   checked={autoVerify}
+                   onChange={(e) => setAutoVerify(e.target.checked)}
+                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                 />
+                 <label htmlFor="autoVerify" className="text-sm font-medium text-gray-700 cursor-pointer">
+                   ✓ Enable Auto-Verification
+                 </label>
+               </div>
+               
+               <div className="flex items-center gap-2">
+                 <input
+                   type="checkbox"
+                   id="autoImprove"
+                   checked={autoImprove}
+                   onChange={(e) => setAutoImprove(e.target.checked)}
+                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                 />
+                 <label htmlFor="autoImprove" className="text-sm font-medium text-gray-700 cursor-pointer">
+                   🚀 Auto-Improve Results
+                 </label>
+               </div>
+               
+               <div className="text-xs text-gray-500 ml-auto">
+                 Powered by Gemini 3 Multimodal AI
+               </div>
+             </div>
+             
+             {/* Main Button and Data Quality */}
+             <div className="flex items-center justify-between">
+               <div>
+                <div className="text-sm font-medium text-gray-900">
+                  Data Quality: <span className={completionScore < 30 ? 'text-red-600' : completionScore < 60 ? 'text-yellow-600' : 'text-green-600'}>
+                    {completionScore < 30 ? 'Minimal' : completionScore < 60 ? 'Good' : 'Excellent'}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {completionScore < 30 && "Add more info for better insights"}
+                  {completionScore >= 30 && completionScore < 60 && "Great start! Add context for personalization"}
+                  {completionScore >= 60 && "Perfect! You'll get highly personalized insights"}
+                </div>
               </div>
-              <div className="text-xs text-gray-500 mt-0.5">
-                {completionScore < 30 && "Add more info for better insights"}
-                {completionScore >= 30 && completionScore < 60 && "Great start! Add context for personalization"}
-                {completionScore >= 60 && "Perfect! You'll get highly personalized insights"}
-              </div>
+              
+              <button
+                onClick={handleSubmit}
+                disabled={!formData.location || loadingState.stage !== 'idle'}
+                className={`px-6 py-2.5 rounded-lg font-medium text-white transition-all flex items-center gap-2 shadow-sm ${
+                  formData.location && loadingState.stage === 'idle'
+                    ? 'bg-blue-600 hover:bg-blue-700 hover:shadow-md'
+                    : 'bg-gray-300 cursor-not-allowed'
+                }`}
+              >
+                {loadingState.type === 'analysis' && loadingState.stage === 'loading' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    {formData.location ? 'Analyze My Business' : 'Add Location First'}
+                  </>
+                )}
+              </button>
             </div>
-            
-            <button
-              onClick={handleSubmit}
-              disabled={!formData.location || loadingState.stage !== 'idle'}
-              className={`px-6 py-2.5 rounded-lg font-medium text-white transition-all flex items-center gap-2 shadow-sm ${
-                formData.location && loadingState.stage === 'idle'
-                  ? 'bg-blue-600 hover:bg-blue-700 hover:shadow-md'
-                  : 'bg-gray-300 cursor-not-allowed'
-              }`}
-            >
-              {loadingState.type === 'analysis' && loadingState.stage === 'loading' ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Starting...
-                </>
-              ) : (
-                <>
-                  {formData.location ? 'Analyze My Business' : 'Add Location First'}
-                </>
-              )}
-            </button>
           </div>
         </div>
         

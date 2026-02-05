@@ -1,8 +1,9 @@
 'use client';
 
-import { api, Campaign, CampaignResult } from '@/lib/api';
+import { CreativeAutopilot } from '@/components/creative/CreativeAutopilot';
+import { Campaign, CampaignResult } from '@/lib/api';
 import { use, useEffect, useState } from 'react';
-
+import { useSessionData } from '../layout';
 
 interface CampaignsPageProps {
   params: Promise<{ sessionId: string }>;
@@ -10,20 +11,25 @@ interface CampaignsPageProps {
 
 export default function CampaignsPage({ params }: CampaignsPageProps) {
   const { sessionId } = use(params);
+  const { sessionData, isLoading: sessionLoading } = useSessionData();
   const [data, setData] = useState<CampaignResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'campaigns' | 'predictions' | 'creative'>('campaigns');
 
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        // Check if this is a demo session
-        const session = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
-          ? await api.getDemoSession()
-          : await api.getSession(sessionId);
-        if (session.campaigns) {
-          setData(session.campaigns);
+        // Use data from SessionContext
+        const unwrappedData = (sessionData as any)?.data || sessionData;
+        const campaignsRaw = unwrappedData?.campaigns;
+        if (campaignsRaw) {
+          if (Array.isArray(campaignsRaw)) {
+            setData({ session_id: sessionId, campaigns: campaignsRaw });
+          } else if (Array.isArray((campaignsRaw as any)?.campaigns)) {
+            setData(campaignsRaw as CampaignResult);
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load campaigns');
@@ -32,8 +38,10 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
       }
     };
 
-    fetchCampaigns();
-  }, [sessionId]);
+    if (!sessionLoading && sessionData) {
+      fetchCampaigns();
+    }
+  }, [sessionId, sessionData, sessionLoading]);
 
   const copyToClipboard = async (text: string, index: number) => {
     try {
@@ -58,45 +66,148 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
     );
   }
 
-  if (!data || !data.campaigns?.length) {
-    return (
-      <div className="text-center py-12 text-gray-500">
-        <p className="text-4xl mb-4">📢</p>
-        <p>No marketing campaigns generated yet.</p>
-        <p className="text-sm mt-2">Complete BCG analysis to generate campaigns.</p>
-      </div>
-    );
-  }
+  // Extract additional data from sessionData
+  const unwrappedData = (sessionData as any)?.data || sessionData;
+  const predictions = unwrappedData?.predictions;
+  const menuItems = unwrappedData?.menu_items || unwrappedData?.menu?.items || [];
+  const bcgData = unwrappedData?.bcg_analysis || unwrappedData?.bcg;
+  const restaurantName = unwrappedData?.restaurant_name || unwrappedData?.restaurant_info?.name || unwrappedData?.business_profile?.name || unwrappedData?.businessName || 'My Restaurant';
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold">AI-Generated Marketing Campaigns</h2>
-        <span className="text-sm text-gray-500">
-          {data.campaigns.length} campaigns
-        </span>
+      {/* Sub-tabs */}
+      <div className="flex border-b mb-6">
+        <button
+          onClick={() => setActiveTab('campaigns')}
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            activeTab === 'campaigns'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          📢 Generated Campaigns
+        </button>
+        <button
+          onClick={() => setActiveTab('predictions')}
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            activeTab === 'predictions'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          📈 Sales Predictions
+        </button>
+        <button
+          onClick={() => setActiveTab('creative')}
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            activeTab === 'creative'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          🚀 Creative Autopilot
+        </button>
       </div>
 
-      <div className="space-y-6">
-        {data.campaigns.map((campaign, index) => (
-          <CampaignCard
-            key={index}
-            campaign={campaign}
-            index={index}
-            onCopy={(text) => copyToClipboard(text, index)}
-            copied={copiedIndex === index}
+      {/* Content based on active tab */}
+      {activeTab === 'campaigns' && (
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold">AI-Generated Marketing Campaigns</h2>
+            <span className="text-sm text-gray-500">
+              {data?.campaigns?.length || 0} campaigns
+            </span>
+          </div>
+
+          {!data || !data.campaigns?.length ? (
+            <div className="text-center py-12 text-gray-500">
+              <p className="text-4xl mb-4">📢</p>
+              <p>No marketing campaigns generated yet.</p>
+              <p className="text-sm mt-2">Complete BCG analysis to generate campaigns.</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-6">
+                {data.campaigns.map((campaign, index) => (
+                  <CampaignCard
+                    key={index}
+                    campaign={campaign}
+                    index={index}
+                    onCopy={(text) => copyToClipboard(text, index)}
+                    copied={copiedIndex === index}
+                  />
+                ))}
+              </div>
+
+              {/* AI Thought Process */}
+              {data.thought_process && (
+                <div className="mt-8 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-2 text-purple-800">🧠 AI Thought Process</h3>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{data.thought_process}</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Predictions */}
+      {activeTab === 'predictions' && (
+        <div>
+          {predictions ? (
+            <PredictionsPanel data={predictions} sessionId={sessionId} />
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <p className="text-4xl mb-4">📈</p>
+              <p>No sales predictions available yet.</p>
+              <p className="text-sm mt-2">Upload sales data to generate forecasts.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Creative Autopilot */}
+      {activeTab === 'creative' && (
+        <div>
+          <CreativeAutopilotPlaceholder 
+            sessionId={sessionId}
+            restaurantName={restaurantName}
+            menuItems={menuItems}
+            bcgData={bcgData}
           />
-        ))}
-      </div>
-
-      {/* AI Thought Process */}
-      {data.thought_process && (
-        <div className="mt-8 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <h3 className="text-lg font-semibold mb-2 text-purple-800">🧠 AI Thought Process</h3>
-          <p className="text-sm text-gray-700 whitespace-pre-wrap">{data.thought_process}</p>
         </div>
       )}
     </div>
+  );
+}
+
+function CreativeAutopilotPlaceholder({
+  sessionId,
+  restaurantName,
+  menuItems,
+}: {
+  sessionId: string;
+  restaurantName: string;
+  menuItems: any[];
+  bcgData: any;
+}) {
+  const normalizedMenuItems = Array.isArray(menuItems)
+    ? menuItems
+        .map((item, idx) => {
+          if (!item || typeof item !== 'object') return null;
+          const existingId = (item as any).id;
+          const id = typeof existingId === 'number' && Number.isFinite(existingId) ? existingId : idx + 1;
+          return { ...item, id };
+        })
+        .filter(Boolean)
+    : [];
+
+  return (
+    <CreativeAutopilot
+      sessionId={sessionId}
+      initialRestaurantName={restaurantName}
+      menuItems={normalizedMenuItems as any[]}
+    />
   );
 }
 
@@ -213,6 +324,29 @@ function LoadingSkeleton() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Temporary component for Predictions (content from predictions/page.tsx will be moved here)
+function PredictionsPanel({ data, sessionId }: { data: any; sessionId: string }) {
+  const predictionCount = Array.isArray(data?.predictions)
+    ? data.predictions.length
+    : Array.isArray(data?.item_predictions)
+      ? data.item_predictions.length
+      : 0;
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-4">Sales Predictions</h2>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-sm text-blue-800">
+          📊 Predictions data available. Full implementation coming soon.
+        </p>
+        <p className="text-xs text-blue-600 mt-2">
+          {predictionCount} predictions loaded
+        </p>
       </div>
     </div>
   );

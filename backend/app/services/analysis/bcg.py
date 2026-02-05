@@ -462,32 +462,32 @@ class BCGClassifier:
         price = item.get("price", 0)
 
         actions = [
-            "Aumentar visibilidad en el menú (posición premium, fotos destacadas)",
-            "Capacitar al personal para recomendar este platillo activamente",
-            "Considerar variaciones premium o porciones especiales",
+            "Increase visibility in menu (premium position, highlighted photos)",
+            "Train staff to actively recommend this dish",
+            "Consider premium variations or special portions",
         ]
 
         if margin < 0.55:
             actions.append(
-                f"⚠️ Revisar costos - margen actual ({margin*100:.0f}%) es bajo para un Star"
+                f"⚠️ Review costs - current margin ({margin*100:.0f}%) is low for a Star"
             )
-            actions.append("Negociar con proveedores o ajustar porciones")
+            actions.append("Negotiate with suppliers or adjust portions")
         else:
             actions.append(
-                f"✅ Excelente margen ({margin*100:.0f}%) - mantener control de costos"
+                f"✅ Excellent margin ({margin*100:.0f}%) - maintain cost control"
             )
 
         if price > 15:
-            actions.append("Considerar combo o maridaje para aumentar ticket promedio")
+            actions.append("Consider combo or pairing to increase average ticket")
 
         return {
-            "summary": "INVERTIR - Este es un ganador. Alto crecimiento y alta contribución al profit.",
+            "summary": "INVEST - This is a winner. High growth and high profit contribution.",
             "actions": actions,
-            "investment_recommendation": "Alto",
+            "investment_recommendation": "High",
             "pricing_recommendation": (
-                "Mantener o aumentar ligeramente"
+                "Maintain or slightly increase"
                 if margin > 0.6
-                else "Revisar estructura de costos"
+                else "Review cost structure"
             ),
         }
 
@@ -496,29 +496,29 @@ class BCGClassifier:
         margin = item.get("margin", 0.5)
 
         actions = [
-            "Mantener calidad constante - los clientes lo esperan",
-            "Optimizar costos sin afectar calidad percibida",
-            "Usar como ancla para promociones de otros productos",
+            "Maintain consistent quality - customers expect it",
+            "Optimize costs without affecting perceived quality",
+            "Use as anchor for promotions of other products",
         ]
 
         if margin > 0.65:
             actions.append(
-                f"💰 Margen excelente ({margin*100:.0f}%) - este producto subsidia innovación"
+                f"💰 Excellent margin ({margin*100:.0f}%) - this product subsidizes innovation"
             )
         else:
             actions.append(
-                f"Mejorar margen (actual: {margin*100:.0f}%) revisando proveedores"
+                f"Improve margin (current: {margin*100:.0f}%) by reviewing suppliers"
             )
 
         actions.append(
-            "Considerar bundle con Question Marks para aumentar su exposición"
+            "Consider bundling with Question Marks to increase their exposure"
         )
 
         return {
-            "summary": "ORDEÑAR - Genera flujo constante. Minimizar inversión, maximizar extracción de valor.",
+            "summary": "MILK - Generates constant flow. Minimize investment, maximize value extraction.",
             "actions": actions,
-            "investment_recommendation": "Bajo (mantenimiento)",
-            "pricing_recommendation": "Estable, ajustes graduales con inflación",
+            "investment_recommendation": "Low (maintenance)",
+            "pricing_recommendation": "Stable, gradual adjustments with inflation",
         }
 
     def _get_question_mark_strategy(self, item: Dict[str, Any]) -> Dict[str, Any]:
@@ -527,28 +527,28 @@ class BCGClassifier:
         growth = item.get("growth_rate", 0)
 
         actions = [
-            "DECISIÓN REQUERIDA: Invertir fuerte o descontinuar",
-            "Probar promoción temporal para medir potencial real",
-            "Solicitar feedback específico de clientes sobre este platillo",
+            "DECISION REQUIRED: Invest heavily or discontinue",
+            "Test temporary promotion to measure real potential",
+            "Request specific customer feedback on this dish",
         ]
 
         if margin > 0.55 and growth > 0.15:
             actions.append(
-                "🎯 RECOMENDACIÓN: Invertir - buen margen + alto crecimiento = Star potencial"
+                "🎯 RECOMMENDATION: Invest - good margin + high growth = potential Star"
             )
-            actions.append("Campaña de awareness en redes sociales")
+            actions.append("Social media awareness campaign")
         elif margin < 0.45:
-            actions.append("⚠️ PRECAUCIÓN: Bajo margen limita potencial de inversión")
-            actions.append("Primero optimizar costos antes de invertir en marketing")
+            actions.append("⚠️ CAUTION: Low margin limits investment potential")
+            actions.append("First optimize costs before investing in marketing")
         else:
-            actions.append("Ejecutar prueba A/B con promoción por 2 semanas")
-            actions.append("Medir si la promoción convierte a más clientes")
+            actions.append("Run A/B test with promotion for 2 weeks")
+            actions.append("Measure if promotion converts more customers")
 
         return {
-            "summary": "ANALIZAR - Alto crecimiento pero baja contribución. Decidir: invertir para convertir en Star o desinvertir.",
+            "summary": "ANALYZE - High growth but low contribution. Decide: invest to convert to Star or divest.",
             "actions": actions,
-            "investment_recommendation": "Selectivo - prueba antes de comprometerse",
-            "pricing_recommendation": "Precio introductorio o promocional para ganar share",
+            "investment_recommendation": "Selective - test before committing",
+            "pricing_recommendation": "Introductory or promotional price to gain share",
         }
 
     def _get_dog_strategy(self, item: Dict[str, Any]) -> Dict[str, Any]:
@@ -556,39 +556,38 @@ class BCGClassifier:
         margin = item.get("margin", 0.5)
         popularity = item.get("popularity_score", 0)
 
-        actions = []
+        actions = [
+            "💡 High margin - consider repositioning before eliminating"
+        ]
 
         if margin > 0.60:
             actions.append(
-                "💡 Alto margen - considerar reposicionamiento antes de eliminar"
-            )
-            actions.append(
-                "Podría funcionar como 'especialidad del chef' con storytelling"
+                "Could work as 'chef's special' with storytelling"
             )
         elif margin < 0.35:
-            actions.append("❌ Bajo margen Y bajo volumen - candidato a eliminación")
-            actions.append("Liberar espacio en menú para nuevos productos")
+            actions.append("❌ Low margin AND low volume - candidate for elimination")
+            actions.append("Free up menu space for new products")
 
         if popularity > 0.3:
             actions.append(
-                "Algunos clientes lo piden - evaluar si es 'signature dish' de nicho"
+                "Some customers ask for it - evaluate if it's a niche 'signature dish'"
             )
         else:
-            actions.append("Bajo interés del cliente - priorizar eliminación")
+            actions.append("Low customer interest - prioritize elimination")
 
         actions.extend(
             [
-                "Considerar rediseño completo del platillo",
-                "Evaluar si los ingredientes pueden usarse en productos exitosos",
-                "Si se mantiene, reducir porción/costo para mejorar margen",
+                "Consider complete redesign of the dish",
+                "Evaluate if ingredients can be used in successful products",
+                "If kept, reduce portion/cost to improve margin",
             ]
         )
 
         return {
-            "summary": "REVISAR - Bajo crecimiento y baja contribución. Considerar eliminar, reposicionar o reformular.",
+            "summary": "REVIEW - Low growth and low contribution. Consider eliminating, repositioning or reformulating.",
             "actions": actions,
-            "investment_recommendation": "Mínimo o cero",
-            "pricing_recommendation": "Reducir costo o descontinuar",
+            "investment_recommendation": "Minimal or zero",
+            "pricing_recommendation": "Reduce cost or discontinue",
         }
 
     async def _get_ai_insights(

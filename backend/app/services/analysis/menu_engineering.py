@@ -14,18 +14,18 @@ Professional Standards Applied:
 - Minimum volume thresholds for statistical reliability (≥5 sales per item)
 - Food cost benchmarks (industry standard: 28-35%)
 - Data quality scoring and confidence levels
-- Category-level analysis (by product type: Bebidas, Comidas, etc.)
+- Category-level analysis (by product type: Drinks, Food, etc.)
 - Financial impact estimates for recommendations
 - Seasonality and promotional period warnings
 - Period recommendations: 30-90 days for operational, 12+ months for strategic
 
 Key Formulas (Kasavana & Smith, 1982):
 - Popularity (%) = (Units Sold / Total Units) × 100
-- CM Unitario = Precio Venta - Costo por Porción
-- Contribución Total = CM Unitario × Unidades Vendidas
-- Food Cost (%) = (Costo / Precio) × 100
-- Umbral Popularidad = (100% / n_items) × 0.70
-- Umbral CM = Promedio ponderado de CM de todos los ítems
+- Unit CM = Selling Price - Cost per Portion
+- Total Contribution = Unit CM × Units Sold
+- Food Cost (%) = (Cost / Price) × 100
+- Popularity Threshold = (100% / n_items) × 0.70
+- CM Threshold = Weighted average CM across all items
 
 Reference: Kasavana, M. L., & Smith, D. I. (1982). Menu Engineering.
 """
@@ -293,16 +293,16 @@ class MenuEngineeringClassifier:
         # Data span assessment
         if days_span < self.MIN_DAYS_RECOMMENDED:
             warnings.append(
-                f"⚠️ Solo {days_span} días de datos. Mínimo recomendado: {self.MIN_DAYS_RECOMMENDED} días "
-                f"para análisis operativo confiable."
+                f"⚠️ Only {days_span} days of data. Minimum recommended: {self.MIN_DAYS_RECOMMENDED} days "
+                f"for reliable operational analysis."
             )
             recommendations.append(
-                "Recopilar más datos históricos para mejorar la precisión del análisis."
+                "Collect more historical data to improve analysis precision."
             )
         elif days_span < self.MIN_DAYS_STRATEGIC:
             warnings.append(
-                f"📊 {days_span} días de datos es adecuado para análisis operativo, "
-                f"pero se recomiendan {self.MIN_DAYS_STRATEGIC}+ días para decisiones estratégicas."
+                f"📊 {days_span} days of data is adequate for operational analysis, "
+                f"but {self.MIN_DAYS_STRATEGIC}+ days are recommended for strategic decisions."
             )
 
         # Check for potential seasonality (December, holiday periods)
@@ -316,8 +316,8 @@ class MenuEngineeringClassifier:
             holiday_months = {12, 1, 6}  # December, January, special dates
             if months_covered & holiday_months:
                 warnings.append(
-                    "🎄 Los datos incluyen períodos festivos (Dic/Ene). "
-                    "Considerar separar análisis de temporada alta vs normal."
+                    "🎄 Data includes holiday periods (Dec/Jan). "
+                    "Consider separating high season vs normal analysis."
                 )
 
         # Calculate unique items and transactions
@@ -334,8 +334,8 @@ class MenuEngineeringClassifier:
         avg_sales_per_item = len(sales_data) / unique_items if unique_items > 0 else 0
         if avg_sales_per_item < self.MIN_SALES_FOR_CONFIDENCE:
             warnings.append(
-                f"📉 Promedio de {avg_sales_per_item:.1f} registros por ítem. "
-                f"Algunos ítems pueden tener baja confiabilidad estadística."
+                f"📉 Average of {avg_sales_per_item:.1f} records per item. "
+                f"Some items may have low statistical reliability."
             )
 
         # Determine overall quality score
@@ -348,9 +348,9 @@ class MenuEngineeringClassifier:
             quality_score -= 20
 
         quality_level = (
-            "alta"
+            "high"
             if quality_score >= 80
-            else "media" if quality_score >= 60 else "baja"
+            else "medium" if quality_score >= 60 else "low"
         )
 
         return {
@@ -481,25 +481,25 @@ class MenuEngineeringClassifier:
 
             # Food cost rating based on industry benchmarks
             if food_cost_pct <= self.FOOD_COST_TARGET_LOW * 100:
-                food_cost_rating = "excelente"
+                food_cost_rating = "excellent"
             elif food_cost_pct <= self.FOOD_COST_TARGET_MID * 100:
-                food_cost_rating = "bueno"
+                food_cost_rating = "good"
             elif food_cost_pct <= self.FOOD_COST_TARGET_HIGH * 100:
-                food_cost_rating = "aceptable"
+                food_cost_rating = "acceptable"
             elif food_cost_pct <= self.FOOD_COST_CRITICAL * 100:
-                food_cost_rating = "alto"
+                food_cost_rating = "high"
             else:
-                food_cost_rating = "crítico"
+                food_cost_rating = "critical"
 
             # Confidence score based on sample size
             if units >= self.MIN_SALES_FOR_HIGH_CONFIDENCE:
-                confidence = "alta"
+                confidence = "high"
                 confidence_score = 1.0
             elif units >= self.MIN_SALES_FOR_CONFIDENCE:
-                confidence = "media"
+                confidence = "medium"
                 confidence_score = 0.7
             else:
-                confidence = "baja"
+                confidence = "low"
                 confidence_score = 0.4
 
             item_metrics.append(
@@ -616,10 +616,10 @@ class MenuEngineeringClassifier:
     def _get_category_label(self, category: MenuCategory) -> str:
         """Get display label for category."""
         labels = {
-            MenuCategory.STAR: "⭐ Estrella",
-            MenuCategory.PLOWHORSE: "🐴 Caballo de Trabajo",
-            MenuCategory.PUZZLE: "🧩 Rompecabezas",
-            MenuCategory.DOG: "🐕 Perro",
+            MenuCategory.STAR: "⭐ Star",
+            MenuCategory.PLOWHORSE: "🐴 Plowhorse",
+            MenuCategory.PUZZLE: "🧩 Puzzle",
+            MenuCategory.DOG: "🐕 Dog",
         }
         return labels.get(category, category.value)
 
@@ -630,23 +630,23 @@ class MenuEngineeringClassifier:
         potential_increase = current_revenue * 0.10  # 10% price increase potential
 
         return {
-            "action": "MANTENER Y PROTEGER",
-            "priority": "alta",
-            "confidence_note": f"Confianza: {item.get('confidence', 'N/A')}",
+            "action": "MAINTAIN AND PROTECT",
+            "priority": "high",
+            "confidence_note": f"Confidence: {item.get('confidence', 'N/A')}",
             "recommendations": [
-                "Mantener ubicación prominente en el menú (zona superior derecha)",
-                "No modificar la receta sin análisis previo de impacto",
-                "Usar como plato insignia para atraer clientes",
-                f"Considerar aumento de precio 5-10% (potencial: +${potential_increase:,.0f})",
-                "Garantizar disponibilidad constante - sin quiebres de stock",
-                "Documentar receta estándar para consistencia",
+                "Maintain prominent location on the menu (top right zone)",
+                "Do not modify the recipe without prior impact analysis",
+                "Use as a flagship dish to attract customers",
+                f"Consider 5-10% price increase (potential: +${potential_increase:,.0f})",
+                "Ensure constant availability - no stockouts",
+                "Document standard recipe for consistency",
             ],
-            "pricing": "Mantener o aumentar ligeramente (5-10%)",
-            "menu_position": "Zona de alto impacto visual (cuadrante superior derecho)",
+            "pricing": "Maintain or increase slightly (5-10%)",
+            "menu_position": "High visual impact zone (top right quadrant)",
             "financial_impact": {
                 "current_contribution": round(item["total_contribution"], 2),
                 "price_increase_potential": round(potential_increase, 2),
-                "risk_level": "bajo",
+                "risk_level": "low",
             },
         }
 
@@ -662,19 +662,19 @@ class MenuEngineeringClassifier:
         price_increase_pct = (cm_gap / item["price"] * 100) if item["price"] > 0 else 0
 
         return {
-            "action": "MEJORAR RENTABILIDAD",
-            "priority": "media-alta",
-            "confidence_note": f"Confianza: {item.get('confidence', 'N/A')}",
+            "action": "IMPROVE PROFITABILITY",
+            "priority": "medium-high",
+            "confidence_note": f"Confidence: {item.get('confidence', 'N/A')}",
             "recommendations": [
-                f"Aumentar precio ${cm_gap:,.0f} (+{price_increase_pct:.1f}%) para alcanzar CM objetivo",
-                "Reducir porción discretamente (5-10%) sin afectar percepción",
-                "Negociar mejores costos con proveedores (meta: -10%)",
-                "Sustituir ingredientes costosos por alternativas de igual calidad",
-                "Ofrecer como combo con ítems de alto CM para aumentar ticket",
-                f"Impacto potencial: +${potential_gain:,.0f} en contribución mensual",
+                f"Increase price by ${cm_gap:,.0f} (+{price_increase_pct:.1f}%) to reach target CM",
+                "Reduce portion slightly (5-10%) without harming perceived value",
+                "Negotiate better supplier costs (target: -10%)",
+                "Substitute expensive ingredients with equally high-quality alternatives",
+                "Offer as a bundle with high-CM items to increase average ticket",
+                f"Potential impact: +${potential_gain:,.0f} in monthly contribution",
             ],
-            "pricing": f"Aumentar ${cm_gap:,.0f} gradualmente en 2-3 incrementos",
-            "menu_position": "Mantener visible pero no como destacado principal",
+            "pricing": f"Increase by ${cm_gap:,.0f} gradually in 2-3 steps",
+            "menu_position": "Keep visible, but not as the main highlight",
             "cm_gap": round(cm_gap, 2),
             "financial_impact": {
                 "current_contribution": round(item["total_contribution"], 2),
@@ -683,7 +683,7 @@ class MenuEngineeringClassifier:
                 ),
                 "potential_gain": round(potential_gain, 2),
                 "price_increase_needed": f"+{price_increase_pct:.1f}%",
-                "risk_level": "medio" if price_increase_pct > 15 else "bajo",
+                "risk_level": "medium" if price_increase_pct > 15 else "low",
             },
         }
 
@@ -693,50 +693,50 @@ class MenuEngineeringClassifier:
         potential_contribution = item["total_contribution"] * 2
 
         return {
-            "action": "PROMOCIONAR ACTIVAMENTE",
-            "priority": "media",
-            "confidence_note": f"Confianza: {item.get('confidence', 'N/A')}",
+            "action": "PROMOTE ACTIVELY",
+            "priority": "medium",
+            "confidence_note": f"Confidence: {item.get('confidence', 'N/A')}",
             "recommendations": [
-                "Mejorar descripción: destacar ingredientes premium y preparación",
-                "Entrenar meseros con script de venta sugestiva",
-                "Ofrecer como 'Especial del Chef' o 'Recomendación del día'",
-                "Incluir foto profesional y apetitosa en el menú",
-                "Promoción de lanzamiento: 15% descuento primera semana",
-                "Ubicar junto a platos populares para aumentar visibilidad",
+                "Improve description: highlight premium ingredients and preparation",
+                "Train servers with an upselling script",
+                "Offer as 'Chef's Special' or 'Recommendation of the Day'",
+                "Include a professional, appetizing photo on the menu",
+                "Launch promotion: 15% off the first week",
+                "Place next to popular dishes to increase visibility",
             ],
-            "pricing": "Mantener precio actual - el margen ya es óptimo",
-            "menu_position": "Mover a zona de mayor visibilidad (junto a estrellas)",
+            "pricing": "Keep current price - margin is already strong",
+            "menu_position": "Move to a higher-visibility zone (next to Stars)",
             "financial_impact": {
                 "current_contribution": round(item["total_contribution"], 2),
                 "potential_if_doubles": round(potential_contribution, 2),
                 "opportunity_cost": round(
                     potential_contribution - item["total_contribution"], 2
                 ),
-                "risk_level": "bajo",
+                "risk_level": "low",
             },
         }
 
     def _get_dog_strategy(self, item: Dict[str, Any]) -> Dict[str, Any]:
         """Strategy for Dog items (Low Pop, Low CM) - Professional recommendations."""
         return {
-            "action": "EVALUAR ELIMINACIÓN",
-            "priority": "baja",
-            "confidence_note": f"Confianza: {item.get('confidence', 'N/A')}",
+            "action": "EVALUATE ELIMINATION",
+            "priority": "low",
+            "confidence_note": f"Confidence: {item.get('confidence', 'N/A')}",
             "recommendations": [
-                "Analizar si tiene valor estratégico (variedad, clientes VIP, complemento)",
-                "Considerar rediseño completo: nueva receta, presentación, nombre",
-                "Aumentar precio 20-30% - si no vende, confirma eliminación",
-                "Monitorear 30 días adicionales antes de decidir",
-                "Si elimina: liberar espacio para plato nuevo o promoción de Puzzle",
-                "Evaluar costo de ingredientes específicos que no se usen en otros platos",
+                "Analyze if it has strategic value (variety, VIP customers, complement)",
+                "Consider complete redesign: new recipe, presentation, name",
+                "Increase price 20-30% - if it doesn't sell, confirm elimination",
+                "Monitor for 30 additional days before deciding",
+                "If eliminated: free up space for new dish or Puzzle promotion",
+                "Evaluate cost of specific ingredients not used in other dishes",
             ],
-            "pricing": "Aumentar significativamente (+20-30%) o eliminar",
-            "menu_position": "Zona de bajo impacto o eliminar completamente",
+            "pricing": "Increase significantly (+20-30%) or eliminate",
+            "menu_position": "Low impact zone or eliminate completely",
             "financial_impact": {
                 "current_contribution": round(item["total_contribution"], 2),
-                "opportunity_cost": "Espacio ocupado podría generar más con otro ítem",
-                "elimination_impact": "Mínimo si se reemplaza con ítem de mejor desempeño",
-                "risk_level": "bajo al eliminar",
+                "opportunity_cost": "Occupied space could generate more with another item",
+                "elimination_impact": "Minimal if replaced with better performing item",
+                "risk_level": "low on elimination",
             },
         }
 
@@ -916,14 +916,14 @@ class MenuEngineeringClassifier:
                 "attention_needed": 0,
             },
             "methodology": "Kasavana & Smith Menu Engineering",
-            "error": "No hay datos de ventas para el período seleccionado",
+            "error": "No sales data for the selected period",
         }
 
     def _analyze_by_product_category(
         self, classified_items: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
-        Analyze items grouped by product category (Bebidas, Comidas, etc.).
+        Analyze items grouped by product category (Drinks, Food, etc.).
 
         Professional requirement: separate analysis by category allows for
         more refined decisions since different categories have different
@@ -932,10 +932,10 @@ class MenuEngineeringClassifier:
         if not classified_items:
             return {"categories": [], "insights": []}
 
-        # Group by product category (Vino, Cerveza, Coctelería, etc.)
+        # Group by product category (Wine, Beer, Cocktails, etc.)
         by_product_cat: Dict[str, List[Dict[str, Any]]] = {}
         for item in classified_items:
-            prod_cat = item.get("product_category", "Sin Categoría") or "Sin Categoría"
+            prod_cat = item.get("product_category", "Uncategorized") or "Uncategorized"
             if prod_cat not in by_product_cat:
                 by_product_cat[prod_cat] = []
             by_product_cat[prod_cat].append(item)
@@ -974,13 +974,13 @@ class MenuEngineeringClassifier:
             dog_pct = bcg_dist["dog"] / len(items) * 100 if items else 0
 
             if star_pct >= 20 and dog_pct <= 30:
-                health = "saludable"
+                health = "healthy"
                 health_emoji = "✅"
             elif dog_pct > 50:
-                health = "crítica"
+                health = "critical"
                 health_emoji = "🔴"
             else:
-                health = "moderada"
+                health = "moderate"
                 health_emoji = "🟡"
 
             category_analysis.append(
@@ -1008,18 +1008,18 @@ class MenuEngineeringClassifier:
             # Generate category-specific insights
             if dog_pct > 40:
                 insights.append(
-                    f"⚠️ '{cat_name}' tiene {dog_pct:.0f}% de ítems clasificados como Perros. "
-                    f"Considerar reestructurar la oferta de esta categoría."
+                    f"⚠️ '{cat_name}' has {dog_pct:.0f}% of items classified as Dogs. "
+                    f"Consider restructuring this category's offering."
                 )
             if avg_food_cost > 40:
                 insights.append(
-                    f"📊 '{cat_name}' tiene food cost promedio de {avg_food_cost:.1f}% "
-                    f"(superior al benchmark de 35%). Revisar costos de ingredientes."
+                    f"📊 '{cat_name}' has an average food cost of {avg_food_cost:.1f}% "
+                    f"(above the 35% benchmark). Review ingredient costs."
                 )
             if star_pct >= 30:
                 insights.append(
-                    f"⭐ '{cat_name}' es una categoría fuerte con {star_pct:.0f}% de Estrellas. "
-                    f"Mantener y potenciar esta línea."
+                    f"⭐ '{cat_name}' is a strong category with {star_pct:.0f}% Stars. "
+                    f"Maintain and leverage this line."
                 )
 
         # Sort by contribution

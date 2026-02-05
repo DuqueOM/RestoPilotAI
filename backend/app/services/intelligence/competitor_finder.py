@@ -170,7 +170,7 @@ class ScoutAgent(GeminiBaseAgent):
                     {
                         "step": "GEOCODING",
                         "progress": 5,
-                        "message": f"🌍 Geocodificando '{address}'...",
+                        "message": f"🌍 Geocoding '{address}'...",
                     }
                 )
 
@@ -179,11 +179,11 @@ class ScoutAgent(GeminiBaseAgent):
 
             self._add_thought(
                 action=ScoutAction.DISCOVER,
-                reasoning=f"Geocodificación completada para '{address}'",
+                reasoning=f"Geocoding completed for '{address}'",
                 observations=[
-                    f"Dirección formateada: {geo_result.formatted_address}",
-                    f"Coordenadas: {our_location}",
-                    f"Vecindario: {geo_result.neighborhood or 'N/A'}",
+                    f"Formatted Address: {geo_result.formatted_address}",
+                    f"Coordinates: {our_location}",
+                    f"Neighborhood: {geo_result.neighborhood or 'N/A'}",
                 ],
                 confidence=1.0,
             )
@@ -197,16 +197,16 @@ class ScoutAgent(GeminiBaseAgent):
                 {
                     "step": "COMPETITOR_SEARCH",
                     "progress": 15,
-                    "message": f"🔍 Buscando restaurantes en {radius_meters}m...",
+                    "message": f"🔍 Searching restaurants within {radius_meters}m...",
                 }
             )
 
         self._add_thought(
             action=ScoutAction.DISCOVER,
-            reasoning=f"Iniciando búsqueda de competidores en un radio de {radius_meters}m.",
+            reasoning=f"Starting competitor search within {radius_meters}m radius.",
             observations=[
-                f"Radio: {radius_meters}m",
-                f"Cocina: {our_cuisine_type}",
+                f"Radius: {radius_meters}m",
+                f"Cuisine: {our_cuisine_type}",
             ],
             confidence=0.95,
         )
@@ -298,7 +298,7 @@ class ScoutAgent(GeminiBaseAgent):
 
         self._add_thought(
             action=ScoutAction.DISCOVER,
-            reasoning=f"Encontrados {len(competitors_raw)} lugares. Filtrando y enriqueciendo datos.",
+            reasoning=f"Found {len(competitors_raw)} places. Filtering and enriching data.",
             observations=[f"Total raw results: {len(competitors_raw)}"],
             confidence=0.9,
         )
@@ -331,7 +331,7 @@ class ScoutAgent(GeminiBaseAgent):
                     {
                         "step": "ENRICHING_COMPETITOR",
                         "progress": progress,
-                        "message": f"📊 Analizando '{place.name}'...",
+                        "message": f"📊 Analyzing '{place.name}'...",
                     }
                 )
 
@@ -348,14 +348,14 @@ class ScoutAgent(GeminiBaseAgent):
                     {
                         "step": "VISUAL_ANALYSIS",
                         "progress": 50,
-                        "message": "📸 Analizando fotos con Gemini Vision...",
+                        "message": "📸 Analyzing photos with Gemini Vision...",
                     }
                 )
 
             self._add_thought(
                 action=ScoutAction.ANALYZE_PHOTOS,
-                reasoning="Iniciando análisis profundo con Gemini Vision.",
-                observations=["Analizando fotos de perfil de los mejores competidores"],
+                reasoning="Starting deep analysis with Gemini Vision.",
+                observations=["Analyzing profile photos of top competitors"],
                 confidence=0.85,
             )
 
@@ -370,14 +370,14 @@ class ScoutAgent(GeminiBaseAgent):
                 {
                     "step": "STRATEGY_GENERATION",
                     "progress": 90,
-                    "message": "🚀 Generando reporte estratégico...",
+                    "message": "🚀 Generating strategic report...",
                 }
             )
 
         self._add_thought(
             action=ScoutAction.COMPARE,
-            reasoning="Generando reporte comparativo final.",
-            observations=["Sintetizando insights de todos los competidores"],
+            reasoning="Generating final comparative report.",
+            observations=["Synthesizing insights from all competitors"],
             confidence=0.9,
         )
 
@@ -573,7 +573,7 @@ RESPOND WITH VALID JSON:
         }}
     ],
     "immediate_actions": [
-        "Review pricing against Tacos El Patrón",
+        "Review pricing against Taco Spot A",
         "Improve food photography"
     ],
     "strategic_recommendations": [
@@ -585,8 +585,8 @@ RESPOND WITH VALID JSON:
         }}
     ],
     "competitive_matrix": {{
-        "price_leader": "Antojitos Mexicanos",
-        "quality_leader": "Tacos El Patrón",
+        "price_leader": "Mexican Bites",
+        "quality_leader": "Taco Spot A",
         "service_leader": "Unknown - opportunity",
         "recommended_position": "Quality-value balance"
     }},

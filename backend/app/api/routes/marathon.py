@@ -57,10 +57,12 @@ manager = ConnectionManager()
 class MarathonTaskConfig(BaseModel):
     task_type: str  # 'full_analysis', 'competitive_intel', 'campaign_generation'
     session_id: Optional[str] = None
-    input_data: Dict
+    input_data: Dict = {}
     enable_checkpoints: bool = True
     checkpoint_interval_seconds: int = 60
     max_retries_per_step: int = 3
+    auto_verify: bool = True
+    auto_improve: bool = True
 
 @router.post("/marathon/start", tags=["Marathon Agent"])
 async def start_marathon_task(
@@ -101,6 +103,8 @@ async def start_marathon_task(
                 menu_items=business_session.get("menu_items", []) if business_session else [],
                 sales_data=business_session.get("sales_data", []) if business_session else [],
                 restaurant_name=business_session.get("restaurant_info", {}).get("name", "Restaurant") if business_session else "Restaurant",
+                auto_verify=config.auto_verify,
+                auto_improve=config.auto_improve
             )
             orchestrator.active_sessions[session_id] = state
             orchestrator._save_session_to_disk(state)
@@ -120,7 +124,8 @@ async def start_marathon_task(
                 session_id=session_id,
                 sales_csv=input_data.get("sales_csv") if input_data else None,
                 thinking_level=ThinkingLevel.STANDARD, 
-                auto_verify=True
+                auto_verify=config.auto_verify,
+                auto_improve=config.auto_improve
             )
             
             logger.info(f"Background task added for session {session_id}")

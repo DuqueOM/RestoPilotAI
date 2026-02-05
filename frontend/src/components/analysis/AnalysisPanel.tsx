@@ -34,38 +34,38 @@ interface AnalysisPanelProps {
 const ANALYSIS_STAGES = [
   { 
     id: 'menu_ingestion', 
-    title: '1. Ingesta y Digitalización', 
-    description: 'Extracción multimodal del menú y análisis de calidad fotográfica.',
+    title: '1. Ingestion & Digitization', 
+    description: 'Multimodal menu extraction and photo quality analysis.',
     icon: Utensils
   },
   { 
     id: 'competitor_scout', 
     title: '2. Scout Agent: Discovery', 
-    description: 'Búsqueda autónoma de competidores y análisis de posicionamiento.',
+    description: 'Autonomous competitor search and positioning analysis.',
     icon: MapPin 
   },
   { 
     id: 'visual_sentiment', 
-    title: '3. Análisis Sensorial y Reputación', 
-    description: 'Evaluación visual de platos (Visual Gap) y sentimiento de reseñas.',
+    title: '3. Sensory & Reputation Analysis', 
+    description: 'Visual evaluation of dishes (Visual Gap) and review sentiment.',
     icon: Camera 
   },
   { 
     id: 'strategic_analysis', 
-    title: '4. Matriz Estratégica BCG', 
-    description: 'Clasificación de rentabilidad y popularidad de productos.',
+    title: '4. Strategic BCG Matrix', 
+    description: 'Profitability and popularity classification of products.',
     icon: BarChart3 
   },
   { 
     id: 'predictive_model', 
-    title: '5. Motor Predictivo', 
-    description: 'Proyección de demanda futura con escenarios (XGBoost).',
+    title: '5. Predictive Model', 
+    description: 'Future demand projection with scenarios (XGBoost).',
     icon: TrendingUp 
   },
   { 
     id: 'growth_actions', 
-    title: '6. Plan de Crecimiento', 
-    description: 'Generación de campañas y verificación autónoma de estrategias.',
+    title: '6. Growth Plan', 
+    description: 'Campaign generation and autonomous strategy verification.',
     icon: Megaphone 
   }
 ]
@@ -315,7 +315,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
       {/* Header Actions */}
       <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Orquestador de Análisis</h2>
+          <h2 className="text-xl font-bold text-gray-900">Analysis Orchestrator</h2>
           <p className="text-sm text-gray-500">RestoPilotAI Autonomous Pipeline</p>
         </div>
         <div className="flex gap-3">
@@ -331,7 +331,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
             `}
           >
             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Play className="h-5 w-5" />}
-            {isLoading ? 'Ejecutando...' : 'Iniciar Análisis Completo'}
+            {isLoading ? 'Running...' : 'Start Full Analysis'}
           </button>
         </div>
       </div>
@@ -394,7 +394,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
                   {isCompleted && (
                     <div className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
                       <CheckCircle className="h-3 w-3" />
-                      Completado
+                      Completed
                     </div>
                   )}
                 </div>
@@ -405,7 +405,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
                     <ThinkingStream
                       thoughts={stepThoughts[stage.id] || []}
                       isActive={isRunning}
-                      title={`Agente IA: ${stage.title}`}
+                      title={`AI Agent: ${stage.title}`}
                       showConfidence={true}
                       defaultExpanded={true}
                     />
@@ -417,10 +417,10 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
                   <div className="mt-3 flex gap-2 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" /> 
-                      {processingTime[stage.id] ? `${processingTime[stage.id].toFixed(1)}s` : 'Procesado'}
+                      {processingTime[stage.id] ? `${processingTime[stage.id].toFixed(1)}s` : 'Processed'}
                     </span>
                     <span className="flex items-center gap-1">
-                      <ShieldCheck className="h-3 w-3" /> Verificado
+                      <ShieldCheck className="h-3 w-3" /> Verified
                     </span>
                   </div>
                 )}

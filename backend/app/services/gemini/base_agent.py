@@ -27,12 +27,12 @@ from app.core.model_fallback import get_fallback_handler
 
 
 class GeminiModel(str, Enum):
-    """Supported Gemini 3 models - CRÍTICO: Solo usar Gemini 3."""
+    """Supported Gemini 3 models - CRITICAL: Only use Gemini 3."""
 
-    FLASH = "gemini-3-flash-preview"  # Modelo principal rápido
-    PRO = "gemini-3-pro-preview"  # Modelo avanzado para multimodal
-    VISION = "gemini-3-pro-preview"  # Análisis de imágenes
-    IMAGE_GEN = "gemini-3-pro-image-preview"  # Generación de imágenes
+    FLASH = "gemini-3-flash-preview"  # Primary fast model
+    PRO = "gemini-3-pro-preview"  # Advanced model for multimodal
+    VISION = "gemini-3-pro-preview"  # Image analysis
+    IMAGE_GEN = "gemini-3-pro-image-preview"  # Image generation
 
 
 class ThinkingLevel(str, Enum):
@@ -179,7 +179,7 @@ class GeminiBaseAgent:
         """
         Create prompt with Thought Signature for transparent reasoning.
         
-        CRÍTICO PARA HACKATHON: Muestra el proceso de razonamiento del modelo.
+        CRITICAL FOR HACKATHON: Shows the model's reasoning process.
         
         Args:
             prompt: Original prompt
@@ -421,7 +421,7 @@ This thought trace will be visible for transparency."""
         """
         Generate content with Thought Signature for transparent reasoning.
         
-        CRÍTICO PARA HACKATHON: Muestra el proceso de razonamiento del modelo.
+        CRITICAL FOR HACKATHON: Shows the model's reasoning process.
         
         Args:
             prompt: Text prompt
@@ -472,7 +472,7 @@ This thought trace will be visible for transparency."""
         """
         Generate content with Google Search grounding.
         
-        DIFERENCIADOR HACKATHON: Gemini 3 es el único modelo con grounding nativo.
+        HACKATHON DIFFERENTIATOR: Gemini 3 is the only model with native grounding.
         
         Args:
             prompt: Text prompt
@@ -573,7 +573,7 @@ This thought trace will be visible for transparency."""
         """
         Generate content with improved retry logic.
         
-        CRÍTICO para Marathon Agent: tareas largas pueden fallar por timeouts, rate limits.
+        CRITICAL for Marathon Agent: long tasks may fail due to timeouts, rate limits.
         
         Args:
             prompt: Text prompt
@@ -630,7 +630,7 @@ This thought trace will be visible for transparency."""
         """
         Generate content with streaming for real-time UI updates.
         
-        Útil para mostrar "pensamiento" del modelo en tiempo real.
+        Useful for showing the model's "thinking" in real time.
         
         Args:
             prompt: Text prompt
@@ -890,34 +890,34 @@ Respond in this exact JSON format:
         """
         Extract menu items from a PDF file using Gemini Native Document Processing.
         """
-        prompt = """Eres un sistema de inteligencia artificial AVANZADO especializado en digitalización de menús de restaurantes.
-Estás procesando un ARCHIVO PDF COMPLETO que puede contener múltiples páginas, texto seleccionable, imágenes escaneadas y diseños mixtos.
+        prompt = """You are an ADVANCED artificial intelligence system specialized in restaurant menu digitization.
+You are processing a COMPLETE PDF FILE that may contain multiple pages, selectable text, scanned images, and mixed layouts.
 
-🚨 **MODO DE EXTRACCIÓN TOTAL ACTIVADO** 🚨
-Tu objetivo es extraer CADA producto vendible de TODO el documento.
+🚨 **FULL EXTRACTION MODE ACTIVATED** 🚨
+Your goal is to extract EVERY sellable product from the ENTIRE document.
 
-CONTEXTO: El documento puede ser extenso (ej: 178+ productos). NO debes detenerte. NO debes resumir.
+CONTEXT: The document can be extensive (e.g. 178+ items). DO NOT stop. DO NOT summarize.
 
-🔍 **INSTRUCCIONES PARA DOCUMENTOS PDF**:
-1.  **Continuidad**: Lee el documento de principio a fin. Mantén el contexto de categorías que cruzan páginas.
-2.  **Multimodalidad**: El PDF puede tener páginas que son solo imágenes. LEELAS VISUALMENTE. Puede tener páginas de texto. LEELAS TEXTUALMENTE.
-3.  **Variantes y Opciones**: Desglosa todas las variantes (ej: "Sabores: Fresa, Vainilla, Chocolate" -> 3 items).
+🔍 **INSTRUCTIONS FOR PDF DOCUMENTS**:
+1.  **Continuity**: Read the document from start to finish. Maintain context of categories crossing pages.
+2.  **Multimodality**: The PDF may have image-only pages. READ THEM VISUALLY. It may have text pages. READ THEM TEXTUALLY.
+3.  **Variants and Options**: Break down all variants (e.g., "Flavors: Strawberry, Vanilla, Chocolate" -> 3 items).
 
-🛠 **REGLAS DE EXTRACCIÓN (Mismas reglas estrictas)**:
-*   **Nombre**: Nombre completo y exacto.
-*   **Precio**: Extrae el precio. Si hay lista (Botella/Copa), crea items separados.
-*   **Categoría**: Respeta la estructura del menú.
-*   **Descripción**: Texto descriptivo asociado.
-*   **Análisis Visual**: Si hay fotos de platos en el PDF, indica `has_image: true` y descríbelos.
+🛠 **EXTRACTION RULES (Strict)**:
+*   **Name**: Full and exact name.
+*   **Price**: Extract price. If listed (Bottle/Glass), create separate items.
+*   **Category**: Respect the menu structure.
+*   **Description**: Associated descriptive text.
+*   **Visual Analysis**: If there are dish photos in the PDF, indicate `has_image: true` and describe them.
 
-FORMATO DE RESPUESTA (JSON):
+RESPONSE FORMAT (JSON):
 {
   "items": [
     {
-      "name": "Nombre Producto",
+      "name": "Product Name",
       "price": 100.00,
-      "description": "Descripción",
-      "category": "Categoría",
+      "description": "Description",
+      "category": "Category",
       "has_image": false,
       "confidence": 0.95
     }
@@ -927,10 +927,10 @@ FORMATO DE RESPUESTA (JSON):
   "pages_analyzed": "all"
 }
 
-Responde SOLO con el JSON válido.
+Respond ONLY with valid JSON.
 """
         if additional_context:
-            prompt += f"\n\nCONTEXTO ADICIONAL: {additional_context}"
+            prompt += f"\n\nADDITIONAL CONTEXT: {additional_context}"
 
         try:
             response = await self._call_gemini_with_pdf(prompt, pdf_path)
@@ -993,59 +993,59 @@ Responde SOLO con el JSON válido.
         image_data = Path(image_path).read_bytes()
         image_base64 = base64.b64encode(image_data).decode()
 
-        prompt = """Eres un sistema de inteligencia artificial AVANZADO especializado en digitalización de menús complejos.
-Tu misión es realizar una EXTRACCIÓN TOTAL Y PROFUNDA de cada elemento vendible visible en esta imagen del menú.
+        prompt = """You are an ADVANCED artificial intelligence system specialized in digitizing complex restaurant menus.
+Your mission is to perform a TOTAL AND DEEP extraction of every sellable item visible in this menu image.
 
-🚨 **MODO DE EXTRACCIÓN EXHAUSTIVA ACTIVADO** 🚨
-NO RESUMAS. NO AGRUPES. NO OMITAS NADA.
+🚨 **EXHAUSTIVE EXTRACTION MODE ACTIVATED** 🚨
+DO NOT summarize. DO NOT group. DO NOT omit anything.
 
-CONTEXTO: Estás procesando menús densos (ej: listas de licores con 50+ items, menús de platos fuertes con 100+ items).
-Tu trabajo es listar CADA UNO de ellos individualmente.
+CONTEXT: You are processing dense menus (e.g., liquor lists with 50+ items, main-course menus with 100+ items).
+Your job is to list EACH item individually.
 
- **INSTRUCCIONES DE VISIÓN Y LECTURA:**
-1.  **Escaneo Estructural**: Analiza columnas, tablas, notas al pie, cajas laterales y texto superpuesto en imágenes.
-2.  **Manejo de Variantes**: Si ves "Cervezas: Corona, Modelo, Victoria... $50", DEBES crear 3 items separados (Cerveza Corona, Cerveza Modelo, Cerveza Victoria), todos con precio 50.
-3.  **Licores y Botellas**: Si hay una lista de tequilas/whiskies, extrae CADA MARCA y TIPO como un item individual.
-4.  **Items Visuales**: Si hay una FOTO de un platillo sin nombre claro pero con precio, descríbelo como "Platillo en foto (descripción)" e indica `has_image: true`.
+ **VISION + READING INSTRUCTIONS:**
+1.  **Structural scan**: Analyze columns, tables, footnotes, side boxes, and overlaid text.
+2.  **Handling variants**: If you see "Beers: Corona, Modelo, Victoria... $50", you MUST create 3 separate items (Corona Beer, Modelo Beer, Victoria Beer), all priced at 50.
+3.  **Spirits and bottles**: If there is a list of tequilas/whiskies, extract EACH BRAND and TYPE as an individual item.
+4.  **Visual items**: If there is a PHOTO of a dish without a clear name but with a price, describe it as "Dish in photo (description)" and set `has_image: true`.
 
-🛠 **REGLAS DE EXTRACCIÓN:**
-*   **Nombre**: Nombre completo tal cual aparece.
-*   **Precio**: Si hay varios precios (Copa/Botella), crea DOS items o aclara en la descripción. Si no hay precio explícito pero se infiere por el encabezado (ej: "Todo a $100"), úsalo. Si no hay precio, usa `null`.
-*   **Descripción**: Todo el texto descriptivo bajo el nombre.
-*   **Categoría**: Usa la jerarquía del menú (ej: "Coctelería", "Licores > Tequila", "Fuertes > Carnes").
-*   **Análisis Visual**: Si el item tiene una FOTO al lado, analiza la foto y llena `image_description` con detalles visuales (colores, presentación, ingredientes visibles).
+🛠 **EXTRACTION RULES:**
+*   **Name**: Full name exactly as it appears (preserve original language, accents, and spelling).
+*   **Price**: If there are multiple prices (Glass/Bottle), create TWO items or clarify in the description. If there is no explicit price but it can be inferred from a header (e.g., "Everything $100"), use it. If no price, use `null`.
+*   **Description**: Include all descriptive text under the name.
+*   **Category**: Use the menu hierarchy as it appears (e.g., "Cocktails", "Spirits > Tequila", "Mains > Meat").
+*   **Visual analysis**: If the item has a PHOTO next to it, analyze the photo and fill `image_description` with visual details (colors, plating, visible ingredients).
 
-🔢 **VERIFICACIÓN DE CANTIDAD**:
-Si ves una lista de 20 tequilas, espero 20 objetos en el JSON.
-Si ves una página llena de texto, espero 40-50 items.
-Es mejor extraer de más y luego filtrar, que omitir.
+🔢 **QUANTITY CHECK**:
+If you see a list of 20 tequilas, I expect 20 JSON objects.
+If you see a page full of text, I expect 40-50 items.
+It is better to over-extract and then filter than to omit items.
 
-FORMATO DE RESPUESTA (JSON):
+RESPONSE FORMAT (JSON):
 {
   "items": [
     {
-      "name": "Nombre Producto",
+      "name": "Product name",
       "price": 100.00,
-      "description": "Descripción detallada",
-      "category": "Categoría exacta",
+      "description": "Detailed description",
+      "category": "Exact category",
       "has_image": true,
-      "image_description": "Plato servido en loza negra, salsa roja brillante, decorado con cilantro...",
-      "dietary_notes": ["sin gluten", "picante"],
+      "image_description": "Dish served on black plate, bright red sauce, garnished with cilantro...",
+      "dietary_notes": ["gluten-free", "spicy"],
       "confidence": 0.98
     }
   ],
   "layout_analysis": {
      "has_images": true,
      "complexity": "high/medium/low",
-     "notes": "Menú con lista densa de licores en columna derecha"
+     "notes": "Menu with a dense liquor list in the right column"
   }
 }
 
-Responde SOLO con el JSON válido.
+Respond ONLY with valid JSON.
 """
 
         if additional_context:
-            prompt += f"\n\nCONTEXTO ADICIONAL (Texto extraído por OCR/PDF): {additional_context}"
+            prompt += f"\n\nADDITIONAL CONTEXT (Text extracted by OCR/PDF): {additional_context}"
 
         response = await self._call_gemini_with_image(prompt, image_base64)
         self.call_count += 1
@@ -1063,48 +1063,48 @@ Responde SOLO con el JSON válido.
             image_data = Path(path).read_bytes()
             image_base64 = base64.b64encode(image_data).decode()
 
-            prompt = """ACTÚA COMO UN CRÍTICO GASTRONÓMICO Y EXPERTO EN FOOD STYLING DE CLASE MUNDIAL.
-Analiza esta imagen con profundidad extrema para un reporte de inteligencia competitiva.
+            prompt = """ACT AS A WORLD-CLASS FOOD CRITIC AND FOOD STYLING EXPERT.
+Analyze this image with extreme depth for a competitive intelligence report.
 
-🎯 **TU MISIÓN**: Deconstruir visualmente el platillo para entender su propuesta de valor, calidad y atractivo.
+🎯 **YOUR MISSION**: Visually deconstruct the dish to understand its value proposition, quality, and appeal.
 
-1.  **IDENTIFICACIÓN FORENSE**:
-    *   Nombre probable del platillo.
-    *   Ingredientes detectables (salsas, guarniciones, proteínas, decoraciones).
-    *   Técnica de cocción visible (frito, asado, crudo, sellado).
+1.  **FORENSIC IDENTIFICATION**:
+    *   Probable name of the dish.
+    *   Detectable ingredients (sauces, sides, proteins, garnishes).
+    *   Visible cooking technique (fried, grilled, raw, seared).
 
-2.  **ANÁLISIS SENSORIAL VISUAL**:
-    *   **Paleta de Color**: ¿Es vibrante? ¿Monocromático? ¿Apagado? (Describe los colores clave).
-    *   **Texturas**: Describe lo que se "siente" al verla (crujiente, sedoso, jugoso, seco, grasoso).
-    *   **Temperatura Visual**: ¿Se ve caliente (vapor, brillo) o frío?
+2.  **VISUAL SENSORY ANALYSIS**:
+    *   **Color Palette**: Is it vibrant? Monochromatic? Dull? (Describe key colors).
+    *   **Textures**: Describe what it "feels" like looking at it (crispy, silky, juicy, dry, greasy).
+    *   **Visual Temperature**: Does it look hot (steam, shine) or cold?
 
-3.  **EVALUACIÓN DE PRESENTACIÓN (Food Styling)**:
-    *   **Composición**: Caótica vs. Estructurada. Altura del platillo. Uso del espacio negativo en el plato.
-    *   **Vajilla**: ¿Moderna, rústica, barata, elegante? ¿Ayuda o perjudica?
-    *   **Cuidado al detalle**: Limpieza de bordes, colocación de guarniciones.
+3.  **PRESENTATION EVALUATION (Food Styling)**:
+    *   **Composition**: Chaotic vs. Structured. Dish height. Use of negative space on the plate.
+    *   **Crockery**: Modern, rustic, cheap, elegant? Does it help or hinder?
+    *   **Attention to Detail**: Cleanliness of edges, placement of garnishes.
 
-4.  **PSYCHOLOGY & MARKETING (La "Tercera Casilla")**:
-    *   **"Craveability" (Apetitosidad)**: Score 0-100. ¿Hace salivar? ¿Por qué?
-    *   **Instagram-worthiness**: Score 0-100. ¿La gente compartiría esto?
-    *   **Percepción de Valor**: ¿Se ve caro/premium o barato/abundante?
+4.  **PSYCHOLOGY & MARKETING (The "Third Box")**:
+    *   **"Craveability"**: Score 0-100. Does it make you salivate? Why?
+    *   **Instagram-worthiness**: Score 0-100. Would people share this?
+    *   **Perceived Value**: Does it look expensive/premium or cheap/abundant?
 
-5.  **FEEDBACK CONSTRUCTIVO DIRECTO**:
-    *   3 puntos fuertes.
-    *   3 áreas críticas de mejora (iluminación, emplatado, ingredientes).
+5.  **DIRECT CONSTRUCTIVE FEEDBACK**:
+    *   3 strong points.
+    *   3 critical areas for improvement (lighting, plating, ingredients).
 
-RESPUESTA JSON:
+JSON RESPONSE:
 {
-  "dish_name": "Nombre inferido",
-  "dish_category": "Entrada/Fuerte/Postre/Bebida",
+  "dish_name": "Inferred Name",
+  "dish_category": "Appetizer/Main/Dessert/Drink",
   "visual_elements": {
-    "ingredients": ["lista", "detallada"],
-    "colors": "Descripción paleta",
-    "textures": "Descripción texturas"
+    "ingredients": ["list", "detailed"],
+    "colors": "Palette description",
+    "textures": "Texture description"
   },
   "presentation_analysis": {
-    "style": "Rústico/Minimalista/Caótico/etc",
+    "style": "Rustic/Minimalist/Chaotic/etc",
     "plating_quality": "High/Medium/Low",
-    "crockery_comment": "Comentario sobre el plato/vajilla"
+    "crockery_comment": "Comment on the plate/crockery"
   },
   "scores": {
     "appetizing": 95,
@@ -1114,13 +1114,13 @@ RESPUESTA JSON:
   },
   "marketing_insight": {
     "perceived_value": "High/Medium/Low",
-    "target_audience": "Descripción probable del cliente objetivo"
+    "target_audience": "Probable description of the target customer"
   },
   "feedback": {
     "strengths": ["...", "...", "..."],
     "improvements": ["...", "...", "..."]
   },
-  "overall_summary": "Párrafo denso con el análisis final estilo crítico gastronómico."
+  "overall_summary": "Dense paragraph with the final analysis in food critic style."
 }
 """
 
@@ -1263,52 +1263,52 @@ Respond in JSON format:
         cash_cows = [c for c in classifications if c.get("bcg_class") == "cash_cow"]
         dogs = [c for c in classifications if c.get("bcg_class") == "dog"]
 
-        prompt = f"""Eres un estratega de marketing de restaurantes experto. Genera {num_campaigns} campañas de marketing ALTAMENTE ESPECÍFICAS y PERSONALIZADAS.
+        prompt = f"""You are an expert restaurant marketing strategist. Generate {num_campaigns} HIGHLY SPECIFIC and PERSONALIZED marketing campaigns.
 
-DATOS DEL ANÁLISIS BCG:
-- STARS (invertir fuerte): {json.dumps([{"name": s["name"], "price": s.get("price", 0), "margin": s.get("margin", 0), "growth": s.get("growth_rate", 0)} for s in stars], indent=2)}
-- QUESTION MARKS (decidir): {json.dumps([{"name": q["name"], "price": q.get("price", 0), "margin": q.get("margin", 0), "growth": q.get("growth_rate", 0)} for q in question_marks], indent=2)}
-- CASH COWS (ordeñar): {json.dumps([{"name": c["name"], "price": c.get("price", 0), "margin": c.get("margin", 0)} for c in cash_cows], indent=2)}
-- DOGS (revisar): {json.dumps([{"name": d["name"], "price": d.get("price", 0)} for d in dogs], indent=2)}
+BCG ANALYSIS DATA:
+- STARS (invest heavily): {json.dumps([{"name": s["name"], "price": s.get("price", 0), "margin": s.get("margin", 0), "growth": s.get("growth_rate", 0)} for s in stars], indent=2)}
+- QUESTION MARKS (decide): {json.dumps([{"name": q["name"], "price": q.get("price", 0), "margin": q.get("margin", 0), "growth": q.get("growth_rate", 0)} for q in question_marks], indent=2)}
+- CASH COWS (milk): {json.dumps([{"name": c["name"], "price": c.get("price", 0), "margin": c.get("margin", 0)} for c in cash_cows], indent=2)}
+- DOGS (review): {json.dumps([{"name": d["name"], "price": d.get("price", 0)} for d in dogs], indent=2)}
 
-{"CONTEXTO DEL NEGOCIO: " + business_context if business_context else ""}
-{"RESTRICCIONES: " + json.dumps(constraints, indent=2) if constraints else ""}
+{"BUSINESS CONTEXT: " + business_context if business_context else ""}
+{"CONSTRAINTS: " + json.dumps(constraints, indent=2) if constraints else ""}
 
-INSTRUCCIONES CRÍTICAS - Las campañas deben ser ESPECÍFICAS, no genéricas:
-❌ MAL: "Considera ofrecer un descuento"
-✅ BIEN: "Ofrece 20% de descuento en Tacos al Pastor los martes, reduciendo precio de $12.99 a $10.39"
+CRITICAL INSTRUCTIONS - Campaigns must be SPECIFIC, not generic:
+❌ BAD: "Consider offering a discount"
+✅ GOOD: "Offer 20% discount on Tacos al Pastor on Tuesdays, reducing price from $12.99 to $10.39"
 
-❌ MAL: "Promociona en redes sociales"
-✅ BIEN: "Post de Instagram con foto del platillo, copy: '🌮 MARTES DE TACOS 🌮 Hoy tu Pastor favorito a $10.39...'"
+❌ BAD: "Promote on social media"
+✅ GOOD: "Instagram post with dish photo, copy: '🌮 TACO TUESDAY 🌮 Your favorite Pastor today at $10.39...'"
 
-Para CADA campaña, proporciona EN JSON:
+For EACH campaign, provide IN JSON:
 {{
-  "title": "Nombre creativo y memorable",
-  "objective": "Objetivo específico con métrica (ej: 'Aumentar ventas de Birria 40% en 2 semanas')",
-  "target_audience": "Audiencia específica con demografía y psicografía",
+  "title": "Creative and memorable name",
+  "objective": "Specific objective with metric (e.g., 'Increase Birria sales by 40% in 2 weeks')",
+  "target_audience": "Specific audience with demographics and psychographics",
   "channels": ["instagram", "email", "in_store"],
-  "key_messages": ["Mensaje 1 específico", "Mensaje 2", "Mensaje 3"],
-  "promotional_items": ["Nombre exacto del producto 1", "Producto 2"],
-  "discount_strategy": "Estrategia específica: '25% off' o 'Compra 2 lleva 3' con precios exactos",
-  "social_post_copy": "Copy COMPLETO listo para publicar con emojis y hashtags",
-  "email_subject": "Línea de asunto del email",
-  "email_preview": "Texto de preview del email",
-  "in_store_copy": "Copy para señalización en tienda",
+  "key_messages": ["Specific message 1", "Message 2", "Message 3"],
+  "promotional_items": ["Exact name of product 1", "Product 2"],
+  "discount_strategy": "Specific strategy: '25% off' or 'Buy 2 Get 3' with exact prices",
+  "social_post_copy": "COMPLETE Copy ready to post with emojis and hashtags",
+  "email_subject": "Email subject line",
+  "email_preview": "Email preview text",
+  "in_store_copy": "Copy for in-store signage",
   "expected_uplift_percent": 25,
   "expected_revenue_increase": 1500,
-  "investment_required": "Bajo/Medio/Alto con estimación",
-  "roi_estimate": "Retorno esperado específico",
-  "rationale": "Explicación detallada de por qué esta campaña funcionará para ESTE restaurante",
-  "success_metrics": ["Métrica 1 medible", "Métrica 2"],
-  "timeline": "Cronograma específico de implementación"
+  "investment_required": "Low/Medium/High with estimate",
+  "roi_estimate": "Specific expected return",
+  "rationale": "Detailed explanation of why this campaign will work for THIS restaurant",
+  "success_metrics": ["Measurable metric 1", "Metric 2"],
+  "timeline": "Specific implementation timeline"
 }}
 
-DIVERSIFICACIÓN REQUERIDA:
-1. Primera campaña: Amplificar STARS (productos exitosos)
-2. Segunda campaña: Convertir QUESTION MARKS en Stars (alto potencial)
-3. Tercera campaña: Bundle/Loyalty con CASH COWS (revenue estable)
+REQUIRED DIVERSIFICATION:
+1. First campaign: Amplify STARS (successful products)
+2. Second campaign: Convert QUESTION MARKS into Stars (high potential)
+3. Third campaign: Bundle/Loyalty with CASH COWS (stable revenue)
 
-Responde SOLO con un array JSON de {num_campaigns} campañas, sin texto adicional."""
+Respond ONLY with a JSON array of {num_campaigns} campaigns, without additional text."""
 
         response = await self._call_gemini(prompt)
         self.call_count += 1

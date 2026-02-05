@@ -1,7 +1,7 @@
 'use client'
 
-import { Brain, ChevronDown, ChevronUp, Loader2, Sparkles, Eye, CheckCircle2, AlertCircle } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { AlertCircle, Brain, CheckCircle2, ChevronDown, ChevronUp, Eye, Loader2, Sparkles } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 export interface ThoughtStep {
   id: string
@@ -38,17 +38,17 @@ const THOUGHT_COLORS = {
 }
 
 const THOUGHT_LABELS = {
-  thinking: 'Razonando',
-  observation: 'Observación',
-  action: 'Ejecutando',
-  verification: 'Verificando',
-  result: 'Resultado',
+  thinking: 'Reasoning',
+  observation: 'Observation',
+  action: 'Executing',
+  verification: 'Verifying',
+  result: 'Result',
 }
 
 export default function ThinkingStream({
   thoughts,
   isActive,
-  title = 'Gemini está pensando...',
+  title = 'Gemini is thinking...',
   showConfidence = true,
   defaultExpanded = true,
   onToggle,
@@ -137,7 +137,7 @@ export default function ThinkingStream({
           )}
           
           <span className={`font-medium text-sm ${isActive ? 'text-purple-900' : 'text-gray-600'}`}>
-            {isActive ? title : 'Proceso de razonamiento'}
+            {isActive ? title : 'Reasoning Process'}
           </span>
 
           {isActive && (
@@ -146,7 +146,7 @@ export default function ThinkingStream({
 
           {!isActive && thoughts.length > 0 && (
             <span className="text-xs text-gray-500 bg-gray-200/50 px-2 py-0.5 rounded-full">
-              {thoughts.length} pasos
+              {thoughts.length} steps
             </span>
           )}
         </div>
@@ -158,7 +158,7 @@ export default function ThinkingStream({
               averageConfidence >= 0.6 ? 'bg-yellow-100 text-yellow-700' :
               'bg-red-100 text-red-700'
             }`}>
-              {(averageConfidence * 100).toFixed(0)}% confianza
+              {(averageConfidence * 100).toFixed(0)}% confidence
             </span>
           )}
           
@@ -182,7 +182,7 @@ export default function ThinkingStream({
           {thoughts.length === 0 && isActive && (
             <div className="flex items-center gap-2 text-sm text-purple-600 py-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="animate-pulse">Iniciando análisis...</span>
+              <span className="animate-pulse">Starting analysis...</span>
             </div>
           )}
 
@@ -236,7 +236,7 @@ export default function ThinkingStream({
                 <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </span>
-              <span className="text-xs text-purple-400">procesando...</span>
+              <span className="text-xs text-purple-400">processing...</span>
             </div>
           )}
         </div>

@@ -69,7 +69,7 @@ const BCG_CONFIG = {
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
     label: 'Stars ⭐',
-    description: 'Alto crecimiento, alta participación. INVERTIR.'
+    description: 'High growth, high share. INVEST.'
   },
   cash_cow: { 
     icon: Milk, 
@@ -77,7 +77,7 @@ const BCG_CONFIG = {
     bgColor: 'bg-emerald-50',
     borderColor: 'border-emerald-200',
     label: 'Cash Cows 🐄',
-    description: 'Bajo crecimiento, alta participación. ORDEÑAR.'
+    description: 'Low growth, high share. MILK.'
   },
   question_mark: { 
     icon: HelpCircle, 
@@ -85,7 +85,7 @@ const BCG_CONFIG = {
     bgColor: 'bg-indigo-50',
     borderColor: 'border-indigo-200',
     label: 'Question Marks ❓',
-    description: 'Alto crecimiento, baja participación. DECISIÓN ESTRATÉGICA.'
+    description: 'High growth, low share. STRATEGIC DECISION.'
   },
   dog: { 
     icon: Dog, 
@@ -93,7 +93,7 @@ const BCG_CONFIG = {
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
     label: 'Dogs ',
-    description: 'Bajo crecimiento, baja participaci\u00F3n. REVISAR.'
+    description: 'Low growth, low share. REVIEW.'
   }
 }
 
@@ -250,7 +250,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-primary-500" />
-          Matriz de Ingeniería de Menú (Popularidad vs Rentabilidad)
+          Menu Engineering Matrix (Popularity vs Profitability)
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <ScatterChart margin={{ top: 20, right: 40, bottom: 40, left: 40 }}>
@@ -258,21 +258,21 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
             <XAxis 
               type="number" 
               dataKey="x" 
-              name="Popularidad" 
+              name="Popularity" 
               unit="%" 
               domain={[0, 'auto']}
               tick={{ fontSize: 12 }}
             >
-              <Label value="Popularidad (% Mix)" offset={-10} position="insideBottom" style={{ fontSize: 12 }} />
+              <Label value="Popularity (% Mix)" offset={-10} position="insideBottom" style={{ fontSize: 12 }} />
             </XAxis>
             <YAxis 
               type="number" 
               dataKey="y" 
-              name="Rentabilidad" 
+              name="Profitability" 
               unit="$"
               tick={{ fontSize: 12 }}
             >
-              <Label value="Margen de Contribución ($)" angle={-90} position="insideLeft" style={{ fontSize: 12 }} />
+              <Label value="Contribution Margin ($)" angle={-90} position="insideLeft" style={{ fontSize: 12 }} />
             </YAxis>
             <ReferenceLine x={avgX} stroke="#9ca3af" strokeDasharray="5 5" label="Avg Pop" />
             <ReferenceLine y={avgY} stroke="#9ca3af" strokeDasharray="5 5" label="Avg CM" />
@@ -285,10 +285,10 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                     <p className="font-semibold text-gray-900">{item.name}</p>
                     <p className="text-gray-600">{BCG_CONFIG[item.bcg_class as keyof typeof BCG_CONFIG]?.label || item.bcg_class}</p>
                     <div className="mt-2 space-y-1 text-xs">
-                      <p>Popularidad: {item.x.toFixed(1)}%</p>
-                      <p>Margen Contrib.: ${item.y.toFixed(2)}</p>
-                      {item.margin && <p>Margen %: {(item.margin * 100).toFixed(0)}%</p>}
-                      {item.price && <p>Precio: ${item.price.toFixed(2)}</p>}
+                      <p>Popularity: {item.x.toFixed(1)}%</p>
+                      <p>Contrib. Margin: ${item.y.toFixed(2)}</p>
+                      {item.margin && <p>Margin %: {(item.margin * 100).toFixed(0)}%</p>}
+                      {item.price && <p>Price: ${item.price.toFixed(2)}</p>}
                     </div>
                   </div>
                 )
@@ -320,7 +320,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
       <div className="space-y-3">
         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
           <Target className="h-5 w-5 text-primary-500" />
-          Productos por Categoría
+          Products by Category
         </h3>
         
         {(['star', 'cash_cow', 'question_mark', 'dog'] as const).map(category => {
@@ -344,7 +344,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                 <div className="flex items-center gap-3">
                   <Icon className="h-5 w-5" style={{ color: config.color }} />
                   <span className="font-semibold text-gray-900">{config.label}</span>
-                  <span className="text-sm text-gray-500">({items.length} productos)</span>
+                  <span className="text-sm text-gray-500">({items.length} products)</span>
                 </div>
                 {isExpanded ? (
                   <ChevronDown className="h-5 w-5 text-gray-400" />
@@ -366,7 +366,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                           <span className="font-medium text-gray-900">{item.name}</span>
                           {item.priority === 'high' && (
                             <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                              Prioridad Alta
+                              High Priority
                             </span>
                           )}
                         </div>
@@ -380,13 +380,13 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                           {item.margin && (
                             <span className="flex items-center gap-1">
                               <Percent className="h-3 w-3" />
-                              {(item.margin * 100).toFixed(0)}% margen
+                              {(item.margin * 100).toFixed(0)}% margin
                             </span>
                           )}
                           {item.total_contribution !== undefined && (
                             <span className="flex items-center gap-1 text-primary-600">
                               <DollarSign className="h-3 w-3" />
-                              ${item.total_contribution.toFixed(0)} Contrib. Total
+                              ${item.total_contribution.toFixed(0)} Total Contrib.
                             </span>
                           )}
                         </div>
@@ -395,7 +395,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                         <div className="text-lg font-bold" style={{ color: config.color }}>
                           {item.x.toFixed(1)}%
                         </div>
-                        <div className="text-xs text-gray-400">Popularidad</div>
+                        <div className="text-xs text-gray-400">Popularity</div>
                       </div>
                     </div>
                   ))}
@@ -404,7 +404,7 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
                   {items[0]?.strategy && (
                     <div className="mt-3 p-3 bg-white/70 rounded-lg border border-gray-100">
                       <p className="text-sm font-medium text-gray-700 mb-1">
-                        Estrategia Recomendada:
+                        Recommended Strategy:
                       </p>
                       <p className="text-sm text-gray-600">
                         {typeof items[0].strategy === 'object' 
@@ -431,9 +431,9 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
       <div className="bg-gradient-to-r from-primary-50 to-indigo-50 rounded-xl p-4 border border-primary-200">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900">Salud del Portafolio</h3>
+            <h3 className="font-semibold text-gray-900">Portfolio Health</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Score basado en balance de categorías
+              Score based on category balance
             </p>
           </div>
           <div className="text-right">
@@ -441,8 +441,8 @@ export default function BCGResultsPanel({ data }: BCGResultsPanelProps) {
               {(healthScore * 100).toFixed(0)}%
             </div>
             <div className="text-sm text-gray-500">
-              {healthScore >= 0.7 ? 'Saludable' : 
-               healthScore >= 0.5 ? 'Moderado' : 'Necesita atención'}
+              {healthScore >= 0.7 ? 'Healthy' : 
+               healthScore >= 0.5 ? 'Moderate' : 'Needs Attention'}
             </div>
           </div>
         </div>

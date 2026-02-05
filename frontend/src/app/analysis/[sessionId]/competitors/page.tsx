@@ -1,36 +1,15 @@
 'use client';
 
-import { api } from '@/lib/api';
 import { MapPin, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
+import { useSessionData } from '../layout';
 
 
-interface CompetitorsPageProps {
-  params: Promise<{ sessionId: string }>;
-}
+export default function CompetitorsPage() {
+  const { sessionData, isLoading } = useSessionData();
 
-export default function CompetitorsPage({ params }: CompetitorsPageProps) {
-  const { sessionId } = use(params);
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const unwrappedSession = (sessionData as any)?.data || sessionData;
 
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
-          ? await api.getDemoSession()
-          : await api.getSession(sessionId);
-        setSession(data);
-      } catch (err) {
-        console.error('Failed to load session:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSession();
-  }, [sessionId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="animate-pulse space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48"></div>
@@ -42,15 +21,15 @@ export default function CompetitorsPage({ params }: CompetitorsPageProps) {
   }
 
   // Get competitors from session data
-  const competitors = session?.competitor_analysis?.competitors || [];
-  const competitorContext = session?.competitor_context || "";
+  const competitors = unwrappedSession?.competitor_analysis?.competitors || sessionData?.competitor_analysis?.competitors || [];
+  const competitorContext = unwrappedSession?.competitor_context || sessionData?.competitor_context || "";
 
-  if (!competitors.length && !loading) {
+  if (!competitors.length && !isLoading) {
     return (
       <div className="text-center py-12 text-gray-500">
         <Target className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-        <p className="text-lg">No hay análisis de competencia disponible</p>
-        <p className="text-sm mt-2">Ejecuta el análisis para identificar competidores.</p>
+        <p className="text-lg">No competitor analysis available</p>
+        <p className="text-sm mt-2">Run the analysis to identify competitors.</p>
       </div>
     );
   }
@@ -60,15 +39,15 @@ export default function CompetitorsPage({ params }: CompetitorsPageProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <Target className="h-6 w-6 text-orange-500" />
-          Análisis de Competencia
+          Competitor Analysis
         </h2>
-        <span className="text-sm text-gray-500">{competitors.length} competidores identificados</span>
+        <span className="text-sm text-gray-500">{competitors.length} competitors identified</span>
       </div>
 
       {/* Context from audio/text if available */}
       {competitorContext && (
         <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
-          <h3 className="font-medium text-orange-800 mb-2">📝 Contexto Proporcionado</h3>
+          <h3 className="font-medium text-orange-800 mb-2">📝 Context Provided</h3>
           <p className="text-sm text-gray-700">{competitorContext}</p>
         </div>
       )}
@@ -105,7 +84,7 @@ export default function CompetitorsPage({ params }: CompetitorsPageProps) {
 
             <div className="space-y-3">
               <div>
-                <p className="text-xs text-green-600 font-medium mb-1">Fortalezas</p>
+                <p className="text-xs text-green-600 font-medium mb-1">Strengths</p>
                 <div className="flex flex-wrap gap-1">
                   {competitor.strengths?.map((s: string, i: number) => (
                     <span key={i} className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs">{s}</span>
@@ -113,7 +92,7 @@ export default function CompetitorsPage({ params }: CompetitorsPageProps) {
                 </div>
               </div>
               <div>
-                <p className="text-xs text-red-600 font-medium mb-1">Debilidades</p>
+                <p className="text-xs text-red-600 font-medium mb-1">Weaknesses</p>
                 <div className="flex flex-wrap gap-1">
                   {competitor.weaknesses?.map((w: string, i: number) => (
                     <span key={i} className="px-2 py-0.5 bg-red-50 text-red-700 rounded text-xs">{w}</span>
@@ -127,56 +106,56 @@ export default function CompetitorsPage({ params }: CompetitorsPageProps) {
 
       {/* Market Position Summary */}
       <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-5 border border-orange-200">
-        <h3 className="font-semibold text-orange-900 mb-3">📊 Posicionamiento en el Mercado</h3>
+        <h3 className="font-semibold text-orange-900 mb-3">📊 Market Positioning</h3>
         <div className="grid md:grid-cols-4 gap-4">
           <div className="bg-white/60 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-orange-700">
-              {100 - competitors.reduce((sum: number, c: any) => sum + c.marketShare, 0)}%
+              {100 - competitors.reduce((sum: number, c: any) => sum + (Number(c.marketShare) || 0), 0)}%
             </p>
-            <p className="text-xs text-gray-600">Tu Market Share</p>
+            <p className="text-xs text-gray-600">Your Market Share</p>
           </div>
           <div className="bg-white/60 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-orange-700">{competitors.length}</p>
-            <p className="text-xs text-gray-600">Competidores</p>
+            <p className="text-xs text-gray-600">Competitors</p>
           </div>
           <div className="bg-white/60 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-orange-700">
-              {(competitors.reduce((sum: number, c: any) => sum + c.rating, 0) / competitors.length).toFixed(1)}
+              {(competitors.reduce((sum: number, c: any) => sum + (Number(c.rating) || 0), 0) / competitors.length).toFixed(1)}
             </p>
-            <p className="text-xs text-gray-600">Rating Promedio</p>
+            <p className="text-xs text-gray-600">Average Rating</p>
           </div>
           <div className="bg-white/60 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-orange-700">
               {competitors.filter((c: any) => c.trend === 'up').length}
             </p>
-            <p className="text-xs text-gray-600">En Crecimiento</p>
+            <p className="text-xs text-gray-600">Growing</p>
           </div>
         </div>
       </div>
 
       {/* Recommendations */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="font-semibold text-gray-900 mb-3">💡 Recomendaciones Estratégicas</h3>
+        <h3 className="font-semibold text-gray-900 mb-3">💡 Strategic Recommendations</h3>
         <ul className="space-y-2 text-sm text-gray-700">
           <li className="flex items-start gap-2">
             <span className="text-orange-500">→</span>
-            Diferenciarte por calidad y experiencia frente a competidores de bajo costo
+            Differentiate by quality and experience vs low-cost competitors
           </li>
           <li className="flex items-start gap-2">
             <span className="text-orange-500">→</span>
-            Mejorar presencia digital para competir con establecimientos mejor posicionados
+            Improve digital presence to compete with better-positioned establishments
           </li>
           <li className="flex items-start gap-2">
             <span className="text-orange-500">→</span>
-            Considerar promociones específicas para atraer clientes de competidores en declive
+            Consider specific promotions to attract customers from declining competitors
           </li>
         </ul>
       </div>
 
       {/* Add Links Suggestion */}
       <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 text-sm text-gray-600">
-        <p className="font-medium mb-1">💡 Enriquece este análisis</p>
-        <p>Agrega links de redes sociales, reseñas de Google Maps o TripAdvisor de tus competidores en la página de carga para un análisis más detallado con Gemini.</p>
+        <p className="font-medium mb-1">💡 Enrich this analysis</p>
+        <p>Add social media links, Google Maps reviews, or TripAdvisor links of your competitors on the setup page for a more detailed analysis with Gemini.</p>
       </div>
     </div>
   );

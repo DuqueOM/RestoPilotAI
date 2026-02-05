@@ -8,7 +8,7 @@ export class VibeEngineeringAPI {
   }
 
   /**
-   * Inicia verificación y mejora autónoma de un análisis
+   * Initiates autonomous verification and improvement of an analysis
    */
   async verifyAndImproveAnalysis(
     sessionId: string,
@@ -38,7 +38,7 @@ export class VibeEngineeringAPI {
   }
 
   /**
-   * Obtiene el estado actual de verificación
+   * Gets the current verification status
    */
   async getVerificationStatus(sessionId: string): Promise<VibeEngineeringState | null> {
     const response = await fetch(
@@ -57,7 +57,7 @@ export class VibeEngineeringAPI {
   }
 
   /**
-   * Cancela un proceso de verificación en curso
+   * Cancels an ongoing verification process
    */
   async cancelVerification(sessionId: string): Promise<void> {
     const response = await fetch(

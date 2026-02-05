@@ -8,25 +8,25 @@ from app.core.config import get_settings
 
 class MarathonAgent:
     """
-    Implementación completa del patrón Marathon Agent.
+    Complete implementation of the Marathon Agent pattern.
     
-    TRACK DEL HACKATHON: Marathon Agent
+    HACKATHON TRACK: Marathon Agent
     
-    Capacidades:
-    - Checkpoints automáticos persistentes (Redis/DB)
-    - Recuperación de fallos con retry exponencial
-    - Progreso en tiempo real vía WebSocket
-    - Multi-hora execution con timeouts largos
-    - State snapshots para debugging
+    Capabilities:
+    - Persistent automatic checkpoints (Redis/DB)
+    - Failure recovery with exponential retry
+    - Real-time progress via WebSocket
+    - Multi-hour execution with long timeouts
+    - State snapshots for debugging
     """
     
     def __init__(self):
         settings = get_settings()
-        self.checkpoint_interval = settings.marathon_checkpoint_interval  # 60 segundos
+        self.checkpoint_interval = settings.marathon_checkpoint_interval  # 60 seconds
         self.max_retries = settings.marathon_max_retries_per_step  # 3
         self.enable_recovery = settings.marathon_enable_recovery
         self.enable_checkpoints = settings.marathon_enable_checkpoints
-        self.max_task_duration = settings.marathon_max_task_duration  # 3600 segundos
+        self.max_task_duration = settings.marathon_max_task_duration  # 3600 seconds
         
         # WebSocket connection manager (will be injected)
         self.ws_manager = None
@@ -41,34 +41,34 @@ class MarathonAgent:
         progress_callback: Callable = None
     ) -> Dict:
         """
-        Ejecuta tarea de larga duración con checkpoints.
+        Execute a long-running task with checkpoints.
         
-        Ejemplo de uso:
-        - Análisis competitivo de 50 restaurantes
-        - Procesamiento de 100 fotos de platos
-        - Generación de 20 variaciones de campaña
+        Examples:
+        - Competitive analysis of 50 restaurants
+        - Processing 100 dish photos
+        - Generating 20 campaign variations
         """
         
-        # Verificar si existe checkpoint previo
+        # Check whether a previous checkpoint exists
         checkpoint = await self._load_checkpoint(task_id)
         
         if checkpoint:
-            logger.info(f"Recuperando desde checkpoint: {checkpoint['step']}")
+            logger.info(f"Recovering from checkpoint: {checkpoint['step']}")
             current_step = checkpoint['step']
             accumulated_results = checkpoint['results']
         else:
             current_step = 0
             accumulated_results = {}
         
-        # Definir steps del pipeline
+        # Define pipeline steps
         pipeline_steps = self._define_pipeline_steps(task_config)
         
-        # Ejecutar desde el paso actual
+        # Execute from the current step
         for i in range(current_step, len(pipeline_steps)):
             step = pipeline_steps[i]
             
             try:
-                # Ejecutar step con retry logic
+                # Execute step with retry logic
                 result = await self._execute_step_with_retry(
                     step,
                     accumulated_results
@@ -76,7 +76,7 @@ class MarathonAgent:
                 
                 accumulated_results[step['name']] = result
                 
-                # Guardar checkpoint
+                # Save checkpoint
                 await self._save_checkpoint(
                     task_id,
                     step=i + 1,
@@ -101,11 +101,11 @@ class MarathonAgent:
                     await progress_callback(progress_data)
             
             except Exception as e:
-                # Guardar estado de error
+                # Save error state
                 await self._save_error_state(task_id, i, str(e))
                 raise
         
-        # Limpiar checkpoint al finalizar
+        # Clear checkpoint on completion
         await self._clear_checkpoint(task_id)
         
         return {
@@ -121,7 +121,7 @@ class MarathonAgent:
         context: Dict
     ) -> Dict:
         """
-        Ejecuta un step con retry automático.
+        Execute a step with automatic retries.
         """
         
         last_error = None
@@ -205,7 +205,7 @@ class MarathonAgent:
         
         try:
             if self.storage_backend == "redis":
-                # TTL: 1 hora (3600 segundos)
+                # TTL: 1 hour (3600 seconds)
                 await self.redis_client.setex(
                     f"checkpoint:{task_id}",
                     3600,

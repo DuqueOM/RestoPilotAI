@@ -7,13 +7,13 @@ from app.core.config import get_settings
 
 class VibeEngineeringAgent:
     """
-    Implementa el patrón 'Vibe Engineering' del hackathon.
+    Implements the hackathon 'Vibe Engineering' pattern.
     
-    Características:
-    - Auto-verificación de outputs
-    - Loops de mejora iterativa
-    - Testing autónomo
-    - Validación de calidad sin intervención humana
+    Features:
+    - Output auto-verification
+    - Iterative improvement loops
+    - Autonomous testing
+    - Quality validation without human intervention
     """
     
     def __init__(self):
@@ -32,15 +32,15 @@ class VibeEngineeringAgent:
         auto_improve: bool = True
     ) -> Dict:
         """
-        Verifica la calidad de un análisis y lo mejora iterativamente.
+        Verifies the quality of an analysis and improves it iteratively.
         
-        LOOP AUTÓNOMO:
-        1. Verificar calidad del análisis inicial
-        2. Si quality_score < threshold:
-           a. Identificar problemas específicos
-           b. Regenerar análisis con correcciones
-           c. Volver a paso 1
-        3. Continuar hasta alcanzar threshold o max_iterations
+        AUTONOMOUS LOOP:
+        1. Verify initial analysis quality
+        2. If quality_score < threshold:
+           a. Identify specific issues
+           b. Regenerate analysis with corrections
+           c. Go back to step 1
+        3. Continue until reaching threshold or max_iterations
         """
         import time
         from datetime import datetime
@@ -54,7 +54,7 @@ class VibeEngineeringAgent:
         while iteration < self.max_iterations:
             iter_start = time.time()
             
-            # VERIFICACIÓN AUTÓNOMA
+            # AUTONOMOUS VERIFICATION
             verification = await self._autonomous_verify(
                 analysis_type,
                 current_analysis,
@@ -64,19 +64,20 @@ class VibeEngineeringAgent:
             verification_history.append(verification)
             quality_score = verification.get('quality_score', 0)
             
-            # Si la calidad es suficiente, terminar
+            # If quality is sufficient, stop
             if quality_score >= self.quality_threshold:
                 break
             
-            # Si no hay auto-improve, devolver con advertencia
+            # If auto-improve is disabled, stop (return with current verification)
             if not auto_improve:
                 break
             
-            # Si es la última iteración, no intentamos mejorar para no desperdiciar tokens sin re-verificar
+            # If this is the last iteration, do not attempt an improvement
+            # to avoid wasting tokens without a subsequent re-verification
             if iteration == self.max_iterations - 1:
                 break
 
-            # MEJORA AUTÓNOMA
+            # AUTONOMOUS IMPROVEMENT
             identified_issues = verification.get('identified_issues', [])
             improved_analysis = await self._autonomous_improve(
                 analysis_type,
@@ -124,13 +125,13 @@ class VibeEngineeringAgent:
         source_data: Dict
     ) -> Dict:
         """
-        Verificación autónoma de calidad usando Gemini 3.
+        Autonomous quality verification using Gemini 3.
         
-        El modelo actúa como "reviewer crítico" y evalúa:
-        - Coherencia lógica
-        - Precisión factual
-        - Completitud
-        - Aplicabilidad práctica
+        The model acts as a "critical reviewer" and evaluates:
+        - Logical consistency
+        - Factual accuracy
+        - Completeness
+        - Practical applicability
         """
         
         # Safe serialization for prompt
@@ -138,54 +139,54 @@ class VibeEngineeringAgent:
             return str(obj)
 
         verification_prompt = f"""
-        Eres un AUDITOR EXPERTO evaluando la calidad de un análisis de restaurante.
+        You are an EXPERT AUDITOR evaluating the quality of a restaurant analysis.
         
-        TIPO DE ANÁLISIS: {analysis_type}
+        ANALYSIS TYPE: {analysis_type}
         
-        DATOS ORIGINALES:
+        ORIGINAL DATA:
         {json.dumps(source_data, indent=2, default=default_serializer)}
         
-        ANÁLISIS A VERIFICAR:
+        ANALYSIS TO VERIFY:
         {json.dumps(analysis, indent=2, default=default_serializer)}
         
-        Tu tarea es evaluar la CALIDAD del análisis en múltiples dimensiones:
+        Your task is to evaluate the QUALITY of the analysis across multiple dimensions:
         
-        1. PRECISIÓN FACTUAL (0-1):
-           - ¿Los números y cálculos son correctos?
-           - ¿Las conclusiones se derivan lógicamente de los datos?
+        1. FACTUAL ACCURACY (0-1):
+           - Are numbers and calculations correct?
+           - Do conclusions logically follow from the data?
         
-        2. COMPLETITUD (0-1):
-           - ¿Se analizaron todos los aspectos relevantes?
-           - ¿Falta algún insight importante?
+        2. COMPLETENESS (0-1):
+           - Were all relevant aspects analyzed?
+           - Are there any important insights missing?
         
-        3. APLICABILIDAD (0-1):
-           - ¿Las recomendaciones son accionables?
-           - ¿Tiene sentido para un dueño de restaurante real?
+        3. APPLICABILITY (0-1):
+           - Are the recommendations actionable?
+           - Does it make sense for a real restaurant owner?
         
-        4. CLARIDAD (0-1):
-           - ¿La explicación es comprensible?
-           - ¿Los términos técnicos están bien explicados?
+        4. CLARITY (0-1):
+           - Is the explanation understandable?
+           - Are technical terms well explained?
         
-        Devuelve un JSON con la siguiente estructura:
+        Return a JSON with the following structure:
         {{
-            "quality_score": float (promedio de las 4 dimensiones),
+            "quality_score": float (average of the 4 dimensions),
             "precision_score": float,
             "completeness_score": float,
             "applicability_score": float,
             "clarity_score": float,
             "identified_issues": [
                 {{
-                    "issue": "descripción del problema",
+                    "issue": "description of the problem",
                     "severity": "high|medium|low",
                     "category": "precision|completeness|applicability|clarity",
-                    "suggestion": "cómo corregirlo"
+                    "suggestion": "how to fix it"
                 }}
             ],
-            "strengths": ["punto fuerte 1", "punto fuerte 2", ...],
-            "overall_assessment": "resumen ejecutivo de 2-3 líneas"
+            "strengths": ["strength 1", "strength 2", ...],
+            "overall_assessment": "executive summary of 2-3 lines"
         }}
         
-        SÉ RIGUROSO Y CRÍTICO. Un análisis mediocre debe recibir score < 0.7.
+        BE RIGOROUS AND CRITICAL. A mediocre analysis should receive a score < 0.7.
         """
         
         try:
@@ -194,7 +195,7 @@ class VibeEngineeringAgent:
                 contents=verification_prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    temperature=0.3  # Baja temperatura para consistencia
+                    temperature=0.3  # Low temperature for consistency
                 )
             )
             
@@ -218,10 +219,10 @@ class VibeEngineeringAgent:
         source_data: Dict
     ) -> Dict:
         """
-        Mejora autónoma del análisis basándose en issues identificados.
+        Autonomous improvement of the analysis based on identified issues.
         """
         
-        # Priorizar issues por severidad
+        # Prioritize issues by severity
         high_priority = [i for i in identified_issues if i.get('severity') == 'high']
         medium_priority = [i for i in identified_issues if i.get('severity') == 'medium']
         
@@ -230,33 +231,33 @@ class VibeEngineeringAgent:
             return str(obj)
 
         improvement_prompt = f"""
-        Eres un ANALISTA SENIOR corrigiendo un análisis previo.
+        You are a SENIOR ANALYST correcting a previous analysis.
         
-        ANÁLISIS ORIGINAL:
+        ORIGINAL ANALYSIS:
         {json.dumps(current_analysis, indent=2, default=default_serializer)}
         
-        PROBLEMAS IDENTIFICADOS (ALTA PRIORIDAD):
+        IDENTIFIED ISSUES (HIGH PRIORITY):
         {json.dumps(high_priority, indent=2)}
         
-        PROBLEMAS IDENTIFICADOS (MEDIA PRIORIDAD):
+        IDENTIFIED ISSUES (MEDIUM PRIORITY):
         {json.dumps(medium_priority, indent=2)}
         
-        DATOS ORIGINALES DE REFERENCIA:
+        ORIGINAL REFERENCE DATA:
         {json.dumps(source_data, indent=2, default=default_serializer)}
         
-        Tu tarea es REGENERAR el análisis corrigiendo TODOS los problemas identificados.
+        Your task is to REGENERATE the analysis correcting ALL identified issues.
         
-        Directrices:
-        1. Mantén los aspectos correctos del análisis original
-        2. Corrige ESPECÍFICAMENTE cada issue listado
-        3. Si falta información, incorpórala
-        4. Si hay errores de cálculo, corrígelos
-        5. Si las recomendaciones no son accionables, hazlas más concretas
+        Guidelines:
+        1. Maintain the correct aspects of the original analysis
+        2. SPECIFICALLY correct each listed issue
+        3. If information is missing, incorporate it
+        4. If there are calculation errors, fix them
+        5. If recommendations are not actionable, make them more concrete
         
-        IMPORTANTE: 
-        - Devuelve el análisis completo mejorado, no solo los cambios
-        - Mantén la misma estructura JSON del análisis original
-        - Agrega un campo "improvements_made" listando qué corregiste
+        IMPORTANT: 
+        - Return the complete improved analysis, not just the changes
+        - Maintain the same JSON structure as the original analysis
+        - Add an "improvements_made" field listing what you fixed
         """
         
         try:
@@ -265,7 +266,7 @@ class VibeEngineeringAgent:
                 contents=improvement_prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    temperature=0.5  # Más creatividad para mejoras
+                    temperature=0.5  # Higher creativity for improvements
                 )
             )
             
@@ -288,13 +289,13 @@ class VibeEngineeringAgent:
         auto_improve: bool = True
     ) -> Dict:
         """
-        Verifica la calidad de assets visuales generados.
+        Verifies the quality of generated visual assets.
         
-        VERIFICACIONES AUTÓNOMAS:
-        - ¿El texto es legible?
-        - ¿Los colores respetan el brand?
-        - ¿La composición es profesional?
-        - ¿El mensaje es claro?
+        AUTONOMOUS CHECKS:
+        - Is the text legible?
+        - Do the colors respect the brand?
+        - Is the composition professional?
+        - Is the message clear?
         """
         
         verified_assets = []
@@ -305,15 +306,15 @@ class VibeEngineeringAgent:
                 verified_assets.append(asset)
                 continue
 
-            # Verificación visual usando Gemini Vision
+            # Visual verification using Gemini Vision
             verification = await self._verify_visual_asset(
                 asset,
                 brand_guidelines
             )
             
-            # Si la calidad es baja y auto_improve está activo
+            # If quality is low and auto_improve is enabled
             if verification.get('quality_score', 0) < self.quality_threshold and auto_improve:
-                # Mejorar el asset (Placeholder - requires re-generation logic which might be complex)
+                # Improve the asset (Placeholder - requires re-generation logic which might be complex)
                 # For now, we just tag it. In a full implementation, this would call CreativeAutopilot to regenerate.
                 # Since we don't have direct access to regenerate here without circular deps or complex passing,
                 # we'll flag it.
@@ -347,34 +348,34 @@ class VibeEngineeringAgent:
         brand_guidelines: Dict
     ) -> Dict:
         """
-        Verifica un asset visual usando Gemini Vision.
+        Verify a visual asset using Gemini Vision.
         """
         
         prompt = f"""
-        Eres un DIRECTOR CREATIVO evaluando un asset de marketing.
+        You are a CREATIVE DIRECTOR evaluating a marketing asset.
         
         BRAND GUIDELINES:
         {json.dumps(brand_guidelines, indent=2)}
         
-        Evalúa esta imagen en las siguientes dimensiones:
+        Evaluate this image on the following dimensions:
         
-        1. LEGIBILIDAD DEL TEXTO (0-1):
-           - ¿El texto es completamente legible?
-           - ¿Hay errores ortográficos?
+        1. TEXT LEGIBILITY (0-1):
+           - Is the text completely legible?
+           - Are there spelling errors?
         
-        2. ADHERENCIA A MARCA (0-1):
-           - ¿Respeta la paleta de colores?
-           - ¿El estilo es consistente con la marca?
+        2. BRAND ADHERENCE (0-1):
+           - Does it respect the color palette?
+           - Is the style consistent with the brand?
         
-        3. CALIDAD TÉCNICA (0-1):
-           - ¿La resolución es adecuada?
-           - ¿La composición es profesional?
+        3. TECHNICAL QUALITY (0-1):
+           - Is the resolution adequate?
+           - Is the composition professional?
         
-        4. EFECTIVIDAD DEL MENSAJE (0-1):
-           - ¿El mensaje es claro de inmediato?
-           - ¿Genera deseo de acción?
+        4. MESSAGE EFFECTIVENESS (0-1):
+           - Is the message clear immediately?
+           - Does it generate a desire to act?
         
-        Devuelve JSON:
+        Return JSON:
         {{
             "quality_score": float,
             "text_legibility": float,
@@ -384,7 +385,7 @@ class VibeEngineeringAgent:
             "issues": [
                 {{"issue": "...", "severity": "high|medium|low", "suggestion": "..."}}
             ],
-            "assessment": "evaluación de 2-3 líneas"
+            "assessment": "2-3 line assessment"
         }}
         """
         

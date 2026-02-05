@@ -237,19 +237,19 @@ RESPOND WITH VALID JSON:
         if enable_grounding and self.settings.enable_grounding:
             grounding_instructions = f"""
 
-INVESTIGACIÓN DE MERCADO REQUERIDA (usa Google Search):
-1. Busca tendencias gastronómicas actuales{location_context}
-2. Identifica qué tipos de platos están en auge vs. declive
-3. Investiga rangos de precios competitivos para cada categoría
-4. Encuentra benchmarks de rotación de inventario del sector
-5. Busca datos de crecimiento del mercado gastronómico local
+MARKET RESEARCH REQUIRED (use Google Search):
+1. Search for current food/restaurant trends{location_context}
+2. Identify which types of dishes are rising vs. declining
+3. Research competitive price ranges for each category
+4. Find industry benchmarks for inventory turnover
+5. Search for local restaurant market growth data
 
-CITA tus fuentes para cada afirmación de mercado.
+CITE your sources for each market claim.
 """
 
-        prompt = f"""Eres un CONSULTOR DE ESTRATEGIA EMPRESARIAL especializado en industria gastronómica.
+        prompt = f"""You are a BUSINESS STRATEGY CONSULTANT specialized in the restaurant industry.
 
-RESTAURANTE: {restaurant_location or 'Location not specified'}
+RESTAURANT: {restaurant_location or 'Location not specified'}
 
 PRODUCT DATA ({len(products)} items):
 {json.dumps(products[:30], indent=2, default=str)}
@@ -407,9 +407,9 @@ Think step-by-step. Be specific with numbers and item names."""
         thinking_level: ThinkingLevel = ThinkingLevel.DEEP,
     ) -> Dict[str, Any]:
         """
-        Inteligencia competitiva con Google Search REAL.
+        Competitive intelligence with REAL Google Search.
         
-        CRÍTICO HACKATHON: Datos verificables del mercado actual.
+        CRITICAL FOR HACKATHON: Verifiable data from the current market.
         
         Args:
             restaurant_name: Name of the restaurant
@@ -420,38 +420,38 @@ Think step-by-step. Be specific with numbers and item names."""
         Returns:
             Competitive intelligence with real market data
         """
-        prompt = f"""Actúa como ANALISTA DE INTELIGENCIA COMPETITIVA para el sector gastronómico.
+        prompt = f"""Act as a COMPETITIVE INTELLIGENCE ANALYST for the restaurant industry.
 
-RESTAURANTE: {restaurant_name}
-UBICACIÓN: {location}
+RESTAURANT: {restaurant_name}
+LOCATION: {location}
 
-INVESTIGACIÓN REQUERIDA (Google Search):
+RESEARCH REQUIRED (Google Search):
 
-1. IDENTIFICAR COMPETIDORES DIRECTOS
-   - Busca restaurantes similares en {location}
-   - Analiza sus menús (si disponibles en web)
-   - Identifica sus precios
-   - Revisa sus reviews en Google Maps
+1. IDENTIFY DIRECT COMPETITORS
+   - Search for similar restaurants in {location}
+   - Analyze their menus (if available online)
+   - Identify their pricing
+   - Review their Google Maps reviews
 
-2. ANÁLISIS DE PRECIOS
-   - Compara precios de platos similares
-   - Identifica gaps de precio
-   - Determina estrategia de pricing de competidores
+2. PRICE ANALYSIS
+   - Compare prices for similar dishes
+   - Identify pricing gaps
+   - Determine competitors' pricing strategy
 
-3. ANÁLISIS DE REVIEWS
-   - Busca reviews recientes (últimos 30 días)
-   - Identifica quejas comunes de competidores
-   - Detecta oportunidades no cubiertas
+3. REVIEWS ANALYSIS
+   - Look for recent reviews (last 30 days)
+   - Identify common complaints about competitors
+   - Detect unmet opportunities
 
-4. TENDENCIAS DEL MERCADO LOCAL
-   - Nuevas aperturas en el área
-   - Cierres recientes
-   - Cambios en preferencias de consumidores
+4. LOCAL MARKET TRENDS
+   - New openings in the area
+   - Recent closures
+   - Changes in consumer preferences
 
-NUESTRO MENÚ (para comparación):
+OUR MENU (for comparison):
 {json.dumps(menu_items[:10], indent=2, default=str)}
 
-Devuelve JSON detallado con:
+Return detailed JSON with:
 {{
     "competitors_found": [
         {{
@@ -503,7 +503,7 @@ Devuelve JSON detallado con:
     ]
 }}
 
-IMPORTANTE: CITA las fuentes para cada afirmación."""
+IMPORTANT: CITE sources for each claim."""
         
         try:
             # Use base_agent's generate_with_grounding method
@@ -571,27 +571,27 @@ IMPORTANTE: CITA las fuentes para cada afirmación."""
                 location = our_menu.get("location", "unknown location")
                 restaurant_name = our_menu.get("name", "Our Restaurant")
                 
-                grounding_prompt = f"""Analiza la posición competitiva de {restaurant_name} en {location}.
+                grounding_prompt = f"""Analyze the competitive position of {restaurant_name} in {location}.
 
-NUESTRO MENÚ:
+OUR MENU:
 {json.dumps(our_menu, indent=2, default=str)[:5000]}
 
-COMPETIDORES CONOCIDOS:
+KNOWN COMPETITORS:
 {json.dumps(competitor_menus, indent=2, default=str)[:5000]}
 
-INVESTIGACIÓN REQUERIDA (Google Search):
-1. Busca menús y precios actuales de competidores en {location}
-2. Revisa reviews recientes (últimos 30 días)
-3. Identifica tendencias gastronómicas en la zona
-4. Busca eventos o factores externos que afecten el sector
+RESEARCH REQUIRED (Google Search):
+1. Search for current competitor menus and prices in {location}
+2. Review recent reviews (last 30 days)
+3. Identify local food/restaurant trends
+4. Search for events or external factors affecting the sector
 
-Devuelve análisis comparativo con:
-- Posicionamiento relativo en precio
-- Gaps en la oferta del mercado  
-- Oportunidades detectadas
-- Amenazas competitivas
+Return a comparative analysis with:
+- Relative pricing position
+- Gaps in the market offering
+- Opportunities detected
+- Competitive threats
 
-CITA tus fuentes para cada afirmación.
+CITE your sources for each claim.
 
 Respond in JSON format matching the competitive_landscape structure."""
                 
