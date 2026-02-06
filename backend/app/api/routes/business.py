@@ -588,6 +588,18 @@ async def load_demo_into_session():
 
     session_id = demo_data.get("session_id", "demo-session-001")
     
+    # Clear any stale orchestrator state that could override demo data
+    try:
+        from app.services.orchestrator import orchestrator
+        orchestrator.active_sessions.pop(session_id, None)
+        orchestrator.completed_sessions.pop(session_id, None)
+        orch_file = Path(f"data/orchestrator_states/{session_id}.json")
+        if orch_file.exists():
+            orch_file.unlink()
+        logger.info(f"Cleared stale orchestrator state for demo session {session_id}")
+    except Exception as e:
+        logger.warning(f"Could not clear orchestrator state: {e}")
+    
     sessions[session_id] = {
         "menu_items": demo_data["menu"]["items"],
         "categories": demo_data["menu"]["categories"],
@@ -595,8 +607,10 @@ async def load_demo_into_session():
         "campaigns": demo_data["campaigns"]["campaigns"],
         "competitor_analysis": demo_data.get("competitor_analysis"),
         "sentiment_analysis": demo_data.get("sentiment_analysis"),
+        "predictions": demo_data.get("predictions"),
         "created_at": demo_data["created_at"],
-        "restaurant_info": demo_data.get("restaurant_info")
+        "restaurant_info": demo_data.get("restaurant_info"),
+        "status": "completed",
     }
     
     # Ensure sales data is loaded
@@ -646,7 +660,7 @@ async def get_session(session_id: str):
         if orch_state.get("status"):
             session["status"] = orch_state.get("status")
         
-        # Merge analysis results
+        # Merge analysis results (only override if orchestrator data is substantive)
         analysis_keys = [
             "bcg_analysis", 
             "competitor_analysis", 
@@ -658,8 +672,15 @@ async def get_session(session_id: str):
         ]
         
         for key in analysis_keys:
-            if orch_state.get(key):
-                session[key] = orch_state.get(key)
+            orch_val = orch_state.get(key)
+            if not orch_val:
+                continue
+            # For BCG: only override if orchestrator has actual items/classifications
+            if key == "bcg_analysis" and isinstance(orch_val, dict):
+                has_items = len(orch_val.get("items", [])) > 0 or len(orch_val.get("classifications", [])) > 0
+                if not has_items and session.get(key):
+                    continue  # Keep existing session data (e.g. demo data)
+            session[key] = orch_val
                 
         # Embed full orchestrator state for debug/advanced usage
         session["data"] = orch_state
