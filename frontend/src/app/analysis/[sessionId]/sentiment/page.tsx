@@ -91,10 +91,15 @@ export default function SentimentPage() {
             <img src="/images/sentiment-reviews.png" alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-rose-500" />
-              Sentiment Analysis
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-rose-500" />
+                Sentiment Analysis
+              </h1>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/60 rounded-full text-[10px] font-semibold text-blue-700">
+                <Star className="h-2.5 w-2.5" /> Gemini 3 Pro · Multi-source NLP
+              </span>
+            </div>
             <p className="text-sm text-gray-500 mt-0.5">Customer reviews, ratings, and emotional intelligence from Google Maps</p>
           </div>
           {googleMapsUrl && (

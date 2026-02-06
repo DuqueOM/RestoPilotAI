@@ -195,12 +195,30 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500">
-            RestoPilotAI - Built for Gemini 3 Hackathon | Multimodal AI for Restaurant Optimization
-          </p>
+      {/* Footer — Gemini 3 Tech Stack Showcase */}
+      <footer className="bg-gradient-to-r from-slate-900 to-blue-950 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-white text-sm font-semibold">
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              RestoPilotAI
+              <span className="text-blue-300/60 font-normal">· Gemini 3 Hackathon</span>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {[
+                { label: 'Gemini 3 Pro', color: 'bg-blue-500/20 text-blue-200 border-blue-400/30' },
+                { label: 'Imagen 3', color: 'bg-purple-500/20 text-purple-200 border-purple-400/30' },
+                { label: 'Vision', color: 'bg-cyan-500/20 text-cyan-200 border-cyan-400/30' },
+                { label: 'Video', color: 'bg-pink-500/20 text-pink-200 border-pink-400/30' },
+                { label: 'Audio', color: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30' },
+                { label: 'Search Grounding', color: 'bg-amber-500/20 text-amber-200 border-amber-400/30' },
+              ].map((tech) => (
+                <span key={tech.label} className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${tech.color}`}>
+                  {tech.label}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </footer>
       </div>

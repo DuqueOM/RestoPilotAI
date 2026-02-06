@@ -1,7 +1,26 @@
 'use client';
 
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { CheckCircle2, FileText, Image, Loader2, MapPin, MessageSquare, Play, Target, Video } from 'lucide-react';
+import {
+  ArrowRight,
+  Brain,
+  Camera,
+  CheckCircle2,
+  FileText,
+  Globe,
+  Image,
+  Loader2,
+  MapPin,
+  MessageSquare,
+  Mic,
+  Palette,
+  Play,
+  Search,
+  Sparkles,
+  Target,
+  Video,
+  Zap
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { CompetitorsStep } from './CompetitorsStep';
@@ -297,46 +316,64 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
         </ConfirmDialog>
       )}
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950 rounded-b-3xl mb-8">
-        {/* Background Pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.07]"
-          style={{ backgroundImage: 'url(/images/pattern-food.png)', backgroundSize: '300px 300px', backgroundRepeat: 'repeat' }}
-        />
+      {/* Hero Section — Redesigned for Hackathon Impact */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950">
+        {/* Animated background grid */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-purple-600/20" />
         
-        <div className="relative max-w-6xl mx-auto px-6 py-12 md:py-16">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+        <div className="relative max-w-6xl mx-auto px-6 py-14 md:py-20">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
             {/* Left: Text Content */}
-            <div className="text-white space-y-5">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium text-blue-200 border border-white/10">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                Powered by Gemini 3 Pro
+            <div className="text-white space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs font-semibold text-blue-200 border border-white/10">
+                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                Built with Gemini 3 Pro — Google DeepMind
               </div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                AI-Powered
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
+                Restaurant AI
                 <span className="block bg-gradient-to-r from-amber-300 via-orange-300 to-rose-300 bg-clip-text text-transparent">
-                  Restaurant Intelligence
+                  Powered by Gemini 3
                 </span>
               </h1>
-              <p className="text-blue-200/80 text-base md:text-lg max-w-lg leading-relaxed">
-                Transform your menu, pricing, and marketing with multimodal AI analysis. 
-                Upload your data and let our AI agents work their magic.
+              <p className="text-blue-200/90 text-lg md:text-xl max-w-lg leading-relaxed">
+                The first <strong className="text-white">multimodal restaurant intelligence platform</strong> — analyzing menus, photos, videos, voice, and sales data through a single AI pipeline.
               </p>
-              <div className="flex items-center gap-3 pt-2">
+
+              {/* CTA Buttons — Demo is HUGE and primary */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-3">
                 <button
                   onClick={handleLoadDemo}
                   disabled={loadingDemo || isSubmitting}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50"
+                  className="group inline-flex items-center gap-3 px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 rounded-2xl hover:from-amber-600 hover:via-orange-600 hover:to-rose-600 transition-all shadow-xl shadow-orange-500/30 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {loadingDemo ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> Loading Demo...</>
+                    <><Loader2 className="h-5 w-5 animate-spin" /> Loading Demo...</>
                   ) : (
-                    <><Play className="h-4 w-4" /> Try Demo</>
+                    <><Play className="h-5 w-5" /> See Live Demo <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></>
                   )}
                 </button>
-                <span className="text-xs text-blue-300/60">or set up your restaurant below</span>
+                <span className="text-sm text-blue-300/60 sm:ml-2">Instant — no signup required</span>
+              </div>
+
+              {/* Stats bar */}
+              <div className="flex flex-wrap gap-6 pt-4 border-t border-white/10">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">6</div>
+                  <div className="text-xs text-blue-300/70">AI Modalities</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">17</div>
+                  <div className="text-xs text-blue-300/70">Pipeline Stages</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">3</div>
+                  <div className="text-xs text-blue-300/70">AI Agents</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">Real-time</div>
+                  <div className="text-xs text-blue-300/70">Thought Streaming</div>
+                </div>
               </div>
             </div>
 
@@ -346,10 +383,28 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
                 <img
                   src="/images/hero-chef.png"
                   alt="Professional chef in modern kitchen"
-                  className="w-full h-[340px] object-cover"
+                  className="w-full h-[380px] object-cover"
                   loading="eager"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent" />
+                {/* Overlay badge */}
+                <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                      <Brain className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white text-sm font-semibold">Marathon Agent Running</div>
+                      <div className="text-blue-200/70 text-xs">Autonomous 17-stage analysis pipeline</div>
+                    </div>
+                    <div className="ml-auto">
+                      <span className="inline-flex items-center gap-1.5 text-xs text-green-300">
+                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                        Live
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
               {/* Floating accent image */}
               <div className="absolute -bottom-6 -left-6 w-36 h-24 rounded-xl overflow-hidden shadow-xl border-2 border-white/20 rotate-[-3deg]">
@@ -362,6 +417,91 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Gemini 3 Capabilities Showcase — The "WOW" section */}
+      <div className="relative bg-white border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full text-xs font-semibold text-blue-700 mb-3">
+              <Zap className="h-3 w-3" />
+              Why Gemini 3 Changes Everything
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+              6 AI Modalities, One Unified Pipeline
+            </h2>
+            <p className="text-gray-500 mt-2 max-w-2xl mx-auto">
+              No other AI model can natively process menus, photos, videos, voice notes, documents, and live web data in a single analysis flow.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { icon: <Camera className="h-6 w-6" />, title: 'Vision Analysis', desc: 'Dish photos → quality scores, presentation analysis, Instagram appeal rating', color: 'from-blue-500 to-cyan-500', badge: 'Gemini 3 Vision' },
+              { icon: <Video className="h-6 w-6" />, title: 'Native Video', desc: 'Restaurant ambience videos → atmosphere analysis, service flow insights', color: 'from-purple-500 to-pink-500', badge: 'Exclusive' },
+              { icon: <Mic className="h-6 w-6" />, title: 'Voice Understanding', desc: 'Tell your story by voice — AI transcribes and extracts business intelligence', color: 'from-emerald-500 to-teal-500', badge: 'Multimodal' },
+              { icon: <FileText className="h-6 w-6" />, title: 'Document Intelligence', desc: 'PDF menus → structured data with prices, categories, descriptions in seconds', color: 'from-orange-500 to-amber-500', badge: 'Gemini 3 Pro' },
+              { icon: <Palette className="h-6 w-6" />, title: 'Image Generation', desc: 'AI-generated marketing campaigns with Imagen 3 — text in images, A/B variants', color: 'from-rose-500 to-pink-500', badge: 'Imagen 3' },
+              { icon: <Search className="h-6 w-6" />, title: 'Search Grounding', desc: 'Competitive intelligence verified with Google Search — auto-cited real data', color: 'from-indigo-500 to-blue-500', badge: 'Grounded AI' },
+            ].map((cap, i) => (
+              <div key={i} className="group relative bg-gray-50 hover:bg-white rounded-2xl p-5 border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-300">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cap.color} flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform`}>
+                  {cap.icon}
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-gray-900 text-sm">{cap.title}</h3>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700">{cap.badge}</span>
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed">{cap.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Agentic Architecture highlight */}
+          <div className="mt-8 bg-gradient-to-r from-slate-900 to-blue-950 rounded-2xl p-6 md:p-8 text-white">
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                  <Brain className="h-5 w-5 text-amber-400" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Marathon Agent</h4>
+                  <p className="text-xs text-blue-200/70 mt-1">Autonomous 17-stage pipeline with checkpoints, retries, and real-time WebSocket streaming of AI reasoning</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <Palette className="h-5 w-5 text-purple-400" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Creative Autopilot</h4>
+                  <p className="text-xs text-blue-200/70 mt-1">End-to-end campaign generation with Imagen 3, A/B variants, multi-language localization, impact estimation</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Vibe Engineering</h4>
+                  <p className="text-xs text-blue-200/70 mt-1">Autonomous quality verification loops — the AI critiques itself and iterates until quality thresholds are met</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section divider with "Set up your restaurant" */}
+      <div className="max-w-6xl mx-auto px-6 pt-10 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+          <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Set Up Your Restaurant
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
         </div>
       </div>
 

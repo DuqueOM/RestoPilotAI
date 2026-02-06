@@ -154,10 +154,15 @@ export default function AnalysisPage() {
         <div className="relative p-6 text-white">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Store className="h-6 w-6" />
-                {restaurantInfo.name || 'My Restaurant'}
-              </h1>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                  <Store className="h-6 w-6" />
+                  {restaurantInfo.name || 'My Restaurant'}
+                </h1>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full text-[10px] font-semibold text-blue-100">
+                  <Brain className="h-3 w-3" /> Marathon Agent · 17-stage Pipeline
+                </span>
+              </div>
               {restaurantInfo.location && (
                 <p className="text-blue-100 text-sm mt-1 flex items-center gap-1">
                   <MapPin className="h-4 w-4" />

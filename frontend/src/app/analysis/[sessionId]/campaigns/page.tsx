@@ -133,11 +133,16 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
           <div className="hidden sm:block flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden shadow-md">
             <img src="/images/campaign-studio.png" alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-              Creative Studio & Campaigns
-            </h1>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                Creative Studio & Campaigns
+              </h1>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-rose-50 to-purple-50 border border-purple-200/60 rounded-full text-[10px] font-semibold text-purple-700">
+                <Zap className="h-2.5 w-2.5" /> Imagen 3 · Creative Autopilot
+              </span>
+            </div>
             <p className="text-sm text-gray-500 mt-0.5">AI-generated marketing campaigns, predictions, and creative assets</p>
           </div>
         </div>
