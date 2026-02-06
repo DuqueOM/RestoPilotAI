@@ -1,5 +1,7 @@
 'use client';
 
+import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
+import { ConfidenceIndicator } from '@/components/ai/ConfidenceIndicator';
 import { MenuItemsTable } from '@/components/analysis/MenuItemsTable';
 import { GroundingSources } from '@/components/common/GroundingSources';
 import { MenuTransformationIntegrated } from '@/components/creative/MenuTransformationIntegrated';
@@ -179,9 +181,14 @@ export default function BCGPage({ params }: BCGPageProps) {
             <BarChart3 className="w-6 h-6" />
             Menu Engineering
           </h2>
-          <p className="text-sm text-gray-500">
-            {data.methodology} • {data.items_analyzed} items analyzed
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-gray-500">
+              {data.methodology} • {data.items_analyzed} items analyzed
+            </p>
+            {(data as any).confidence && (
+              <ConfidenceIndicator value={(data as any).confidence} variant="badge" size="sm" />
+            )}
+          </div>
         </div>
         
         {availablePeriods.length > 1 && (
@@ -251,6 +258,14 @@ export default function BCGPage({ params }: BCGPageProps) {
           );
         })}
       </div>
+
+      {/* AI Agent Debate Section */}
+      <AgentDebateTrigger
+        sessionId={sessionId}
+        topic={`Menu Engineering Strategy for ${data.items_analyzed} items across ${Object.keys(groupedItems).length} categories`}
+        context={`Stars: ${(groupedItems['star'] || []).length} items, Dogs: ${(groupedItems['dog'] || []).length} items, Puzzles: ${(groupedItems['puzzle'] || []).length} items, Plowhorses: ${(groupedItems['plowhorse'] || []).length} items`}
+        variant="card"
+      />
 
       {/* Category Distribution Chart */}
       <div className="bg-white rounded-lg border p-6">
@@ -406,6 +421,9 @@ function QuadrantCard({ category, config, items, summary, expandedItem, onToggle
                     <span>Cost: ${item.cost?.toFixed(2)}</span>
                     <span>Margin: {item.margin_pct?.toFixed(1)}%</span>
                   </div>
+                  {(item as any).confidence && (
+                    <ConfidenceIndicator value={(item as any).confidence} variant="bar" size="xs" showLabel />
+                  )}
                   <div className="mt-2 p-2 bg-white rounded space-y-2">
                     <div>
                       <span className="font-medium text-gray-700 block mb-1">{item.strategy?.action}</span>

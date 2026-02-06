@@ -1,8 +1,9 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge, StatusType } from '@/components/ui/StatusBadge';
+import { cn } from '@/lib/utils';
 import { PipelineStep, StepStatus } from '@/types/marathon-agent';
-import { CheckCircle2, Circle, Loader2, SkipForward, XCircle } from 'lucide-react';
+import { CheckCircle2, Circle, Loader2, SkipForward, Sparkles, XCircle } from 'lucide-react';
 
 interface StepTimelineProps {
   steps: PipelineStep[];
@@ -24,17 +25,12 @@ export function StepTimeline({ steps }: StepTimelineProps) {
     }
   };
 
-  const getStepBadgeVariant = (status: StepStatus) => {
-    switch (status) {
-      case StepStatus.COMPLETED:
-        return 'outline' as const;
-      case StepStatus.RUNNING:
-        return 'default' as const;
-      case StepStatus.FAILED:
-        return 'destructive' as const;
-      default:
-        return 'secondary' as const;
-    }
+  const stepStatusMap: Record<StepStatus, StatusType> = {
+    [StepStatus.COMPLETED]: 'completed',
+    [StepStatus.RUNNING]: 'running',
+    [StepStatus.FAILED]: 'error',
+    [StepStatus.SKIPPED]: 'idle',
+    [StepStatus.PENDING]: 'pending',
   };
 
   return (
@@ -59,13 +55,23 @@ export function StepTimeline({ steps }: StepTimelineProps) {
 
           {/* Step Content */}
           <div className="flex-1 pb-8">
-            <div className="flex items-start justify-between mb-2">
+            <div className={cn(
+              'flex items-start justify-between mb-2 p-3 rounded-lg border transition-all',
+              step.status === StepStatus.RUNNING ? 'bg-blue-50/50 border-blue-200' :
+              step.status === StepStatus.COMPLETED ? 'bg-white border-green-100' :
+              step.status === StepStatus.FAILED ? 'bg-red-50/30 border-red-200' :
+              'bg-gray-50/50 border-gray-100'
+            )}>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium text-gray-900">{step.name}</h4>
-                  <Badge variant={getStepBadgeVariant(step.status)} className="text-xs">
-                    {step.status}
-                  </Badge>
+                  <h4 className="font-medium text-gray-900 text-sm">{step.name}
+                    {step.status === StepStatus.RUNNING && <Sparkles className="h-3 w-3 text-purple-500 inline ml-1" />}
+                  </h4>
+                  <StatusBadge
+                    status={stepStatusMap[step.status] || 'pending'}
+                    label={step.status === StepStatus.RUNNING ? 'Running...' : step.status}
+                    size="sm"
+                  />
                 </div>
                 <p className="text-sm text-gray-600">{step.description}</p>
               </div>

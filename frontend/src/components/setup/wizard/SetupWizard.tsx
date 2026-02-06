@@ -7,12 +7,14 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  CheckCircle2,
   FileText,
   MapPin,
   Mic,
+  MinusCircle,
   Sparkles,
   Target,
-  Zap,
+  Zap
 } from 'lucide-react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
@@ -199,7 +201,7 @@ export function SetupWizard({ onComplete, initialData, children }: SetupWizardPr
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          setFormData(prev => ({
+          setFormData(_prev => ({
             ...defaultFormData,
             ...parsed,
             // Files and Blobs can't be serialized, so we reset them
@@ -225,9 +227,11 @@ export function SetupWizard({ onComplete, initialData, children }: SetupWizardPr
     setIsLoaded(true);
   }, []); // Run once on mount
 
-  // Save to localStorage on change (excluding files/blobs)
+  // Save to localStorage on change (excluding files/blobs, but save file metadata)
   useEffect(() => {
     if (!isLoaded) return;
+
+    const fileMetadata = (files: File[]) => files.map(f => ({ name: f.name, size: f.size, type: f.type }));
 
     const toSave = {
       location: formData.location,
@@ -251,6 +255,14 @@ export function SetupWizard({ onComplete, initialData, children }: SetupWizardPr
       businessWebsite: formData.businessWebsite,
       businessRating: formData.businessRating,
       businessUserRatingsTotal: formData.businessUserRatingsTotal,
+      // Persist file metadata for returning users
+      _fileMeta: {
+        menuFiles: fileMetadata(formData.menuFiles),
+        salesFiles: fileMetadata(formData.salesFiles),
+        photoFiles: fileMetadata(formData.photoFiles),
+        videoFiles: fileMetadata(formData.videoFiles),
+        competitorFiles: fileMetadata(formData.competitorFiles),
+      },
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   }, [formData]);
@@ -401,16 +413,59 @@ export function SetupWizard({ onComplete, initialData, children }: SetupWizardPr
             </Button>
 
             <div className="flex items-center gap-3">
-              {/* Quick Start Button - Available on all steps except last */}
+              {/* Quick Start Button with tooltip */}
               {!isLastStep && (
-                <Button
-                  variant="outline"
-                  onClick={handleComplete}
-                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                >
-                  <Zap className="h-4 w-4 mr-2" />
-                  Quick Start
-                </Button>
+                <div className="relative group">
+                  <Button
+                    variant="outline"
+                    onClick={handleComplete}
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Quick Start
+                  </Button>
+                  {/* Quick Start info tooltip */}
+                  <div className="absolute bottom-full right-0 mb-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200 p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    <p className="text-xs font-semibold text-gray-900 mb-2">Quick Start vs Full Setup</p>
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                        <span className="text-gray-700">Location-based competitor discovery</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                        <span className="text-gray-700">Google Maps reviews & sentiment</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {formData.menuFiles.length > 0
+                          ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                          : <MinusCircle className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />}
+                        <span className={formData.menuFiles.length > 0 ? 'text-gray-700' : 'text-gray-400'}>Menu extraction & BCG analysis</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {formData.salesFiles.length > 0
+                          ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                          : <MinusCircle className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />}
+                        <span className={formData.salesFiles.length > 0 ? 'text-gray-700' : 'text-gray-400'}>Sales forecasting & predictions</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {formData.photoFiles.length > 0
+                          ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                          : <MinusCircle className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />}
+                        <span className={formData.photoFiles.length > 0 ? 'text-gray-700' : 'text-gray-400'}>Photo quality & visual scoring</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {formData.videoFiles.length > 0
+                          ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                          : <MinusCircle className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />}
+                        <span className={formData.videoFiles.length > 0 ? 'text-gray-700' : 'text-gray-400'}>Video analysis (Gemini 3 exclusive)</span>
+                      </div>
+                    </div>
+                    <div className="mt-2 pt-2 border-t text-xs text-gray-500">
+                      Skipped steps can limit analysis depth
+                    </div>
+                  </div>
+                </div>
               )}
 
               {isLastStep ? (

@@ -1,10 +1,14 @@
 'use client';
 
+import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
 import { ExternalLink, MapPin, MessageCircle, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { useSessionData } from '../layout';
 
 
 export default function SentimentPage() {
+  const params = useParams();
+  const sessionId = params.sessionId as string;
   const { sessionData, isLoading } = useSessionData();
 
   const unwrappedSession = (sessionData as any)?.data || sessionData;
@@ -314,6 +318,14 @@ export default function SentimentPage() {
       )}
 
       {/* Rating Comparison with Competitors */}
+      {/* AI Agent Debate on Reputation */}
+      <AgentDebateTrigger
+        sessionId={sessionId}
+        topic={`Reputation Strategy: ${avgReviewRating.toFixed(1)}/5 rating with ${googleReviews.length} reviews`}
+        context={sentimentData ? `Overall sentiment: ${(sentimentData.overall.score * 100).toFixed(0)}%, Trend: ${sentimentData.overall.trend}` : `Google rating: ${businessRating || 'N/A'}`}
+        variant="card"
+      />
+
       {competitors.length > 0 && businessRating && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-200">
           <h3 className="font-semibold text-blue-900 mb-4">📊 Rating Comparison</h3>

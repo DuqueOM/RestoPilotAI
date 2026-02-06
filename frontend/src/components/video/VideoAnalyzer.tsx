@@ -1,24 +1,24 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Video, 
-  Upload, 
-  Play, 
-  Pause,
-  CheckCircle2, 
-  AlertCircle, 
-  TrendingUp,
-  Clock,
-  Star,
-  Zap,
-  Instagram,
-  Youtube,
-  Facebook
+import { Card } from '@/components/ui/card';
+import {
+    AlertCircle,
+    CheckCircle2,
+    Clock,
+    Facebook,
+    Instagram,
+    Pause,
+    Play,
+    Star,
+    TrendingUp,
+    Upload,
+    Video,
+    Youtube,
+    Zap
 } from 'lucide-react';
+import React, { useRef, useState } from 'react';
 
 // ==================== Types ====================
 
@@ -78,7 +78,7 @@ export const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({ onAnalysisComplete
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<VideoAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [_currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);

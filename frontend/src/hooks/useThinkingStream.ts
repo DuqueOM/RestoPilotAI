@@ -36,7 +36,7 @@ type WebSocketMessage = {
   timestamp?: string
 }
 
-const API_BASE = ''
+const _API_BASE = ''
 
 export function useThinkingStream({
   sessionId,

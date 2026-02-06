@@ -52,7 +52,7 @@ export function useWebSocket(url: string | null): UseWebSocketResult {
           setLastMessage(event.data);
         };
 
-        ws.onerror = (event) => {
+        ws.onerror = (_event) => {
           // Only log error if we haven't seen multiple failures
           if (reconnectAttemptsRef.current < 2) {
             console.warn('WebSocket connection error for:', url);

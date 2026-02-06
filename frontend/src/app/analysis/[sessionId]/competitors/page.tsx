@@ -1,10 +1,14 @@
 'use client';
 
+import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
 import { MapPin, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { useSessionData } from '../layout';
 
 
 export default function CompetitorsPage() {
+  const params = useParams();
+  const sessionId = params.sessionId as string;
   const { sessionData, isLoading } = useSessionData();
 
   const unwrappedSession = (sessionData as any)?.data || sessionData;
@@ -170,6 +174,14 @@ export default function CompetitorsPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Agent Debate */}
+      <AgentDebateTrigger
+        sessionId={sessionId}
+        topic={`Competitive Strategy against ${competitors.length} nearby competitors`}
+        context={`Competitors: ${competitors.map((c: any) => c.name || c.business_name).join(', ')}. Average market rating: ${competitors.length > 0 ? (competitors.reduce((s: number, c: any) => s + (Number(c.rating || c.google_rating) || 0), 0) / competitors.length).toFixed(1) : 'N/A'}`}
+        variant="card"
+      />
 
       {/* Recommendations */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">

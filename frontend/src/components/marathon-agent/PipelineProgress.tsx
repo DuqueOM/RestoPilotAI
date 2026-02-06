@@ -1,16 +1,21 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge, StatusType } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 import { MarathonTaskState, TaskStatus } from '@/types/marathon-agent';
 import {
     AlertTriangle,
+    Brain,
     CheckCircle2,
+    Clock,
     Loader2,
     PauseCircle,
     PlayCircle,
     RotateCcw,
+    Shield,
+    Sparkles,
     XCircle
 } from 'lucide-react';
 
@@ -96,26 +101,45 @@ export function PipelineProgress({ taskState, onCancel, onRecover }: PipelinePro
     return `${seconds}s`;
   };
 
+  const statusBadgeMap: Record<TaskStatus, StatusType> = {
+    [TaskStatus.RUNNING]: 'running',
+    [TaskStatus.COMPLETED]: 'completed',
+    [TaskStatus.FAILED]: 'error',
+    [TaskStatus.RECOVERING]: 'ai_active',
+    [TaskStatus.CANCELLED]: 'idle',
+    [TaskStatus.PENDING]: 'pending',
+  };
+
+  const isActive = taskState.status === TaskStatus.RUNNING || taskState.status === TaskStatus.RECOVERING;
+
   return (
-    <div className={`p-6 rounded-lg border ${statusConfig.borderColor} ${statusConfig.bgColor}`}>
+    <div className={cn(
+      'p-6 rounded-xl border transition-all',
+      statusConfig.borderColor,
+      statusConfig.bgColor,
+      isActive && 'rp-ai-pulse'
+    )}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <StatusIcon 
-            className={`h-6 w-6 ${statusConfig.color} ${
-              taskState.status === TaskStatus.RUNNING || taskState.status === TaskStatus.RECOVERING
-                ? 'animate-spin'
-                : ''
-            }`}
-          />
+          <div className={cn('p-2 rounded-lg', isActive ? 'bg-purple-100' : 'bg-white')}>
+            {isActive ? (
+              <Brain className="h-5 w-5 text-purple-600 animate-pulse" />
+            ) : (
+              <StatusIcon className={cn('h-5 w-5', statusConfig.color)} />
+            )}
+          </div>
           <div>
-            <h3 className="font-semibold text-gray-900">Marathon Agent Pipeline</h3>
-            <p className="text-sm text-gray-600">
-              Task ID: <code className="text-xs bg-gray-200 px-1 rounded">{taskState.task_id}</code>
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              Marathon Agent Pipeline
+              {isActive && <Sparkles className="h-4 w-4 text-purple-500" />}
+            </h3>
+            <p className="text-xs text-gray-500">
+              Task: <code className="bg-gray-200/50 px-1 rounded font-mono">{taskState.task_id.slice(0, 12)}...</code>
             </p>
           </div>
         </div>
-        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+        <StatusBadge status={statusBadgeMap[taskState.status] || 'pending'} label={statusConfig.label} />
       </div>
 
       {/* Progress Bar */}
@@ -144,25 +168,35 @@ export function PipelineProgress({ taskState, onCancel, onRecover }: PipelinePro
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="text-center p-2 bg-white rounded border border-gray-200">
-          <p className="text-xs text-gray-600">Started</p>
-          <p className="text-sm font-medium text-gray-900">
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="text-center p-2.5 bg-white rounded-lg border border-gray-200">
+          <Clock className="h-3.5 w-3.5 text-gray-400 mx-auto mb-1" />
+          <p className="text-[10px] text-gray-500">Started</p>
+          <p className="text-xs font-medium text-gray-900">
             {new Date(taskState.started_at).toLocaleTimeString()}
           </p>
         </div>
-        <div className="text-center p-2 bg-white rounded border border-gray-200">
-          <p className="text-xs text-gray-600">Duration</p>
-          <p className="text-sm font-medium text-gray-900">
+        <div className="text-center p-2.5 bg-white rounded-lg border border-gray-200">
+          <Loader2 className="h-3.5 w-3.5 text-gray-400 mx-auto mb-1" />
+          <p className="text-[10px] text-gray-500">Duration</p>
+          <p className="text-xs font-medium text-gray-900">
             {formatDuration(taskState.started_at, taskState.completed_at)}
           </p>
         </div>
-        <div className="text-center p-2 bg-white rounded border border-gray-200">
-          <p className="text-xs text-gray-600">ETA</p>
-          <p className="text-sm font-medium text-gray-900">
+        <div className="text-center p-2.5 bg-white rounded-lg border border-gray-200">
+          <Clock className="h-3.5 w-3.5 text-gray-400 mx-auto mb-1" />
+          <p className="text-[10px] text-gray-500">ETA</p>
+          <p className="text-xs font-medium text-gray-900">
             {taskState.estimated_completion
               ? new Date(taskState.estimated_completion).toLocaleTimeString()
               : 'Calculating...'}
+          </p>
+        </div>
+        <div className="text-center p-2.5 bg-white rounded-lg border border-gray-200">
+          <Shield className="h-3.5 w-3.5 text-gray-400 mx-auto mb-1" />
+          <p className="text-[10px] text-gray-500">Checkpoints</p>
+          <p className="text-xs font-medium text-gray-900">
+            {taskState.checkpoints.length}
           </p>
         </div>
       </div>

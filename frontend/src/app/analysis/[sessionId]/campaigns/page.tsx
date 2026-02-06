@@ -2,7 +2,24 @@
 
 import { CreativeAutopilot } from '@/components/creative/CreativeAutopilot';
 import { Campaign, CampaignResult } from '@/lib/api';
-import { use, useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
+import {
+    Brain,
+    CheckCircle2,
+    ClipboardCopy,
+    Clock,
+    Download,
+    Loader2,
+    Mail,
+    Megaphone,
+    RefreshCw,
+    Sparkles,
+    Target,
+    TrendingUp,
+    Users,
+    Zap
+} from 'lucide-react';
+import { use, useCallback, useEffect, useState } from 'react';
 import { useSessionData } from '../layout';
 
 interface CampaignsPageProps {
@@ -17,6 +34,41 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'campaigns' | 'predictions' | 'creative'>('campaigns');
+  const [regenerating, setRegenerating] = useState(false);
+
+  const handleRegenerateCampaigns = useCallback(async () => {
+    setRegenerating(true);
+    try {
+      const unwrapped = (sessionData as any)?.data || sessionData;
+      const menuItems = unwrapped?.menu_items || [];
+      const topItems = menuItems.slice(0, 3);
+      if (topItems.length === 0) {
+        setError('No menu items available to generate campaigns');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('dish_name', topItems[0]?.name || 'Featured Dish');
+      formData.append('campaign_brief', `Create marketing campaigns for ${unwrapped?.restaurant_info?.name || 'the restaurant'}`);
+      formData.append('platform', 'instagram');
+      const response = await fetch('/api/v1/campaigns/quick-campaign', {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (result.campaigns) {
+          setData(prev => ({
+            session_id: sessionId,
+            campaigns: [...(prev?.campaigns || []), ...result.campaigns],
+          }));
+        }
+      }
+    } catch (err) {
+      console.warn('Campaign regeneration failed:', err);
+    } finally {
+      setRegenerating(false);
+    }
+  }, [sessionData, sessionId]);
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -114,9 +166,22 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold">AI-Generated Marketing Campaigns</h2>
-            <span className="text-sm text-gray-500">
-              {data?.campaigns?.length || 0} campaigns
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">
+                {data?.campaigns?.length || 0} campaigns
+              </span>
+              <button
+                onClick={handleRegenerateCampaigns}
+                disabled={regenerating}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50"
+              >
+                {regenerating ? (
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating...</>
+                ) : (
+                  <><RefreshCw className="h-3.5 w-3.5" /> New Campaign</>
+                )}
+              </button>
+            </div>
           </div>
 
           {!data || !data.campaigns?.length ? (
@@ -219,88 +284,133 @@ interface CampaignCardProps {
 }
 
 function CampaignCard({ campaign, index, onCopy, copied }: CampaignCardProps) {
-  const categoryColors: Record<string, string> = {
-    STAR: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    CASH_COW: 'bg-green-100 text-green-800 border-green-300',
-    QUESTION_MARK: 'bg-blue-100 text-blue-800 border-blue-300',
-    DOG: 'bg-red-100 text-red-800 border-red-300',
+  const categoryConfig: Record<string, { bg: string; text: string; border: string; icon: React.ReactNode }> = {
+    STAR: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', icon: <Sparkles className="h-3.5 w-3.5" /> },
+    CASH_COW: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: <TrendingUp className="h-3.5 w-3.5" /> },
+    QUESTION_MARK: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: <Target className="h-3.5 w-3.5" /> },
+    DOG: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: <Zap className="h-3.5 w-3.5" /> },
+  };
+  const catCfg = categoryConfig[campaign.target_category] || { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', icon: <Megaphone className="h-3.5 w-3.5" /> };
+
+  const handleDownload = () => {
+    const content = `# ${campaign.title}\n\n## Objective\n${campaign.objective}\n\n## Social Media Copy\n${campaign.copy.social_media}\n\n## Email\nSubject: ${campaign.copy.email_subject}\n\n${campaign.copy.email_body}\n\n## Target Audience\n${campaign.target_audience}\n\n## Timing\n${campaign.timing}\n\n## Expected Impact\n${campaign.expected_impact}\n\n## AI Rationale\n${campaign.rationale || 'N/A'}`;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `campaign-${index + 1}-${campaign.title.slice(0, 30).replace(/\s+/g, '-').toLowerCase()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
+    <div className="rp-card-interactive overflow-hidden p-0">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-5">
         <div className="flex items-start justify-between">
           <div>
-            <span className="text-sm opacity-75">Campaign #{index + 1}</span>
-            <h3 className="text-xl font-bold">{campaign.title}</h3>
+            <span className="text-xs text-blue-200 font-medium">Campaign #{index + 1}</span>
+            <h3 className="text-lg font-bold mt-0.5">{campaign.title}</h3>
           </div>
-          <span className={`px-3 py-1 rounded-full text-sm border ${
-            categoryColors[campaign.target_category] || 'bg-gray-100 text-gray-800'
-          }`}>
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border', catCfg.bg, catCfg.text, catCfg.border)}>
+            {catCfg.icon}
             {campaign.target_category?.replace('_', ' ')}
           </span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-6 space-y-6">
+      <div className="p-5 space-y-5">
         {/* Objective */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-600 mb-1">🎯 Objective</h4>
-          <p className="text-gray-800">{campaign.objective}</p>
+          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <Target className="h-3.5 w-3.5" /> Objective
+          </h4>
+          <p className="text-sm text-gray-800">{campaign.objective}</p>
         </div>
 
         {/* Social Media Copy */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-semibold text-gray-600">📱 Social Media Copy</h4>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Megaphone className="h-3.5 w-3.5" /> Social Media Copy
+            </h4>
             <button
               onClick={() => onCopy(campaign.copy.social_media)}
-              className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded transition flex items-center gap-1"
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-gray-100 hover:bg-purple-100 hover:text-purple-700 rounded-full transition-colors"
             >
-              {copied ? '✓ Copied!' : '📋 Copy'}
+              {copied ? <CheckCircle2 className="h-3 w-3 text-green-500" /> : <ClipboardCopy className="h-3 w-3" />}
+              {copied ? 'Copied!' : 'Copy'}
             </button>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-gray-800">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-800 leading-relaxed">
             {campaign.copy.social_media}
           </div>
         </div>
 
         {/* Email */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-600 mb-2">✉️ Email Campaign</h4>
+          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Mail className="h-3.5 w-3.5" /> Email Campaign
+          </h4>
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <p className="font-medium text-gray-900 mb-2">Subject: {campaign.copy.email_subject}</p>
-            <p className="text-gray-700 text-sm">{campaign.copy.email_body}</p>
+            <p className="font-medium text-gray-900 text-sm mb-2">Subject: {campaign.copy.email_subject}</p>
+            <p className="text-gray-700 text-sm leading-relaxed">{campaign.copy.email_body}</p>
           </div>
         </div>
 
         {/* Details Grid */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-1">👥 Target Audience</h4>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <h4 className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
+              <Users className="h-3 w-3" /> Target Audience
+            </h4>
             <p className="text-sm text-gray-800">{campaign.target_audience}</p>
           </div>
-          <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-1">⏰ Recommended Timing</h4>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <h4 className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
+              <Clock className="h-3 w-3" /> Timing
+            </h4>
             <p className="text-sm text-gray-800">{campaign.timing}</p>
           </div>
         </div>
 
         {/* Expected Impact */}
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <h4 className="text-sm font-semibold text-green-800 mb-1">📈 Expected Impact</h4>
-          <p className="text-green-700">{campaign.expected_impact}</p>
+        <div className="rp-card-success p-4">
+          <h4 className="text-xs font-semibold text-green-700 mb-1 flex items-center gap-1">
+            <TrendingUp className="h-3.5 w-3.5" /> Expected Impact
+          </h4>
+          <p className="text-sm text-green-800">{campaign.expected_impact}</p>
         </div>
 
         {/* Rationale */}
         {campaign.rationale && (
-          <div className="text-sm text-gray-600 border-t pt-4">
-            <h4 className="font-semibold mb-1">💭 AI Rationale</h4>
-            <p>{campaign.rationale}</p>
+          <div className="border-t pt-4">
+            <h4 className="text-xs font-semibold text-purple-600 mb-1.5 flex items-center gap-1">
+              <Brain className="h-3.5 w-3.5" /> AI Rationale
+            </h4>
+            <p className="text-sm text-gray-600 leading-relaxed">{campaign.rationale}</p>
           </div>
         )}
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 pt-2 border-t">
+          <button
+            onClick={() => onCopy(`${campaign.title}\n\n${campaign.copy.social_media}\n\nEmail Subject: ${campaign.copy.email_subject}\n${campaign.copy.email_body}`)}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700"
+          >
+            <ClipboardCopy className="h-3 w-3" /> Copy All
+          </button>
+          <button
+            onClick={handleDownload}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-purple-700"
+          >
+            <Download className="h-3 w-3" /> Download
+          </button>
+          <span className="ml-auto text-[10px] text-gray-400 flex items-center gap-1">
+            <Sparkles className="h-3 w-3 text-purple-400" /> Generated by Gemini 3
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -308,23 +418,25 @@ function CampaignCard({ campaign, index, onCopy, copied }: CampaignCardProps) {
 
 function LoadingSkeleton() {
   return (
-    <div className="animate-pulse">
-      <div className="flex items-center justify-between mb-6">
-        <div className="h-6 bg-gray-200 rounded w-64"></div>
-        <div className="h-4 bg-gray-200 rounded w-24"></div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="rp-skeleton h-7 w-64 rounded" />
+        <div className="rp-skeleton h-5 w-24 rounded-full" />
       </div>
-      <div className="space-y-6">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="border rounded-lg overflow-hidden">
-            <div className="h-20 bg-gray-200"></div>
-            <div className="p-6 space-y-4">
-              <div className="h-4 bg-gray-100 rounded w-3/4"></div>
-              <div className="h-24 bg-gray-50 rounded"></div>
-              <div className="h-16 bg-gray-50 rounded"></div>
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="rounded-xl border border-gray-200 overflow-hidden">
+          <div className="h-20 bg-gradient-to-r from-gray-200 to-gray-300 animate-pulse" />
+          <div className="p-5 space-y-4">
+            <div className="rp-skeleton h-4 w-3/4 rounded" />
+            <div className="rp-skeleton h-24 w-full rounded-lg" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rp-skeleton h-16 rounded-lg" />
+              <div className="rp-skeleton h-16 rounded-lg" />
             </div>
+            <div className="rp-skeleton h-14 w-full rounded-lg" />
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }

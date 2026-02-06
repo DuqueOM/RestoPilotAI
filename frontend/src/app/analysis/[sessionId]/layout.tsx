@@ -1,7 +1,7 @@
 'use client';
 
 import { api } from '@/lib/api';
-import { BarChart3, Brain, ChefHat, Loader2, Megaphone, MessageSquare, Sparkles, Target } from 'lucide-react';
+import { BarChart3, Brain, CheckCircle2, ChefHat, Loader2, Megaphone, MessageSquare, Sparkles, Target } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, ReactNode, use, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
@@ -28,14 +28,24 @@ export const useSessionData = () => {
   return ctx;
 };
 
-// Tabs reduced from 8 to 5
 const tabs = [
-  { value: 'overview', label: 'Overview', href: '', icon: Sparkles },
-  { value: 'bcg', label: 'BCG Matrix', href: '/bcg', icon: BarChart3 },
-  { value: 'competitors', label: 'Competitors', href: '/competitors', icon: Target },
-  { value: 'sentiment', label: 'Sentiment', href: '/sentiment', icon: MessageSquare },
-  { value: 'campaigns', label: 'Campaigns', href: '/campaigns', icon: Megaphone },
+  { value: 'overview', label: 'Overview', href: '', icon: Sparkles, dataKey: null },
+  { value: 'bcg', label: 'BCG Matrix', href: '/bcg', icon: BarChart3, dataKey: 'bcg' },
+  { value: 'competitors', label: 'Competitors', href: '/competitors', icon: Target, dataKey: 'competitors' },
+  { value: 'sentiment', label: 'Sentiment', href: '/sentiment', icon: MessageSquare, dataKey: 'sentiment' },
+  { value: 'campaigns', label: 'Campaigns', href: '/campaigns', icon: Megaphone, dataKey: 'campaigns' },
 ];
+
+function getCompletionMap(data: any): Record<string, boolean> {
+  if (!data) return {};
+  const d = data?.data || data;
+  return {
+    bcg: !!(d?.bcg_analysis?.items?.length || d?.bcg?.items?.length),
+    competitors: !!(d?.competitor_analysis || d?.competitors?.length || d?.enriched_competitors?.length),
+    sentiment: !!d?.sentiment_analysis,
+    campaigns: !!(Array.isArray(d?.campaigns) ? d.campaigns.length : d?.campaigns?.campaigns?.length),
+  };
+}
 
 export default function AnalysisLayout({ children, params }: AnalysisLayoutProps) {
   const { sessionId } = use(params);
@@ -112,17 +122,19 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        {/* Tabs - Matching main page style */}
+        {/* Tabs with completion badges */}
         <div className="bg-white rounded-xl border border-gray-200 p-1 flex gap-1 overflow-x-auto mb-6">
           {tabs.map((tab) => {
             const isActive = currentTab === tab.value;
             const TabIcon = tab.icon;
+            const completionMap = getCompletionMap(sessionData);
+            const isComplete = tab.dataKey ? completionMap[tab.dataKey] : false;
             
             return (
               <button
                 key={tab.value}
                 onClick={() => router.push(`/analysis/${sessionId}${tab.href}`)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-blue-500 text-white shadow-sm'
                     : 'text-gray-600 hover:bg-gray-100'
@@ -130,6 +142,12 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
               >
                 <TabIcon className="h-4 w-4" />
                 {tab.label}
+                {tab.dataKey && isComplete && !isActive && (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                )}
+                {tab.dataKey && isComplete && isActive && (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-200" />
+                )}
               </button>
             );
           })}

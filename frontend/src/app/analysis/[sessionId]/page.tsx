@@ -1,10 +1,13 @@
 'use client';
 
 import { DebateResult, MultiAgentDebatePanel } from '@/components/ai/MultiAgentDebatePanel';
+import { QualityAssurancePanel } from '@/components/ai/QualityAssurancePanel';
 import { ThoughtBubbleStream } from '@/components/ai/ThoughtBubbleStream';
+import { DashboardSkeleton } from '@/components/ui/AnalysisSkeleton';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useMarathonAgent } from '@/hooks/useMarathonAgent';
-import { BarChart3, CheckCircle2, Loader2, MapPin, Megaphone, MessageSquare, Star, Store, Target } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { ArrowRight, BarChart3, CheckCircle2, Download, Loader2, MapPin, Megaphone, MessageSquare, RefreshCw, Sparkles, Star, Store, Target } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useSessionData } from './layout';
 
@@ -14,6 +17,7 @@ const StepTimeline = lazy(() => import('@/components/marathon-agent/StepTimeline
 
 export default function AnalysisPage() {
   const params = useParams();
+  const router = useRouter();
   const sessionId = params.sessionId as string;
   const { sessionData, isLoading: loadingSession, refreshSession } = useSessionData();
 
@@ -89,12 +93,42 @@ export default function AnalysisPage() {
     return () => clearInterval(interval);
   }, [isRunning, refreshSession]);
 
+  // Re-run a specific analysis section
+  const handleRerun = async (type: 'bcg' | 'competitors' | 'sentiment' | 'campaigns') => {
+    try {
+      const endpoints: Record<string, string> = {
+        bcg: `/api/v1/analyze/bcg?session_id=${sessionId}`,
+        competitors: `/api/v1/analyze/competitors?session_id=${sessionId}`,
+        sentiment: `/api/v1/analyze/sentiment?session_id=${sessionId}`,
+        campaigns: `/api/v1/campaigns/generate?session_id=${sessionId}`,
+      };
+      await fetch(endpoints[type], { method: 'POST' });
+      setTimeout(() => refreshSession(), 3000);
+    } catch (err) {
+      console.error(`Failed to re-run ${type}:`, err);
+    }
+  };
+
+  // Export session data as JSON
+  const handleExport = async () => {
+    try {
+      const response = await fetch(`/api/v1/session/${sessionId}/export`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `restopilot-analysis-${sessionId.slice(0, 8)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('Export failed:', err);
+    }
+  };
+
   if (loadingSession) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -186,6 +220,34 @@ export default function AnalysisPage() {
         </Suspense>
       )}
 
+      {/* Quick Actions Bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          onClick={handleExport}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+        >
+          <Download className="h-4 w-4" />
+          Export Report
+        </button>
+        <button
+          onClick={() => refreshSession()}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh Data
+        </button>
+        {totalCompleted >= 2 && (
+          <button
+            onClick={() => router.push(`/analysis/${sessionId}/campaigns`)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg text-sm font-medium text-purple-700 hover:bg-purple-100 transition-colors ml-auto"
+          >
+            <Sparkles className="h-4 w-4" />
+            Creative Studio
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
       {/* Summary Sections - Show inline summaries of each analysis */}
       <div className="space-y-4">
         {/* BCG Summary */}
@@ -267,11 +329,81 @@ export default function AnalysisPage() {
           <p className="text-sm text-red-700">{marathonError}</p>
         </div>
       )}
+
+      {/* Quality Assurance Panel */}
+      {totalCompleted > 0 && (
+        <QualityAssurancePanel
+          sessionId={sessionId}
+          section="overview"
+          currentScore={0.78}
+        />
+      )}
+
+      {/* What's Next CTA */}
+      {totalCompleted > 0 && (
+        <div>
+          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-500" />
+            What's Next?
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {!completedAnalyses.bcg && (
+              <WhatsNextCard
+                title="Upload Menu Data"
+                description="Add your menu for BCG Matrix analysis"
+                action={() => router.push('/')}
+                icon={<BarChart3 className="h-5 w-5 text-yellow-600" />}
+              />
+            )}
+            {completedAnalyses.bcg && (
+              <WhatsNextCard
+                title="Explore BCG Matrix"
+                description={`${(unwrappedData?.bcg_analysis?.items || unwrappedData?.bcg?.items || []).length} items classified`}
+                action={() => router.push(`/analysis/${sessionId}/bcg`)}
+                icon={<BarChart3 className="h-5 w-5 text-yellow-600" />}
+              />
+            )}
+            {completedAnalyses.competitors && (
+              <WhatsNextCard
+                title="Review Competitors"
+                description="See how you stack up against nearby rivals"
+                action={() => router.push(`/analysis/${sessionId}/competitors`)}
+                icon={<Target className="h-5 w-5 text-blue-600" />}
+              />
+            )}
+            {completedAnalyses.campaigns && (
+              <WhatsNextCard
+                title="Launch a Campaign"
+                description="AI-generated marketing campaigns ready to go"
+                action={() => router.push(`/analysis/${sessionId}/campaigns`)}
+                icon={<Megaphone className="h-5 w-5 text-purple-600" />}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Reusable summary section component
+function WhatsNextCard({ title, description, action, icon }: {
+  title: string; description: string; action: () => void; icon: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={action}
+      className="rp-card-interactive text-left p-4 flex items-start gap-3"
+    >
+      <div className="p-2 bg-white rounded-lg border shadow-sm flex-shrink-0">{icon}</div>
+      <div>
+        <p className="font-medium text-gray-900 text-sm">{title}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+      </div>
+      <ArrowRight className="h-4 w-4 text-gray-400 ml-auto mt-1 flex-shrink-0" />
+    </button>
+  );
+}
+
 function SummarySection({ 
   title, icon, completed, isRunning, children 
 }: { 
@@ -292,8 +424,15 @@ function SummarySection({
           {icon}
         </div>
         <h3 className="font-semibold text-gray-900">{title}</h3>
-        {completed && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />}
-        {!completed && isRunning && <Loader2 className="w-4 h-4 text-yellow-500 animate-spin ml-auto" />}
+        <div className="ml-auto">
+          {completed ? (
+            <StatusBadge status="completed" size="sm" />
+          ) : isRunning ? (
+            <StatusBadge status="running" label="Analyzing..." size="sm" />
+          ) : (
+            <StatusBadge status="pending" size="sm" />
+          )}
+        </div>
       </div>
       {children}
     </div>

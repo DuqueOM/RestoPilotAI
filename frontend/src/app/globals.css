@@ -7,56 +7,59 @@
     @apply antialiased;
   }
   :root {
-
     --background: 0 0% 100%;
-
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
-
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
-
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 222.2 47.4% 11.2%;
-
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
-
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
-
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
-
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
-
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
-
     --input: 214.3 31.8% 91.4%;
-
     --ring: 222.2 84% 4.9%;
-
     --chart-1: 12 76% 61%;
-
     --chart-2: 173 58% 39%;
-
     --chart-3: 197 37% 24%;
-
     --chart-4: 43 74% 66%;
-
     --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
 
-    --radius: 0.5rem
+    /* RestoPilotAI Design Tokens */
+    --rp-ai-primary: 262 83% 58%;
+    --rp-ai-primary-light: 262 83% 95%;
+    --rp-ai-secondary: 221 83% 53%;
+    --rp-ai-secondary-light: 221 83% 95%;
+    --rp-success: 142 76% 36%;
+    --rp-success-light: 142 76% 95%;
+    --rp-warning: 38 92% 50%;
+    --rp-warning-light: 38 92% 95%;
+    --rp-danger: 0 84% 60%;
+    --rp-danger-light: 0 84% 96%;
+    --rp-gemini: 271 91% 65%;
+    --rp-gemini-light: 271 91% 96%;
+
+    /* Spacing scale */
+    --rp-space-xs: 0.25rem;
+    --rp-space-sm: 0.5rem;
+    --rp-space-md: 1rem;
+    --rp-space-lg: 1.5rem;
+    --rp-space-xl: 2rem;
+    --rp-space-2xl: 3rem;
+
+    /* Elevation */
+    --rp-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --rp-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --rp-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    --rp-shadow-glow: 0 0 20px hsl(262 83% 58% / 0.15);
   }
   .dark {
 
@@ -126,6 +129,97 @@
   .input {
     @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent;
   }
+
+  /* Card Variants */
+  .rp-card-elevated {
+    @apply bg-white rounded-xl border border-gray-200 p-6;
+    box-shadow: var(--rp-shadow-md);
+  }
+  .rp-card-flat {
+    @apply bg-gray-50 rounded-xl border border-gray-100 p-6;
+  }
+  .rp-card-interactive {
+    @apply bg-white rounded-xl border border-gray-200 p-6 transition-all duration-200 cursor-pointer;
+    box-shadow: var(--rp-shadow-sm);
+  }
+  .rp-card-interactive:hover {
+    box-shadow: var(--rp-shadow-lg);
+    @apply border-purple-200;
+  }
+  .rp-card-ai {
+    @apply bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border border-purple-100 p-6;
+    box-shadow: var(--rp-shadow-glow);
+  }
+  .rp-card-success {
+    @apply bg-green-50/60 rounded-xl border border-green-200 p-6;
+  }
+  .rp-card-warning {
+    @apply bg-amber-50/60 rounded-xl border border-amber-200 p-6;
+  }
+
+  /* Skeleton loading */
+  .rp-skeleton {
+    @apply bg-gray-200 rounded-md animate-pulse;
+  }
+  .rp-skeleton-text {
+    @apply bg-gray-200 rounded h-4 animate-pulse;
+  }
+  .rp-skeleton-circle {
+    @apply bg-gray-200 rounded-full animate-pulse;
+  }
+
+  /* AI Thinking Pulse */
+  .rp-ai-pulse {
+    @apply relative;
+  }
+  .rp-ai-pulse::after {
+    content: '';
+    @apply absolute -inset-1 rounded-xl opacity-0;
+    background: linear-gradient(135deg, hsl(var(--rp-ai-primary) / 0.2), hsl(var(--rp-ai-secondary) / 0.2));
+    animation: rp-pulse 2s ease-in-out infinite;
+  }
+
+  /* Status dot */
+  .rp-status-dot {
+    @apply inline-block w-2 h-2 rounded-full;
+  }
+  .rp-status-dot-active {
+    @apply bg-green-500;
+    box-shadow: 0 0 6px hsl(var(--rp-success) / 0.5);
+  }
+  .rp-status-dot-running {
+    @apply bg-amber-500 animate-pulse;
+    box-shadow: 0 0 6px hsl(var(--rp-warning) / 0.5);
+  }
+  .rp-status-dot-error {
+    @apply bg-red-500;
+    box-shadow: 0 0 6px hsl(var(--rp-danger) / 0.5);
+  }
+}
+
+@keyframes rp-pulse {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+@keyframes rp-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes rp-count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rp-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 

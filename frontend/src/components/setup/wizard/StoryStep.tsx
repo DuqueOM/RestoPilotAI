@@ -86,7 +86,7 @@ function ContextSection({
       {showAudio ? (
         <div className="animate-in fade-in slide-in-from-top-2">
           <LiveTranscriptionBox
-            onTranscriptionComplete={(text, segments) => handleTranscription(text)}
+            onTranscriptionComplete={(text, _segments) => handleTranscription(text)}
             onAudioBlob={handleAudioBlob}
             placeholder="Describe your story by speaking..."
             className="border-purple-200 shadow-sm"
