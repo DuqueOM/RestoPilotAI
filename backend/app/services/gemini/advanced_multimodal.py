@@ -205,7 +205,7 @@ RETURN ONLY VALID JSON matching this exact structure:
         result = await self.generate(
             prompt=prompt,
             images=[image],
-            thinking_level=ThinkingLevel.STANDARD,
+            thinking_level=ThinkingLevel.DEEP,  # DEEP for maximum extraction accuracy
             enable_grounding=False  # No need for grounding on image extraction
         )
         
@@ -738,7 +738,7 @@ RETURN ONLY VALID JSON:
         result = await self.generate(
             prompt=prompt,
             images=[video_bytes],  # Gemini handles video as multimodal input
-            thinking_level=ThinkingLevel.DEEP,
+            thinking_level=ThinkingLevel.EXHAUSTIVE,  # EXHAUSTIVE for maximum video analysis quality
             enable_grounding=False
         )
         

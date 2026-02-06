@@ -11,10 +11,13 @@ Provides end-to-end campaign generation:
 Complete cycle: Analysis → Strategy → Generation → Deploy
 """
 
+import base64
 import json
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
+from google import genai
+from google.genai import types
 from loguru import logger
 from pydantic import BaseModel, Field
 
@@ -22,7 +25,7 @@ from app.services.gemini.enhanced_agent import (
     EnhancedGeminiAgent,
     ThinkingLevel
 )
-from app.core.config import GeminiModel
+from app.core.config import GeminiModel, get_settings
 
 
 # ==================== Models ====================
@@ -78,11 +81,14 @@ class CampaignImageGenerator:
     
     def __init__(self):
         self.gemini = EnhancedGeminiAgent(
-            model=GeminiModel.FLASH_PREVIEW,
+            model=GeminiModel.PRO_PREVIEW,
             enable_grounding=True,
             enable_cache=False  # Don't cache creative generation
         )
-        logger.info("campaign_image_generator_initialized")
+        settings = get_settings()
+        self.client = genai.Client(api_key=settings.gemini_api_key)
+        self.image_model = settings.gemini_model_image_gen  # gemini-3-pro-image-preview
+        logger.info("campaign_image_generator_initialized", image_model=self.image_model)
     
     async def generate_complete_campaign(
         self,
@@ -372,47 +378,80 @@ RETURN AS JSON:
         image_prompt: ImagePrompt
     ) -> List[str]:
         """
-        Generate images with Imagen 3.
+        Generate images with Gemini native image generation (gemini-3-pro-image-preview).
         
-        NOTE: This is simulated for now. In production, you would:
-        1. Set up Vertex AI credentials
-        2. Initialize ImageGenerationModel
-        3. Call generate_images()
-        4. Return actual generated images
-        
-        For hackathon demo, we return placeholder data.
+        Uses the native image output capability of Gemini 3 Pro Image model,
+        which leverages Imagen 3 under the hood for superior food photography.
         """
         
         logger.info(
             "image_generation_requested",
             prompt=image_prompt.positive_prompt[:100],
-            num_images=image_prompt.num_images
+            num_images=image_prompt.num_images,
+            model=self.image_model
         )
         
-        # Simulated image generation
-        # In production, this would be:
-        # from vertexai.preview.vision_models import ImageGenerationModel
-        # model = ImageGenerationModel.from_pretrained("imagegeneration@006")
-        # images = model.generate_images(
-        #     prompt=image_prompt.positive_prompt,
-        #     negative_prompt=image_prompt.negative_prompt,
-        #     number_of_images=image_prompt.num_images,
-        #     guidance_scale=image_prompt.guidance_scale,
-        #     aspect_ratio=image_prompt.aspect_ratio
-        # )
-        # return [base64.b64encode(img._image_bytes).decode() for img in images]
+        generated_images = []
         
-        # For now, return placeholder
-        placeholders = []
         for i in range(image_prompt.num_images):
-            placeholder = {
-                "image_id": f"imagen_{i+1}",
-                "prompt_used": image_prompt.positive_prompt,
-                "note": "Image generation with Imagen 3 - requires Vertex AI setup"
-            }
-            placeholders.append(json.dumps(placeholder))
+            try:
+                # Use native Gemini image generation
+                response = self.client.models.generate_content(
+                    model=self.image_model,
+                    contents=[types.Content(parts=[
+                        types.Part(text=f"""Generate a professional food photography image.
+
+POSITIVE PROMPT: {image_prompt.positive_prompt}
+NEGATIVE PROMPT (avoid these): {image_prompt.negative_prompt}
+ASPECT RATIO: {image_prompt.aspect_ratio}
+VARIATION: {i + 1} of {image_prompt.num_images} — make each variation unique in composition/angle.
+
+Generate the image now.""")
+                    ])],
+                    config=types.GenerateContentConfig(
+                        response_modalities=['IMAGE', 'TEXT'],
+                        temperature=0.7 + (i * 0.05),  # Slight variation per image
+                        top_p=0.9
+                    )
+                )
+                
+                # Extract generated image from response
+                image_data = None
+                parts = []
+                if hasattr(response, 'candidates') and response.candidates:
+                    candidate = response.candidates[0]
+                    if hasattr(candidate, 'content') and candidate.content and hasattr(candidate.content, 'parts'):
+                        parts = candidate.content.parts
+                elif hasattr(response, 'parts'):
+                    parts = response.parts
+                
+                for part in parts:
+                    if hasattr(part, 'inline_data') and part.inline_data:
+                        image_data = base64.b64encode(part.inline_data.data).decode('utf-8')
+                        break
+                
+                if image_data:
+                    generated_images.append(image_data)
+                    logger.info(f"image_generated_successfully", variation=i+1)
+                else:
+                    # Fallback: return prompt metadata if image generation fails
+                    logger.warning(f"No image data in response for variation {i+1}")
+                    generated_images.append(json.dumps({
+                        "image_id": f"gen_{i+1}",
+                        "prompt_used": image_prompt.positive_prompt,
+                        "status": "text_only_response"
+                    }))
+                    
+            except Exception as e:
+                logger.error(f"Image generation failed for variation {i+1}: {e}")
+                generated_images.append(json.dumps({
+                    "image_id": f"fallback_{i+1}",
+                    "prompt_used": image_prompt.positive_prompt,
+                    "error": str(e)
+                }))
         
-        return placeholders
+        logger.info(f"image_generation_complete", total={len(generated_images)})
+        return generated_images
     
     async def _write_campaign_copy(
         self,

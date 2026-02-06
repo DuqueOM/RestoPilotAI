@@ -79,7 +79,7 @@ class EnhancedGeminiAgent:
         enable_cache: bool = True
     ):
         self.settings = get_settings()
-        self.model_name = model or GeminiModel.FLASH_PREVIEW
+        self.model_name = model or GeminiModel.PRO_PREVIEW
         self.enable_streaming = enable_streaming
         self.enable_grounding = enable_grounding and self.settings.gemini_enable_grounding
         self.enable_cache = enable_cache and self.settings.gemini_enable_cache

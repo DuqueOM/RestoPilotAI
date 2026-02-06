@@ -16,8 +16,8 @@ class CreativeAutopilotAgent:
         settings = get_settings()
         self.api_key = settings.gemini_api_key
         self.client = genai.Client(api_key=self.api_key)
-        self.image_model = "gemini-3-pro-image-preview" 
-        self.reasoning_model = "gemini-3-flash-preview"
+        self.image_model = settings.gemini_model_image_gen  # gemini-3-pro-image-preview
+        self.reasoning_model = settings.gemini_model_reasoning  # gemini-3-pro-preview (PRO for max quality)
     
     async def generate_full_campaign(
         self,

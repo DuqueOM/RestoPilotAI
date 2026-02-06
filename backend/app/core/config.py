@@ -64,15 +64,15 @@ class Settings(BaseSettings):
     # CRÍTICO: Usar solo modelos de Gemini 3
     
     # Model Selection with Fallbacks
-    gemini_model_primary: str = GeminiModel.FLASH_PREVIEW.value
-    gemini_model_reasoning: str = GeminiModel.FLASH_PREVIEW.value  # BCG, competitive intel
+    gemini_model_primary: str = GeminiModel.PRO_PREVIEW.value
+    gemini_model_reasoning: str = GeminiModel.PRO_PREVIEW.value  # BCG, competitive intel — PRO for max quality
     gemini_model_vision: str = GeminiModel.PRO_PREVIEW.value  # Multimodal (menús, platos)
     gemini_model_image_gen: str = GeminiModel.PRO_IMAGE.value  # Creative Autopilot
     gemini_fallback_model: str = GeminiModel.PRO_PREVIEW.value  # Si falla primary
     gemini_emergency_model: str = GeminiModel.FLASH_2.value  # Último recurso
     
     # Backward compatibility
-    gemini_model: str = GeminiModel.FLASH_PREVIEW.value
+    gemini_model: str = GeminiModel.PRO_PREVIEW.value
     gemini_model_pro: str = GeminiModel.PRO_PREVIEW.value
     
     # Rate Limiting (Gemini 3 free tier)
@@ -84,9 +84,9 @@ class Settings(BaseSettings):
     
     # Token Limits (differentiated by task)
     gemini_max_input_tokens: int = 128000  # Context window
-    gemini_max_tokens_menu_extraction: int = 4096
+    gemini_max_tokens_menu_extraction: int = 8192  # Increased to prevent truncated JSON on large menus
     gemini_max_tokens_analysis: int = 8192  # Default
-    gemini_max_tokens_campaign: int = 2048
+    gemini_max_tokens_campaign: int = 8192  # Increased for richer campaign copy
     gemini_max_tokens_reasoning: int = 16384  # Análisis profundos
     gemini_max_output_tokens: int = 8192  # Flash model default
     gemini_max_output_tokens_reasoning: int = 16384
