@@ -302,6 +302,31 @@ docker-compose up --build
 
 Services: Backend (:8000), Frontend (:3000), PostgreSQL (:5432), Redis (:6379)
 
+### Quick Verification Commands
+
+After starting the backend, verify all services are operational:
+
+```bash
+# 1. Health check
+curl http://localhost:8000/api/v1/health
+
+# 2. Creative Autopilot (campaign generation)
+curl -X POST "http://localhost:8000/api/v1/campaigns/creative-autopilot?restaurant_name=TestResto&dish_id=1&session_id=test&target_languages=es&target_languages=en"
+
+# 3. Vibe Engineering (quality verification)
+curl -X POST http://localhost:8000/api/v1/vibe-engineering/verify-analysis \
+  -H "Content-Type: application/json" \
+  -d '{"analysis_type":"bcg","analysis_result":{"test":true},"source_data":{},"auto_improve":true}'
+
+# 4. Grounding (Google Search verification)
+curl -X POST http://localhost:8000/api/v1/grounding/verify \
+  -H "Content-Type: application/json" \
+  -d '{"claim":"Restaurant industry average food cost is 28-35%","context":"pricing analysis"}'
+
+# 5. Frontend build check
+cd frontend && npm run build
+```
+
 ---
 
 ## 📖 Usage
@@ -557,6 +582,35 @@ make typecheck      # TypeScript type checking
 make clean          # Clean temporary files
 make demo           # Generate demo data
 ```
+
+---
+
+## 📋 Hackathon Submission Checklist
+
+### Devpost Submission
+- [ ] **Title**: RestoPilotAI — AI-Powered Restaurant Intelligence
+- [ ] **Tagline**: Transform restaurant competitive analysis from $5,000 to $2 with Gemini 3
+- [ ] **Description**: Full project overview with Gemini 3 capabilities
+- [ ] **Built With**: Google Gemini 3 Pro, FastAPI, Next.js 15, Python, TypeScript, TailwindCSS, Radix UI, XGBoost, PyTorch
+- [ ] **Tracks**: Marathon Agent, Creative Autopilot, Vibe Engineering, Google Search Grounding
+- [ ] **Demo Video**: 3-minute walkthrough (upload, BCG analysis, Creative Autopilot, Vibe Engineering, Competitive Intelligence)
+- [ ] **Screenshots**: Dashboard, BCG Matrix, Creative Studio, Competitor Analysis, Sentiment
+- [ ] **GitHub Link**: Repository URL
+- [ ] **Live Demo**: Deployed URL (if available)
+
+### Technical Verification
+- [x] All Gemini 3 models configured (Pro for reasoning, Pro Image for generation)
+- [x] Google Search grounding with auto-citations
+- [x] Native image generation (not DALL-E or external)
+- [x] WebSocket streaming for real-time progress
+- [x] Marathon Agent with checkpoint recovery
+- [x] Vibe Engineering iterative quality loops
+- [x] Creative Autopilot full pipeline (strategy → concept → visuals → A/B → localization)
+- [x] Thought signatures on every analysis
+- [x] Multi-agent debate system
+- [x] 17-stage autonomous analysis pipeline
+- [x] Frontend build succeeds with zero errors
+- [x] All API endpoints return valid responses
 
 ---
 

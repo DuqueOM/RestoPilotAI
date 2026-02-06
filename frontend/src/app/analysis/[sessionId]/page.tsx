@@ -34,6 +34,9 @@ export default function AnalysisPage() {
     recoverTask,
   } = useMarathonAgent(activeTaskId);
 
+  // WebSocket connection status (derived from marathon agent)
+  const wsConnected = isRunning && !!taskState;
+
   // AI Transparency State
   const [showThoughtStream, setShowThoughtStream] = useState(true);
   const [debates, setDebates] = useState<DebateResult[]>([]);
@@ -168,7 +171,7 @@ export default function AnalysisPage() {
                 </p>
               )}
             </div>
-            <div className="text-right">
+            <div className="text-right space-y-2">
               {isRunning ? (
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -184,6 +187,13 @@ export default function AnalysisPage() {
                   {totalCompleted}/4 analyses completed
                 </div>
               )}
+              {/* WebSocket Connection Indicator */}
+              <div className="flex items-center justify-end gap-1.5 text-xs">
+                <span className={`inline-block w-2 h-2 rounded-full ${wsConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+                <span className={wsConnected ? 'text-green-200' : 'text-blue-200/60'}>
+                  {wsConnected ? 'Live Stream' : 'Ready'}
+                </span>
+              </div>
             </div>
           </div>
           
