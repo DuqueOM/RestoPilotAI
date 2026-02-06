@@ -114,7 +114,7 @@ const PRIORITY_CONFIG: Record<InsightPriority, { label: string; color: string }>
 export function InsightCard({
   insight,
   compact = false,
-  onDismiss,
+  onDismiss: _onDismiss,
   onAction,
   className,
 }: InsightCardProps) {

@@ -441,25 +441,111 @@ function LoadingSkeleton() {
   );
 }
 
-// Temporary component for Predictions (content from predictions/page.tsx will be moved here)
 function PredictionsPanel({ data, sessionId }: { data: any; sessionId: string }) {
+  const [neuralPredictions, setNeuralPredictions] = useState<any>(null);
+  const [loadingNeural, setLoadingNeural] = useState(false);
+
   const predictionCount = Array.isArray(data?.predictions)
     ? data.predictions.length
     : Array.isArray(data?.item_predictions)
       ? data.item_predictions.length
       : 0;
 
+  const predictions = data?.predictions || data?.item_predictions || [];
+
+  const handleNeuralPredict = async () => {
+    setLoadingNeural(true);
+    try {
+      const res = await fetch(`/api/v1/predict/neural?session_id=${sessionId}&horizon_days=14&use_ensemble=true`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setNeuralPredictions(result);
+      }
+    } catch (err) {
+      console.warn('Neural prediction failed:', err);
+    } finally {
+      setLoadingNeural(false);
+    }
+  };
+
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Sales Predictions</h2>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          📊 Predictions data available. Full implementation coming soon.
-        </p>
-        <p className="text-xs text-blue-600 mt-2">
-          {predictionCount} predictions loaded
-        </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Sales Predictions</h2>
+        <button
+          onClick={handleNeuralPredict}
+          disabled={loadingNeural}
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+        >
+          {loadingNeural ? (
+            <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Running Neural...</>
+          ) : (
+            <><Brain className="h-3.5 w-3.5" /> Neural Forecast</>
+          )}
+        </button>
       </div>
+
+      {/* Standard Predictions */}
+      {predictions.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {predictions.slice(0, 9).map((pred: any, idx: number) => (
+            <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+              <h4 className="font-semibold text-gray-900 mb-1">{pred.item_name || pred.name || `Item ${idx + 1}`}</h4>
+              {pred.predicted_demand != null && (
+                <p className="text-sm text-gray-600">Demand: <span className="font-medium text-blue-600">{Math.round(pred.predicted_demand)} units/day</span></p>
+              )}
+              {pred.predicted_revenue != null && (
+                <p className="text-sm text-gray-600">Revenue: <span className="font-medium text-green-600">${pred.predicted_revenue?.toFixed(0)}/day</span></p>
+              )}
+              {pred.confidence != null && (
+                <div className="mt-2">
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Confidence</span>
+                    <span>{(pred.confidence * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="bg-blue-500 rounded-full h-1.5" style={{ width: `${pred.confidence * 100}%` }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">📊 {predictionCount > 0 ? `${predictionCount} predictions available` : 'Upload sales data to generate forecasts.'}</p>
+        </div>
+      )}
+
+      {/* Neural Predictions Results */}
+      {neuralPredictions && (
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-5">
+          <h3 className="text-lg font-semibold text-indigo-900 mb-3 flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Neural Network Forecast (14-day horizon)
+          </h3>
+          {neuralPredictions.predictions ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {Object.entries(neuralPredictions.predictions).slice(0, 6).map(([itemName, pred]: [string, any]) => (
+                <div key={itemName} className="bg-white/80 rounded-lg p-3 border border-indigo-100">
+                  <p className="font-medium text-gray-900 text-sm">{itemName}</p>
+                  {pred?.baseline?.forecast && (
+                    <p className="text-xs text-indigo-600 mt-1">
+                      Forecast: {Array.isArray(pred.baseline.forecast)
+                        ? `${pred.baseline.forecast.slice(-1)[0]?.toFixed(0)} units (day 14)`
+                        : JSON.stringify(pred.baseline.forecast).slice(0, 60)}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-indigo-700">{JSON.stringify(neuralPredictions).slice(0, 200)}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -259,7 +259,7 @@ export function CampaignPreviewGallery({
   const [selectedCampaign, setSelectedCampaign] = useState<string | null>(
     campaigns.length > 0 ? campaigns[0].id : null
   );
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, _setViewMode] = useState<'grid' | 'list'>('grid');
 
   const currentCampaign = campaigns.find(c => c.id === selectedCampaign);
 

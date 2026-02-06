@@ -62,13 +62,13 @@ export default function SentimentPage() {
 
   const audioContext = unwrappedSession?.audio_analysis || sessionData?.audio_analysis;
 
-  const getSentimentColor = (score: number) => {
+  const _getSentimentColor = (score: number) => {
     if (score >= 0.7) return 'text-green-600 bg-green-100';
     if (score >= 0.5) return 'text-yellow-600 bg-yellow-100';
     return 'text-red-600 bg-red-100';
   };
 
-  const getRatingColor = (rating: number) => {
+  const _getRatingColor = (rating: number) => {
     if (rating >= 4) return 'text-green-600';
     if (rating >= 3) return 'text-yellow-600';
     return 'text-red-600';

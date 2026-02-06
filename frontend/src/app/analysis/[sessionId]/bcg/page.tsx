@@ -7,7 +7,7 @@ import { GroundingSources } from '@/components/common/GroundingSources';
 import { MenuTransformationIntegrated } from '@/components/creative/MenuTransformationIntegrated';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { BCGAnalysisResult, MenuEngineeringItem } from '@/lib/api';
-import { AlertTriangle, BarChart3, RefreshCw, TrendingUp } from 'lucide-react';
+import { AlertTriangle, BarChart3, DollarSign, Loader2, RefreshCw, TrendingUp } from 'lucide-react';
 import { use, useCallback, useEffect, useState } from 'react';
 import { useSessionData } from '../layout';
 
@@ -68,8 +68,10 @@ export default function BCGPage({ params }: BCGPageProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showMenuList, setShowMenuList] = useState(false);
   const [showMenuTransform, setShowMenuTransform] = useState(false);
+  const [pricingBenchmarks, setPricingBenchmarks] = useState<any>(null);
+  const [loadingPricing, setLoadingPricing] = useState(false);
 
-  const fetchAnalysis = useCallback(async (period: string) => {
+  const fetchAnalysis = useCallback(async (_period: string) => {
     try {
       // Use data from SessionContext
       const unwrappedData = (sessionData as any)?.data || sessionData;
@@ -221,6 +223,63 @@ export default function BCGPage({ params }: BCGPageProps) {
           sources={data.grounding_sources}
           isGrounded={data.grounded || false}
         />
+      )}
+
+      {/* Pricing Benchmarks */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={async () => {
+            setLoadingPricing(true);
+            try {
+              const location = unwrappedData?.restaurant_info?.location || unwrappedData?.location || '';
+              const res = await fetch('/api/v1/grounding/pricing/benchmarks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  cuisine_type: unwrappedData?.restaurant_info?.cuisine || 'restaurant',
+                  location: location,
+                  dish_category: 'all',
+                }),
+              });
+              if (res.ok) {
+                const result = await res.json();
+                setPricingBenchmarks(result);
+              }
+            } catch (err) {
+              console.warn('Pricing benchmarks failed:', err);
+            } finally {
+              setLoadingPricing(false);
+            }
+          }}
+          disabled={loadingPricing}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors disabled:opacity-50"
+        >
+          {loadingPricing ? (
+            <><Loader2 className="h-4 w-4 animate-spin" /> Loading...</>
+          ) : (
+            <><DollarSign className="h-4 w-4" /> {pricingBenchmarks ? 'Benchmarks Loaded ✓' : 'Pricing Benchmarks'}</>
+          )}
+        </button>
+      </div>
+
+      {/* Pricing Benchmarks Results */}
+      {pricingBenchmarks && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-5">
+          <h3 className="text-lg font-semibold text-amber-900 mb-3 flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Market Pricing Benchmarks
+          </h3>
+          {pricingBenchmarks.sources && pricingBenchmarks.sources.length > 0 && (
+            <GroundingSources sources={pricingBenchmarks.sources} isGrounded={true} variant="compact" />
+          )}
+          {pricingBenchmarks.result && (
+            <div className="mt-3 text-sm text-gray-700 whitespace-pre-wrap bg-white/60 rounded-lg p-3">
+              {typeof pricingBenchmarks.result === 'string' 
+                ? pricingBenchmarks.result 
+                : JSON.stringify(pricingBenchmarks.result, null, 2)}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Date Range Info */}
@@ -382,7 +441,7 @@ interface QuadrantCardProps {
   onToggleItem: (name: string | null) => void;
 }
 
-function QuadrantCard({ category, config, items, summary, expandedItem, onToggleItem }: QuadrantCardProps) {
+function QuadrantCard({ category: _category, config, items, summary, expandedItem, onToggleItem }: QuadrantCardProps) {
   return (
     <div className={`rounded-lg border-2 ${config.border} ${config.bg} p-4`}>
       <div className="flex items-center justify-between mb-3">

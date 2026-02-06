@@ -54,10 +54,10 @@ const agentPipeline = [
   { name: 'Campaign Generator', tech: 'Gemini 2.5 Pro + Marathon Memory', color: 'green' }
 ];
 
-export default function AgentDashboard({ sessionData, thoughtSignature }: AgentDashboardProps) {
+export default function AgentDashboard({ sessionData, thoughtSignature: _thoughtSignature }: AgentDashboardProps) {
   const marathonContext = sessionData?.marathon_agent_context;
 
-  const getStatusColor = (status: string) => {
+  const _getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-700 border-green-200';
       case 'running': return 'bg-blue-100 text-blue-700 border-blue-200 animate-pulse';

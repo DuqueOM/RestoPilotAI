@@ -101,7 +101,7 @@ function AgentCard({ perspective }: { perspective: AgentPerspective }) {
   const [expanded, setExpanded] = useState(false);
   const config = AGENT_CONFIG[perspective.agentId];
   const positionConfig = POSITION_CONFIG[perspective.position];
-  const Icon = config.icon;
+  const _Icon = config.icon;
 
   return (
     <div className={cn(

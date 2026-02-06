@@ -44,7 +44,7 @@ interface AIFeedback {
 
 const API_BASE = '';
 
-export default function FeedbackSummary({ sessionId, sessionData }: FeedbackSummaryProps) {
+export default function FeedbackSummary({ sessionId, sessionData: _sessionData }: FeedbackSummaryProps) {
   const [feedback, setFeedback] = useState<AIFeedback | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

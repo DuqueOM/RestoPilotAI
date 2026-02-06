@@ -22,7 +22,7 @@ export function CreativeAutopilot({ sessionId, initialRestaurantName = '', menuI
   const [targetLanguages, setTargetLanguages] = useState('en, es');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<CreativeAutopilotResult | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [_copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!restaurantName || !dishId) {
@@ -49,7 +49,7 @@ export function CreativeAutopilot({ sessionId, initialRestaurantName = '', menuI
     }
   };
 
-  const copyToClipboard = (text: string, id: string) => {
+  const _copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     toast.success('Text copied to clipboard!');

@@ -6,7 +6,7 @@ import { ThoughtBubbleStream } from '@/components/ai/ThoughtBubbleStream';
 import { DashboardSkeleton } from '@/components/ui/AnalysisSkeleton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useMarathonAgent } from '@/hooks/useMarathonAgent';
-import { ArrowRight, BarChart3, CheckCircle2, Download, Loader2, MapPin, Megaphone, MessageSquare, RefreshCw, Sparkles, Star, Store, Target } from 'lucide-react';
+import { ArrowRight, BarChart3, CheckCircle2, Download, Loader2, MapPin, Megaphone, MessageSquare, RefreshCw, Shield, Sparkles, Star, Store, Target } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useSessionData } from './layout';
@@ -38,6 +38,8 @@ export default function AnalysisPage() {
   const [showThoughtStream, setShowThoughtStream] = useState(true);
   const [debates, setDebates] = useState<DebateResult[]>([]);
   const [loadingDebates, setLoadingDebates] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<any>(null);
 
   // Calculate which analyses are complete
   const completedAnalyses = {
@@ -56,7 +58,7 @@ export default function AnalysisPage() {
 
   // Business info from session
   const restaurantInfo = unwrappedData?.restaurant_info || {};
-  const businessContext = unwrappedData?.business_context || {};
+  const _businessContext = unwrappedData?.business_context || {};
 
   // Fetch debates when BCG data is available
   const fetchDebates = useCallback(async () => {
@@ -94,7 +96,7 @@ export default function AnalysisPage() {
   }, [isRunning, refreshSession]);
 
   // Re-run a specific analysis section
-  const handleRerun = async (type: 'bcg' | 'competitors' | 'sentiment' | 'campaigns') => {
+  const _handleRerun = async (type: 'bcg' | 'competitors' | 'sentiment' | 'campaigns') => {
     try {
       const endpoints: Record<string, string> = {
         bcg: `/api/v1/analyze/bcg?session_id=${sessionId}`,
@@ -236,6 +238,36 @@ export default function AnalysisPage() {
           <RefreshCw className="h-4 w-4" />
           Refresh Data
         </button>
+        {totalCompleted >= 1 && (
+          <button
+            onClick={async () => {
+              setVerifying(true);
+              try {
+                const res = await fetch('/api/v1/grounding/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    claim: `${restaurantInfo.name || 'This restaurant'} analysis is accurate based on current market data`,
+                    context: `Restaurant at ${restaurantInfo.location || 'unknown location'}, session ${sessionId}`,
+                  }),
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  setVerificationResult(data);
+                }
+              } catch (err) {
+                console.warn('Grounding verification failed:', err);
+              } finally {
+                setVerifying(false);
+              }
+            }}
+            disabled={verifying}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+          >
+            {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
+            {verifying ? 'Verifying...' : verificationResult ? 'Verified ✓' : 'Verify with Sources'}
+          </button>
+        )}
         {totalCompleted >= 2 && (
           <button
             onClick={() => router.push(`/analysis/${sessionId}/campaigns`)}

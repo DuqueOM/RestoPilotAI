@@ -1,28 +1,26 @@
 'use client';
 
-import { useState } from 'react';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Clock, 
-  Calendar,
-  BarChart3,
-  Lightbulb,
-  AlertCircle,
-  CheckCircle,
-  ArrowUp,
-  ArrowDown,
-  Minus,
-  Zap
-} from 'lucide-react';
-import { 
-  api, 
-  DataCapabilityReport, 
-  MenuOptimizationResult, 
-  AdvancedAnalyticsResult,
-  ItemOptimization
+import {
+    AdvancedAnalyticsResult,
+    api,
+    DataCapabilityReport,
+    MenuOptimizationResult
 } from '@/lib/api';
+import {
+    AlertCircle,
+    ArrowDown,
+    ArrowUp,
+    BarChart3,
+    Calendar,
+    CheckCircle,
+    Clock,
+    DollarSign,
+    Lightbulb,
+    Minus,
+    TrendingUp,
+    Zap
+} from 'lucide-react';
+import { useState } from 'react';
 
 interface AdvancedAnalyticsProps {
   sessionId: string;
@@ -93,7 +91,7 @@ export default function AdvancedAnalytics({ sessionId, hasData }: AdvancedAnalyt
     }
   };
 
-  const getActionIcon = (action: string) => {
+  const _getActionIcon = (action: string) => {
     switch (action) {
       case 'increase_price': return <ArrowUp className="w-4 h-4 text-green-500" />;
       case 'decrease_price': return <ArrowDown className="w-4 h-4 text-red-500" />;
@@ -103,7 +101,7 @@ export default function AdvancedAnalytics({ sessionId, hasData }: AdvancedAnalyt
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const _getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'critical': return 'bg-red-100 text-red-800';
       case 'high': return 'bg-orange-100 text-orange-800';

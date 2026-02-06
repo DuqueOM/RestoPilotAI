@@ -101,7 +101,7 @@ export function LiveTranscriptionBox({
         
         // Finalize transcription
         if (currentText) {
-          const formatTime = (dateStr: string) => {
+          const _formatTime = (dateStr: string) => {
             const date = new Date(dateStr);
             return date.toLocaleString('en-US', {
               hour: '2-digit',
@@ -212,7 +212,7 @@ export function LiveTranscriptionBox({
   };
 
   // Send audio to Gemini 3 for native transcription when recording stops
-  const sendToGeminiTranscription = async (blob: Blob) => {
+  const _sendToGeminiTranscription = async (blob: Blob) => {
     try {
       const formData = new FormData();
       formData.append('file', blob, 'recording.webm');

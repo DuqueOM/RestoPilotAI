@@ -99,7 +99,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
   const [processingTime, setProcessingTime] = useState<Record<string, number>>({})
   
   const startTimeRef = useRef<number | null>(null)
-  const mounted = useRef(false)
+  const _mounted = useRef(false)
 
   // Initialize status based on sessionData if available
   useEffect(() => {
@@ -338,7 +338,7 @@ export default function AnalysisPanel({ sessionId, sessionData, onComplete, isLo
 
       {/* Vertical Pipeline Steps */}
       <div className="relative space-y-6 before:absolute before:inset-0 before:ml-8 before:w-0.5 before:-translate-x-1/2 before:bg-gray-200 before:h-full before:-z-10">
-        {ANALYSIS_STAGES.map((stage, index) => {
+        {ANALYSIS_STAGES.map((stage, _index) => {
           const status = stageStatus[stage.id] || 'pending'
           const isRunning = (currentStep === stage.id) || (status === 'running')
           const isCompleted = status === 'completed'

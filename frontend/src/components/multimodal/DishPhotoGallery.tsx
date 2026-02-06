@@ -52,7 +52,7 @@ interface DishPhotoGalleryProps {
 export function DishPhotoGallery({
   files,
   onRemoveFile,
-  autoAnalyze = false,
+  autoAnalyze: _autoAnalyze = false,
   className,
 }: DishPhotoGalleryProps) {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -60,7 +60,7 @@ export function DishPhotoGallery({
 
   // Sync photos with files
   useEffect(() => {
-    const newPhotos = files.map((file, i) => {
+    const newPhotos = files.map((file, _i) => {
       const existing = photos.find(p => p.file === file);
       if (existing) return existing;
       return {
