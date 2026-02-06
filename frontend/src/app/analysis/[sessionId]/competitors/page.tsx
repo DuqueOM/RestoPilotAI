@@ -37,7 +37,7 @@ export default function CompetitorsPage() {
   if (!competitors.length && !isLoading) {
     return (
       <div className="text-center py-12 text-gray-500">
-        <img src="/images/empty-state-plate.webp" alt="" className="w-32 h-24 mx-auto mb-4 object-cover rounded-lg opacity-60" />
+        <img src="/images/empty-state-plate.png" alt="" className="w-32 h-24 mx-auto mb-4 object-cover rounded-lg opacity-60" />
         <p className="text-lg">No competitor analysis available</p>
         <p className="text-sm mt-2">Run the analysis to identify competitors.</p>
       </div>
@@ -50,7 +50,7 @@ export default function CompetitorsPage() {
       <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200/60">
         <div className="flex items-center gap-6 p-5">
           <div className="hidden sm:block flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden shadow-md">
-            <img src="/images/competitors-market.webp" alt="" className="w-full h-full object-cover" loading="lazy" />
+            <img src="/images/competitors-market.png" alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">

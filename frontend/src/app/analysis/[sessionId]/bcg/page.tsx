@@ -135,7 +135,7 @@ export default function BCGPage({ params }: BCGPageProps) {
   if (!data || !data.items?.length) {
     return (
       <div className="text-center py-12 text-gray-500">
-        <img src="/images/empty-state-plate.webp" alt="" className="w-32 h-24 mx-auto mb-4 object-cover rounded-lg opacity-60" />
+        <img src="/images/empty-state-plate.png" alt="" className="w-32 h-24 mx-auto mb-4 object-cover rounded-lg opacity-60" />
         <p className="text-lg">No analysis available</p>
         <p className="text-sm mt-2">Run the analysis to classify your products.</p>
       </div>
@@ -162,7 +162,7 @@ export default function BCGPage({ params }: BCGPageProps) {
       <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60">
         <div className="flex items-center gap-6 p-5">
           <div className="hidden sm:block flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden shadow-md">
-            <img src="/images/bcg-matrix-accent.webp" alt="" className="w-full h-full object-cover" loading="lazy" />
+            <img src="/images/bcg-matrix-accent.png" alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">

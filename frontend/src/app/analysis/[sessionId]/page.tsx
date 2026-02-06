@@ -140,7 +140,7 @@ export default function AnalysisPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
-            src="/images/dashboard-header.webp"
+            src="/images/dashboard-header.png"
             alt=""
             className="w-full h-full object-cover"
             loading="eager"

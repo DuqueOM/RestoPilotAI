@@ -302,7 +302,7 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
         {/* Background Pattern */}
         <div 
           className="absolute inset-0 opacity-[0.07]"
-          style={{ backgroundImage: 'url(/images/pattern-food.webp)', backgroundSize: '300px 300px', backgroundRepeat: 'repeat' }}
+          style={{ backgroundImage: 'url(/images/pattern-food.png)', backgroundSize: '300px 300px', backgroundRepeat: 'repeat' }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-purple-600/20" />
         
@@ -344,7 +344,7 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
             <div className="hidden md:block relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/40 border border-white/10">
                 <img
-                  src="/images/hero-chef.webp"
+                  src="/images/hero-chef.png"
                   alt="Professional chef in modern kitchen"
                   className="w-full h-[340px] object-cover"
                   loading="eager"
@@ -354,7 +354,7 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
               {/* Floating accent image */}
               <div className="absolute -bottom-6 -left-6 w-36 h-24 rounded-xl overflow-hidden shadow-xl border-2 border-white/20 rotate-[-3deg]">
                 <img
-                  src="/images/hero-dish.webp"
+                  src="/images/hero-dish.png"
                   alt="Elegantly plated dish"
                   className="w-full h-full object-cover"
                   loading="eager"

@@ -131,7 +131,7 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
       <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200/60">
         <div className="flex items-center gap-6 p-5">
           <div className="hidden sm:block flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden shadow-md">
-            <img src="/images/campaign-studio.webp" alt="" className="w-full h-full object-cover" loading="lazy" />
+            <img src="/images/campaign-studio.png" alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">

@@ -53,7 +53,7 @@ export default function SentimentPage() {
   if (!hasAnyData && !isLoading) {
     return (
       <div className="text-center py-12 text-gray-500">
-        <img src="/images/empty-state-plate.webp" alt="" className="w-32 h-24 mx-auto mb-4 object-cover rounded-lg opacity-60" />
+        <img src="/images/empty-state-plate.png" alt="" className="w-32 h-24 mx-auto mb-4 object-cover rounded-lg opacity-60" />
         <p className="text-lg">No sentiment analysis available</p>
         <p className="text-sm mt-2">Select a location with Google Maps reviews to view the analysis.</p>
       </div>
@@ -85,7 +85,7 @@ export default function SentimentPage() {
       <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-rose-50 to-orange-50 border border-rose-200/60">
         <div className="flex items-center gap-6 p-5">
           <div className="hidden sm:block flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden shadow-md">
-            <img src="/images/sentiment-reviews.webp" alt="" className="w-full h-full object-cover" loading="lazy" />
+            <img src="/images/sentiment-reviews.png" alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
