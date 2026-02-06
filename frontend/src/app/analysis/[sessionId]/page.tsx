@@ -135,57 +135,70 @@ export default function AnalysisPage() {
 
   return (
     <div className="space-y-6">
-      {/* Business Info Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Store className="h-6 w-6" />
-              {restaurantInfo.name || 'My Restaurant'}
-            </h1>
-            {restaurantInfo.location && (
-              <p className="text-blue-100 text-sm mt-1 flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                {restaurantInfo.location}
-              </p>
-            )}
-            {restaurantInfo.rating && (
-              <p className="text-blue-100 text-sm mt-1 flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-300" />
-                {restaurantInfo.rating} ({restaurantInfo.user_ratings_total || 0} reviews)
-              </p>
-            )}
-          </div>
-          <div className="text-right">
-            {isRunning ? (
-              <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-lg">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="font-medium">Analyzing...</span>
-              </div>
-            ) : totalCompleted === 4 ? (
-              <div className="flex items-center gap-2 bg-green-500/30 px-4 py-2 rounded-lg">
-                <CheckCircle2 className="h-5 w-5" />
-                <span className="font-medium">Analysis Complete</span>
-              </div>
-            ) : (
-              <div className="text-blue-200 text-sm">
-                {totalCompleted}/4 analyses completed
-              </div>
-            )}
-          </div>
+      {/* Business Info Header with Background Image */}
+      <div className="relative rounded-xl overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/dashboard-header.webp"
+            alt=""
+            className="w-full h-full object-cover"
+            loading="eager"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 via-blue-800/85 to-purple-900/90" />
         </div>
         
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span>Analysis Progress</span>
-            <span>{totalCompleted}/4</span>
+        <div className="relative p-6 text-white">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <Store className="h-6 w-6" />
+                {restaurantInfo.name || 'My Restaurant'}
+              </h1>
+              {restaurantInfo.location && (
+                <p className="text-blue-100 text-sm mt-1 flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  {restaurantInfo.location}
+                </p>
+              )}
+              {restaurantInfo.rating && (
+                <p className="text-blue-100 text-sm mt-1 flex items-center gap-1">
+                  <Star className="h-4 w-4 text-yellow-300" />
+                  {restaurantInfo.rating} ({restaurantInfo.user_ratings_total || 0} reviews)
+                </p>
+              )}
+            </div>
+            <div className="text-right">
+              {isRunning ? (
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="font-medium">Analyzing...</span>
+                </div>
+              ) : totalCompleted === 4 ? (
+                <div className="flex items-center gap-2 bg-green-500/30 backdrop-blur-sm px-4 py-2 rounded-lg">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span className="font-medium">Analysis Complete</span>
+                </div>
+              ) : (
+                <div className="text-blue-200 text-sm">
+                  {totalCompleted}/4 analyses completed
+                </div>
+              )}
+            </div>
           </div>
-          <div className="w-full bg-white/20 rounded-full h-3">
-            <div 
-              className={`rounded-full h-3 transition-all duration-500 ${isRunning ? 'bg-yellow-300 animate-pulse' : 'bg-white'}`}
-              style={{ width: `${Math.max(progressPercentage, isRunning ? 10 : 0)}%` }}
-            />
+          
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span>Analysis Progress</span>
+              <span>{totalCompleted}/4</span>
+            </div>
+            <div className="w-full bg-white/20 rounded-full h-3">
+              <div 
+                className={`rounded-full h-3 transition-all duration-500 ${isRunning ? 'bg-yellow-300 animate-pulse' : 'bg-white'}`}
+                style={{ width: `${Math.max(progressPercentage, isRunning ? 10 : 0)}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>

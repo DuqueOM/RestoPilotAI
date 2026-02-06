@@ -53,7 +53,7 @@ export default function SentimentPage() {
   if (!hasAnyData && !isLoading) {
     return (
       <div className="text-center py-12 text-gray-500">
-        <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+        <img src="/images/empty-state-plate.webp" alt="" className="w-32 h-24 mx-auto mb-4 object-cover rounded-lg opacity-60" />
         <p className="text-lg">No sentiment analysis available</p>
         <p className="text-sm mt-2">Select a location with Google Maps reviews to view the analysis.</p>
       </div>
@@ -81,23 +81,32 @@ export default function SentimentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <MessageCircle className="h-6 w-6 text-blue-500" />
-          Sentiment Analysis
-        </h2>
-        {googleMapsUrl && (
-          <a
-            href={googleMapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            <MapPin className="h-4 w-4" />
-            View on Google Maps
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
+      {/* Page Header with Accent Image */}
+      <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-rose-50 to-orange-50 border border-rose-200/60">
+        <div className="flex items-center gap-6 p-5">
+          <div className="hidden sm:block flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden shadow-md">
+            <img src="/images/sentiment-reviews.webp" alt="" className="w-full h-full object-cover" loading="lazy" />
+          </div>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-rose-500" />
+              Sentiment Analysis
+            </h1>
+            <p className="text-sm text-gray-500 mt-0.5">Customer reviews, ratings, and emotional intelligence from Google Maps</p>
+          </div>
+          {googleMapsUrl && (
+            <a
+              href={googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+            >
+              <MapPin className="h-4 w-4" />
+              Google Maps
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Overall Rating from Google Maps */}

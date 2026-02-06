@@ -126,7 +126,23 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
   const restaurantName = unwrappedData?.restaurant_name || unwrappedData?.restaurant_info?.name || unwrappedData?.business_profile?.name || unwrappedData?.businessName || 'My Restaurant';
 
   return (
-    <div>
+    <div className="space-y-6">
+      {/* Page Header with Accent Image */}
+      <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200/60">
+        <div className="flex items-center gap-6 p-5">
+          <div className="hidden sm:block flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden shadow-md">
+            <img src="/images/campaign-studio.webp" alt="" className="w-full h-full object-cover" loading="lazy" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              Creative Studio & Campaigns
+            </h1>
+            <p className="text-sm text-gray-500 mt-0.5">AI-generated marketing campaigns, predictions, and creative assets</p>
+          </div>
+        </div>
+      </div>
+
       {/* Sub-tabs */}
       <div className="flex border-b mb-6">
         <button

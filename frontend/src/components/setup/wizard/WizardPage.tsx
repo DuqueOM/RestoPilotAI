@@ -297,19 +297,72 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
         </ConfirmDialog>
       )}
 
-      {/* Demo Mode Button */}
-      <div className="max-w-3xl mx-auto px-4 pt-4 flex justify-end">
-        <button
-          onClick={handleLoadDemo}
-          disabled={loadingDemo || isSubmitting}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50"
-        >
-          {loadingDemo ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Loading Demo...</>
-          ) : (
-            <><Play className="h-4 w-4" /> Try Demo</>
-          )}
-        </button>
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950 rounded-b-3xl mb-8">
+        {/* Background Pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.07]"
+          style={{ backgroundImage: 'url(/images/pattern-food.webp)', backgroundSize: '300px 300px', backgroundRepeat: 'repeat' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-purple-600/20" />
+        
+        <div className="relative max-w-6xl mx-auto px-6 py-12 md:py-16">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Left: Text Content */}
+            <div className="text-white space-y-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium text-blue-200 border border-white/10">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                Powered by Gemini 3 Pro
+              </div>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                AI-Powered
+                <span className="block bg-gradient-to-r from-amber-300 via-orange-300 to-rose-300 bg-clip-text text-transparent">
+                  Restaurant Intelligence
+                </span>
+              </h1>
+              <p className="text-blue-200/80 text-base md:text-lg max-w-lg leading-relaxed">
+                Transform your menu, pricing, and marketing with multimodal AI analysis. 
+                Upload your data and let our AI agents work their magic.
+              </p>
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={handleLoadDemo}
+                  disabled={loadingDemo || isSubmitting}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50"
+                >
+                  {loadingDemo ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Loading Demo...</>
+                  ) : (
+                    <><Play className="h-4 w-4" /> Try Demo</>
+                  )}
+                </button>
+                <span className="text-xs text-blue-300/60">or set up your restaurant below</span>
+              </div>
+            </div>
+
+            {/* Right: Hero Image */}
+            <div className="hidden md:block relative">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/40 border border-white/10">
+                <img
+                  src="/images/hero-chef.webp"
+                  alt="Professional chef in modern kitchen"
+                  className="w-full h-[340px] object-cover"
+                  loading="eager"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
+              </div>
+              {/* Floating accent image */}
+              <div className="absolute -bottom-6 -left-6 w-36 h-24 rounded-xl overflow-hidden shadow-xl border-2 border-white/20 rotate-[-3deg]">
+                <img
+                  src="/images/hero-dish.webp"
+                  alt="Elegantly plated dish"
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <SetupWizard onComplete={handleRequestComplete}>

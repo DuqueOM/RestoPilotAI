@@ -37,7 +37,7 @@ export default function CompetitorsPage() {
   if (!competitors.length && !isLoading) {
     return (
       <div className="text-center py-12 text-gray-500">
-        <Target className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+        <img src="/images/empty-state-plate.webp" alt="" className="w-32 h-24 mx-auto mb-4 object-cover rounded-lg opacity-60" />
         <p className="text-lg">No competitor analysis available</p>
         <p className="text-sm mt-2">Run the analysis to identify competitors.</p>
       </div>
@@ -46,12 +46,20 @@ export default function CompetitorsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <Target className="h-6 w-6 text-orange-500" />
-          Competitor Analysis
-        </h2>
-        <span className="text-sm text-gray-500">{competitors.length} competitors identified</span>
+      {/* Page Header with Accent Image */}
+      <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200/60">
+        <div className="flex items-center gap-6 p-5">
+          <div className="hidden sm:block flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden shadow-md">
+            <img src="/images/competitors-market.webp" alt="" className="w-full h-full object-cover" loading="lazy" />
+          </div>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <Target className="w-5 h-5 text-teal-600" />
+              Competitor Analysis
+            </h1>
+            <p className="text-sm text-gray-500 mt-0.5">Market intelligence on {competitors.length} nearby competitors with Google Search grounding</p>
+          </div>
+        </div>
       </div>
 
       {/* Context from audio/text if available */}
