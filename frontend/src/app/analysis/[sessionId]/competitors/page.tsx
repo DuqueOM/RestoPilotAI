@@ -1,8 +1,10 @@
 'use client';
 
 import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
-import { MapPin, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
+import { GroundingSources } from '@/components/common/GroundingSources';
+import { Globe, Loader2, MapPin, Search, Shield, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 import { useSessionData } from '../layout';
 
 
@@ -10,8 +12,17 @@ export default function CompetitorsPage() {
   const params = useParams();
   const sessionId = params.sessionId as string;
   const { sessionData, isLoading } = useSessionData();
+  const [trends, setTrends] = useState<any>(null);
+  const [loadingTrends, setLoadingTrends] = useState(false);
+  const [groundedCompetitor, setGroundedCompetitor] = useState<any>(null);
+  const [loadingGrounded, setLoadingGrounded] = useState<string | null>(null);
+  const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [verifying, setVerifying] = useState(false);
 
   const unwrappedSession = (sessionData as any)?.data || sessionData;
+  const restaurantInfo = unwrappedSession?.restaurant_info || {};
+  const location = restaurantInfo?.location || restaurantInfo?.address || '';
+  const cuisine = restaurantInfo?.cuisine || 'restaurant';
 
   if (isLoading) {
     return (
@@ -155,10 +166,132 @@ export default function CompetitorsPage() {
                   </a>
                 </div>
               )}
+
+              {/* Grounded Deep-Dive Button */}
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <button
+                  onClick={async () => {
+                    setLoadingGrounded(name);
+                    try {
+                      const res = await fetch('/api/v1/grounding/competitor/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ competitor_name: name, location, cuisine_type: cuisine }),
+                      });
+                      if (res.ok) setGroundedCompetitor(await res.json());
+                    } catch (err) { console.warn('Grounded analysis failed:', err); }
+                    finally { setLoadingGrounded(null); }
+                  }}
+                  disabled={loadingGrounded === name}
+                  className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+                >
+                  {loadingGrounded === name ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+                  Deep Dive with Google Search
+                </button>
+              </div>
             </div>
           );
         })}
       </div>
+
+      {/* Grounding Actions Bar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={async () => {
+            setLoadingTrends(true);
+            try {
+              const res = await fetch('/api/v1/grounding/trends/research', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cuisine_type: cuisine, location, time_period: 'last 6 months' }),
+              });
+              if (res.ok) setTrends(await res.json());
+            } catch (err) { console.warn('Trends failed:', err); }
+            finally { setLoadingTrends(false); }
+          }}
+          disabled={loadingTrends}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-lg hover:bg-cyan-100 transition-colors disabled:opacity-50"
+        >
+          {loadingTrends ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+          {trends ? 'Trends Loaded ✓' : 'Research Market Trends'}
+        </button>
+        <button
+          onClick={async () => {
+            setVerifying(true);
+            try {
+              const res = await fetch('/api/v1/grounding/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  claim: `Competitive analysis of ${competitors.length} restaurants near ${location} is accurate`,
+                  context: `Competitors: ${competitors.map((c: any) => c.name || c.business_name).join(', ')}`,
+                }),
+              });
+              if (res.ok) setVerifyResult(await res.json());
+            } catch (err) { console.warn('Verify failed:', err); }
+            finally { setVerifying(false); }
+          }}
+          disabled={verifying}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
+        >
+          {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
+          {verifyResult ? 'Verified ✓' : 'Verify with Sources'}
+        </button>
+      </div>
+
+      {/* Market Trends Results */}
+      {trends && (
+        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-5">
+          <h3 className="text-lg font-semibold text-cyan-900 mb-3 flex items-center gap-2">
+            <Globe className="h-5 w-5" /> Market Trends — {cuisine} in {location}
+          </h3>
+          {Array.isArray(trends) ? (
+            <div className="grid md:grid-cols-2 gap-3">
+              {trends.slice(0, 6).map((trend: any, i: number) => (
+                <div key={i} className="bg-white/70 rounded-lg p-3 border border-cyan-100">
+                  <p className="font-medium text-gray-900 text-sm">{trend.name || trend.trend || `Trend ${i+1}`}</p>
+                  <p className="text-xs text-gray-600 mt-1">{trend.description || trend.summary || JSON.stringify(trend).slice(0, 120)}</p>
+                  {trend.sources?.length > 0 && (
+                    <GroundingSources sources={trend.sources} isGrounded={true} variant="compact" />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-gray-700 whitespace-pre-wrap bg-white/60 rounded-lg p-3">
+              {typeof trends === 'string' ? trends : JSON.stringify(trends, null, 2)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Verification Result */}
+      {verifyResult && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <h3 className="text-sm font-semibold text-emerald-900 mb-2 flex items-center gap-2">
+            <Shield className="h-4 w-4" /> Verification Result
+          </h3>
+          {verifyResult.sources && <GroundingSources sources={verifyResult.sources} isGrounded={true} variant="compact" />}
+          {verifyResult.result && (
+            <p className="text-sm text-gray-700 mt-2">{typeof verifyResult.result === 'string' ? verifyResult.result : JSON.stringify(verifyResult.result).slice(0, 300)}</p>
+          )}
+        </div>
+      )}
+
+      {/* Grounded Deep-Dive on individual competitor */}
+      {groundedCompetitor && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <Search className="h-5 w-5" /> Deep Dive — {groundedCompetitor.name || 'Competitor'}
+          </h3>
+          <div className="text-sm text-gray-700 whitespace-pre-wrap bg-white/60 rounded-lg p-3">
+            {typeof groundedCompetitor === 'string' ? groundedCompetitor : JSON.stringify(groundedCompetitor, null, 2).slice(0, 1000)}
+          </div>
+          {groundedCompetitor.sources?.length > 0 && (
+            <GroundingSources sources={groundedCompetitor.sources} isGrounded={true} />
+          )}
+        </div>
+      )}
 
       {/* Market Position Summary */}
       <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-5 border border-orange-200">

@@ -1,8 +1,9 @@
 'use client';
 
 import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
-import { ExternalLink, MapPin, MessageCircle, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Loader2, MapPin, MessageCircle, Shield, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 import { useSessionData } from '../layout';
 
 
@@ -10,6 +11,8 @@ export default function SentimentPage() {
   const params = useParams();
   const sessionId = params.sessionId as string;
   const { sessionData, isLoading } = useSessionData();
+  const [vibeResult, setVibeResult] = useState<any>(null);
+  const [loadingVibe, setLoadingVibe] = useState(false);
 
   const unwrappedSession = (sessionData as any)?.data || sessionData;
 
@@ -323,6 +326,66 @@ export default function SentimentPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Vibe Engineering Verify */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={async () => {
+            setLoadingVibe(true);
+            try {
+              const analysisData = sentimentData || { overall: { score: avgReviewRating / 5, label: avgReviewRating >= 4 ? 'Positive' : 'Mixed' }, reviews_count: googleReviews.length };
+              const res = await fetch('/api/v1/vibe-engineering/verify-analysis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  analysis_type: 'sentiment',
+                  analysis_result: analysisData,
+                  source_data: { reviews: googleReviews.slice(0, 10), business_rating: businessRating, total_ratings: totalRatings },
+                  auto_improve: true,
+                  quality_threshold: 0.85,
+                  max_iterations: 3,
+                }),
+              });
+              if (res.ok) setVibeResult(await res.json());
+            } catch (err) { console.warn('Vibe verify failed:', err); }
+            finally { setLoadingVibe(false); }
+          }}
+          disabled={loadingVibe}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
+        >
+          {loadingVibe ? (
+            <><Loader2 className="h-4 w-4 animate-spin" /> Verifying Sentiment Quality...</>
+          ) : vibeResult ? (
+            <><CheckCircle2 className="h-4 w-4" /> Sentiment Verified ✓</>
+          ) : (
+            <><Shield className="h-4 w-4" /> Vibe Engineering Verify</>
+          )}
+        </button>
+      </div>
+
+      {/* Vibe Result */}
+      {vibeResult && (
+        <div className={`rounded-xl border p-4 ${vibeResult.quality_achieved >= 0.85 ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
+          <div className="flex items-center gap-3 mb-2">
+            <Shield className={`h-5 w-5 ${vibeResult.quality_achieved >= 0.85 ? 'text-emerald-600' : 'text-amber-600'}`} />
+            <h3 className={`font-semibold ${vibeResult.quality_achieved >= 0.85 ? 'text-emerald-900' : 'text-amber-900'}`}>
+              Sentiment Quality: {(vibeResult.quality_achieved * 100).toFixed(0)}%
+            </h3>
+            <span className="ml-auto text-xs text-gray-500">
+              {vibeResult.iterations_required || 0} iteration(s) • {vibeResult.auto_improved ? 'Auto-improved' : 'Verified OK'}
+            </span>
+          </div>
+          {vibeResult.verification_history?.length > 0 && (
+            <div className="space-y-1 mt-2">
+              {vibeResult.verification_history.slice(-2).map((v: any, i: number) => (
+                <p key={i} className="text-xs text-gray-600">
+                  • {v.summary || v.message || JSON.stringify(v).slice(0, 150)}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

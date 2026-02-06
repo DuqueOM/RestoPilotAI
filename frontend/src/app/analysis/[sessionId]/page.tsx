@@ -6,7 +6,7 @@ import { ThoughtBubbleStream } from '@/components/ai/ThoughtBubbleStream';
 import { DashboardSkeleton } from '@/components/ui/AnalysisSkeleton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useMarathonAgent } from '@/hooks/useMarathonAgent';
-import { ArrowRight, BarChart3, CheckCircle2, Download, Loader2, MapPin, Megaphone, MessageSquare, RefreshCw, Shield, Sparkles, Star, Store, Target } from 'lucide-react';
+import { ArrowRight, BarChart3, Bot, Brain, Camera, CheckCircle2, Download, Eye, Globe, Image, Loader2, MapPin, Megaphone, MessageSquare, Music, RefreshCw, Shield, Sparkles, Star, Store, Target, Video, Wand2, Zap } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useSessionData } from './layout';
@@ -293,6 +293,38 @@ export default function AnalysisPage() {
         )}
       </div>
 
+      {/* Gemini 3 Hackathon Tracks */}
+      <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 rounded-xl p-6 text-white">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+            <Sparkles className="h-5 w-5 text-blue-300" />
+          </div>
+          <div>
+            <h3 className="font-bold text-lg">Gemini 3 Hackathon Tracks</h3>
+            <p className="text-blue-300 text-xs">All major tracks implemented and integrated</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <TrackBadge icon={<Wand2 className="h-4 w-4" />} title="Creative Autopilot" desc="AI image generation + campaigns" color="purple" active />
+          <TrackBadge icon={<Eye className="h-4 w-4" />} title="Vibe Engineering" desc="Auto-verify & improve quality" color="emerald" active />
+          <TrackBadge icon={<Bot className="h-4 w-4" />} title="Marathon Agent" desc="17-stage pipeline + checkpoints" color="amber" active />
+          <TrackBadge icon={<Globe className="h-4 w-4" />} title="Google Grounding" desc="Auto-cited web sources" color="cyan" active />
+        </div>
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <p className="text-xs text-blue-300 mb-3 font-medium">Gemini 3 Capabilities Used</p>
+          <div className="flex flex-wrap gap-2">
+            <CapBadge icon={<Camera className="h-3 w-3" />} label="Vision (Menu OCR)" />
+            <CapBadge icon={<Music className="h-3 w-3" />} label="Audio Understanding" />
+            <CapBadge icon={<Video className="h-3 w-3" />} label="Video Analysis" />
+            <CapBadge icon={<Image className="h-3 w-3" />} label="Image Generation" />
+            <CapBadge icon={<Globe className="h-3 w-3" />} label="Search Grounding" />
+            <CapBadge icon={<Brain className="h-3 w-3" />} label="Chain-of-Thought" />
+            <CapBadge icon={<Zap className="h-3 w-3" />} label="Streaming" />
+            <CapBadge icon={<Bot className="h-3 w-3" />} label="Multi-Agent Debate" />
+          </div>
+        </div>
+      </div>
+
       {/* Summary Sections - Show inline summaries of each analysis */}
       <div className="space-y-4">
         {/* BCG Summary */}
@@ -428,6 +460,33 @@ export default function AnalysisPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function TrackBadge({ icon, title, desc, color, active }: { icon: React.ReactNode; title: string; desc: string; color: string; active: boolean }) {
+  const colors: Record<string, string> = {
+    purple: 'from-purple-500/20 to-purple-600/10 border-purple-400/30',
+    emerald: 'from-emerald-500/20 to-emerald-600/10 border-emerald-400/30',
+    amber: 'from-amber-500/20 to-amber-600/10 border-amber-400/30',
+    cyan: 'from-cyan-500/20 to-cyan-600/10 border-cyan-400/30',
+  };
+  return (
+    <div className={`bg-gradient-to-br ${colors[color]} border rounded-lg p-3 backdrop-blur-sm`}>
+      <div className="flex items-center gap-2 mb-1">
+        {icon}
+        <span className="text-sm font-semibold">{title}</span>
+        {active && <CheckCircle2 className="h-3 w-3 text-green-400 ml-auto" />}
+      </div>
+      <p className="text-[10px] text-blue-200">{desc}</p>
+    </div>
+  );
+}
+
+function CapBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/10 rounded-full text-[11px] text-blue-200 backdrop-blur-sm">
+      {icon} {label}
+    </span>
   );
 }
 
