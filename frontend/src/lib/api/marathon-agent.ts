@@ -3,7 +3,7 @@ import { Checkpoint, MarathonTaskConfig, MarathonTaskState } from '@/types/marat
 export class MarathonAgentAPI {
   private baseURL: string;
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || '') {
+  constructor(baseURL: string = '') {
     this.baseURL = baseURL;
   }
 

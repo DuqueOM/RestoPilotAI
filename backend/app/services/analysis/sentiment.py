@@ -306,11 +306,16 @@ class SentimentAnalyzer:
         for r in reviews:
             s_name = r.source.value if isinstance(r.source, SentimentSource) else str(r.source)
             # Normalize source names for display
-            if "google" in s_name.lower(): s_name = "Google Reviews"
-            elif "tripadvisor" in s_name.lower(): s_name = "TripAdvisor"
-            elif "yelp" in s_name.lower(): s_name = "Yelp"
-            elif "instagram" in s_name.lower(): s_name = "Instagram"
-            elif "facebook" in s_name.lower(): s_name = "Facebook"
+            if "google" in s_name.lower():
+                s_name = "Google Reviews"
+            elif "tripadvisor" in s_name.lower():
+                s_name = "TripAdvisor"
+            elif "yelp" in s_name.lower():
+                s_name = "Yelp"
+            elif "instagram" in s_name.lower():
+                s_name = "Instagram"
+            elif "facebook" in s_name.lower():
+                s_name = "Facebook"
             
             if s_name not in source_stats:
                 source_stats[s_name] = {"count": 0, "sum_rating": 0, "rating_count": 0}

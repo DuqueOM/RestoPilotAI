@@ -3,7 +3,7 @@ import { VibeEngineeringConfig, VibeEngineeringState } from '@/types/vibe-engine
 export class VibeEngineeringAPI {
   private baseURL: string;
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || '') {
+  constructor(baseURL: string = '') {
     this.baseURL = baseURL;
   }
 

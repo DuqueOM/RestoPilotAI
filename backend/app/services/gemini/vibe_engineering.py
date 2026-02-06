@@ -274,7 +274,7 @@ class VibeEngineeringAgent:
             
             # Ensure result is a dict, not a list
             if isinstance(result, list):
-                logger.warning(f"Improvement returned a list instead of dict, using current analysis")
+                logger.warning("Improvement returned a list instead of dict, using current analysis")
                 return current_analysis
             
             return result
@@ -412,7 +412,7 @@ class VibeEngineeringAgent:
             
             # Ensure result is a dict, not a list
             if isinstance(result, list):
-                logger.warning(f"Visual verification returned a list instead of dict")
+                logger.warning("Visual verification returned a list instead of dict")
                 return {"quality_score": 0, "error": "Invalid response format (list instead of dict)"}
             
             return result

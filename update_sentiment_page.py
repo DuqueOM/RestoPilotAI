@@ -1,4 +1,6 @@
-'use client';
+import os
+
+content = r"""'use client';
 
 import { ExternalLink, MapPin, MessageCircle, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
 import { useSessionData } from '../layout';
@@ -367,3 +369,7 @@ export default function SentimentPage() {
     </div>
   );
 }
+"""
+
+with open('frontend/src/app/analysis/[sessionId]/sentiment/page.tsx', 'w') as f:
+    f.write(content)

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import shutil
 import uuid
@@ -699,6 +700,13 @@ async def get_session(session_id: str):
         "predictions": predictions,
         "campaigns": campaigns,
         
+        # Business info and enrichment
+        "restaurant_info": session.get("restaurant_info"),
+        "business_context": session.get("business_context"),
+        "business_profile_enriched": session.get("business_profile_enriched"),
+        "competitors": session.get("competitors", []),
+        "enriched_competitors": session.get("enriched_competitors", []),
+        
         # Keep full data for debug/advanced usage
         "data": session,
     }
@@ -1194,3 +1202,248 @@ async def enrich_competitor_profile(
         }
     except Exception as e:
         raise HTTPException(500, str(e))
+
+
+# ============================================================================
+# SETUP WIZARD ENDPOINT
+# ============================================================================
+
+@router.post("/business/setup-wizard", tags=["Business"])
+async def setup_wizard(
+    location: str = Form(""),
+    place_id: Optional[str] = Form(None),
+    business_name: Optional[str] = Form(None),
+    context: Optional[str] = Form(None),
+    menu_files: List[UploadFile] = File(default=[]),
+    sales_files: List[UploadFile] = File(default=[]),
+    photo_files: List[UploadFile] = File(default=[]),
+    competitor_files: List[UploadFile] = File(default=[]),
+    audio_files: List[UploadFile] = File(default=[]),
+    video_files: List[UploadFile] = File(default=[]),
+):
+    """
+    🧙 Progressive Disclosure Wizard - Complete setup in one request.
+    
+    Handles all wizard data including:
+    - Location and business info
+    - Menu files (PDF, images)
+    - Sales data (CSV, Excel)
+    - Product photos
+    - Competitor info files
+    - Audio recordings for context
+    - Video files for ambience analysis
+    
+    Returns a session_id ready for analysis.
+    """
+    from app.services.orchestrator import orchestrator
+    
+    try:
+        # Create new session directly in the sessions store
+        session_id = str(uuid.uuid4())
+        sessions[session_id] = {
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "menu_items": [],
+            "sales_data": [],
+        }
+        save_session(session_id)
+        session = sessions[session_id]
+        
+        # Also register with orchestrator for pipeline compatibility
+        try:
+            await orchestrator.create_session(session_id)
+        except Exception as e:
+            logger.warning(f"Failed to register session with orchestrator: {e}")
+            pass  # Non-critical, wizard can work without orchestrator state
+        
+        # Parse context JSON
+        context_data = {}
+        if context:
+            try:
+                context_data = json.loads(context)
+            except json.JSONDecodeError:
+                logger.warning("Failed to parse context JSON")
+        
+        # Store basic info
+        session["restaurant_info"] = {
+            "name": business_name or "My Restaurant",
+            "location": location,
+            "place_id": place_id,
+            "social_media": context_data.get("social_media", {}),
+            "phone": context_data.get("business_phone"),
+            "website": context_data.get("business_website"),
+            "rating": context_data.get("business_rating"),
+            "user_ratings_total": context_data.get("business_user_ratings_total"),
+        }
+        
+        # Store enriched profile from location selection (if available)
+        enriched_profile = context_data.get("enriched_profile")
+        if enriched_profile:
+            session["business_profile_enriched"] = enriched_profile
+        elif place_id:
+            # Frontend enrichment didn't complete in time — schedule background enrichment
+            async def _bg_enrich(sid: str, pid: str):
+                try:
+                    logger.info(f"Background enrichment for place_id={pid}")
+                    svc = CompetitorEnrichmentService(
+                        google_maps_api_key=settings.google_maps_api_key, gemini_agent=agent
+                    )
+                    prof = await svc.enrich_competitor_profile(pid)
+                    await svc.close()
+                    s = sessions.get(sid)
+                    if s:
+                        s["business_profile_enriched"] = prof.to_dict()
+                        save_session(sid)
+                        logger.info(f"Background enrichment completed: {prof.name}, social={len(prof.social_profiles)}")
+                except Exception as e:
+                    logger.warning(f"Background enrichment failed: {e}")
+            asyncio.create_task(_bg_enrich(session_id, place_id))
+        
+        # Store nearby competitors found during location selection
+        nearby_competitors = context_data.get("nearby_competitors", [])
+        if nearby_competitors:
+            session["competitors"] = nearby_competitors
+            session["enriched_competitors"] = [
+                c for c in nearby_competitors if c.get("competitive_intelligence")
+            ] or nearby_competitors
+        
+        # Store context data
+        session["business_context"] = {
+            "history": context_data.get("history", ""),
+            "values": context_data.get("values", ""),
+            "usps": context_data.get("usps", ""),
+            "target_audience": context_data.get("target_audience", ""),
+            "challenges": context_data.get("challenges", ""),
+            "goals": context_data.get("goals", ""),
+            "competitors_input": context_data.get("competitors", ""),
+            "auto_find_competitors": context_data.get("auto_find_competitors", True),
+        }
+        
+        # Create upload directory
+        upload_dir = Path("data/uploads") / session_id
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Process menu files
+        all_menu_items = []
+        for file in menu_files:
+            if not file.filename:
+                continue
+            ext = file.filename.split(".")[-1].lower()
+            if ext not in settings.allowed_image_ext_list:
+                continue
+            
+            file_path = upload_dir / f"menu_{file.filename}"
+            with open(file_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+            
+            try:
+                if ext == "pdf":
+                    result = await menu_extractor.extract_from_pdf_all_pages(
+                        str(file_path), use_ocr=True, 
+                        business_context=context_data.get("history", "")
+                    )
+                else:
+                    result = await menu_extractor.extract_from_image(
+                        str(file_path), use_ocr=True,
+                        business_context=context_data.get("history", "")
+                    )
+                all_menu_items.extend(result.get("items", []))
+            except Exception as e:
+                logger.error(f"Failed to process menu file {file.filename}: {e}")
+        
+        session["menu_items"] = all_menu_items
+        
+        # Process sales files
+        all_sales_data = []
+        for file in sales_files:
+            if not file.filename:
+                continue
+            ext = file.filename.split(".")[-1].lower()
+            if ext not in ["csv", "xlsx", "xls"]:
+                continue
+            
+            file_path = upload_dir / f"sales_{file.filename}"
+            with open(file_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+            
+            try:
+                if ext == "csv":
+                    df = pd.read_csv(str(file_path))
+                else:
+                    df = pd.read_excel(str(file_path))
+                all_sales_data.extend(df.to_dict(orient="records"))
+            except Exception as e:
+                logger.error(f"Failed to process sales file {file.filename}: {e}")
+        
+        session["sales_data"] = all_sales_data
+        
+        # Store photo file paths
+        photo_paths = []
+        for file in photo_files:
+            if not file.filename:
+                continue
+            file_path = upload_dir / f"photo_{file.filename}"
+            with open(file_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+            photo_paths.append(str(file_path))
+        session["photo_files"] = photo_paths
+        
+        # Store competitor file paths
+        competitor_paths = []
+        for file in competitor_files:
+            if not file.filename:
+                continue
+            file_path = upload_dir / f"competitor_{file.filename}"
+            with open(file_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+            competitor_paths.append(str(file_path))
+        session["competitor_files"] = competitor_paths
+        
+        # Store audio file paths
+        audio_paths = []
+        for file in audio_files:
+            if not file.filename:
+                continue
+            file_path = upload_dir / f"audio_{file.filename}"
+            with open(file_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+            audio_paths.append(str(file_path))
+        session["audio_files"] = audio_paths
+        
+        # Store video file paths
+        video_paths = []
+        for file in video_files:
+            if not file.filename:
+                continue
+            file_path = upload_dir / f"video_{file.filename}"
+            with open(file_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+            video_paths.append(str(file_path))
+        session["video_files"] = video_paths
+
+        # Save session
+        save_session(session_id)
+        
+        logger.info(f"Setup wizard completed for session {session_id}")
+        logger.info(f"  - Menu items: {len(all_menu_items)}")
+        logger.info(f"  - Sales records: {len(all_sales_data)}")
+        logger.info(f"  - Photos: {len(photo_paths)}")
+        logger.info(f"  - Audio files: {len(audio_paths)}")
+        logger.info(f"  - Video files: {len(video_paths)}")
+        
+        return {
+            "status": "success",
+            "session_id": session_id,
+            "summary": {
+                "menu_items_extracted": len(all_menu_items),
+                "sales_records": len(all_sales_data),
+                "photos_uploaded": len(photo_paths),
+                "audio_files": len(audio_paths),
+                "video_files": len(video_paths),
+                "location": location,
+                "business_name": business_name,
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Setup wizard failed: {e}")
+        raise HTTPException(500, f"Setup failed: {str(e)}")

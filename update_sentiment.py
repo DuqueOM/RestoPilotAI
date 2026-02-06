@@ -1,4 +1,6 @@
-'use client';
+import os
+
+content = r'''"use client";
 
 import { ExternalLink, MapPin, MessageCircle, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
 import { useSessionData } from '../layout';
@@ -171,11 +173,8 @@ export default function SentimentPage() {
                     <div className="flex-1">
                       <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
                         <div 
-                          className={`h-full rounded-full ${
-                            topic.sentiment >= 0.7 ? 'bg-green-500' :
-                            topic.sentiment >= 0.5 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${topic.sentiment * 100}%` }}
+                          className={}
+                          style={{ width:  }}
                         />
                       </div>
                     </div>
@@ -243,7 +242,7 @@ export default function SentimentPage() {
                 {review.author_photo ? (
                   <img src={review.author_photo} alt={review.author_name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                 ) : (
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${(review.rating || 0) >= 4 ? 'bg-green-100' : (review.rating || 0) >= 3 ? 'bg-yellow-100' : 'bg-red-100'}`}>
+                  <div className={}>
                     {(review.rating || 0) >= 4 ? <ThumbsUp className="h-4 w-4 text-green-600" /> : <ThumbsDown className="h-4 w-4 text-yellow-600" />}
                   </div>
                 )}
@@ -258,7 +257,7 @@ export default function SentimentPage() {
                     )}
                     <span className="flex items-center gap-0.5">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`h-3 w-3 ${i < (review.rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />
+                        <Star key={i} className={} />
                       ))}
                     </span>
                   </div>
@@ -289,7 +288,7 @@ export default function SentimentPage() {
           <div className="space-y-4">
             {competitorReviews.slice(0, 10).map((review: any, idx: number) => (
               <div key={idx} className="flex gap-4 p-4 bg-orange-50/50 rounded-lg">
-                <div className={`p-2 rounded-full h-fit ${(review.rating || 0) >= 4 ? 'bg-green-100' : 'bg-yellow-100'}`}>
+                <div className={}>
                   {(review.rating || 0) >= 4 ? <ThumbsUp className="h-4 w-4 text-green-600" /> : <ThumbsDown className="h-4 w-4 text-yellow-600" />}
                 </div>
                 <div className="flex-1">
@@ -298,7 +297,7 @@ export default function SentimentPage() {
                     <span className="text-sm font-medium text-gray-900">{review.author_name || 'User'}</span>
                     <span className="flex items-center gap-0.5">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`h-3 w-3 ${i < (review.rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />
+                        <Star key={i} className={} />
                       ))}
                     </span>
                   </div>
@@ -325,7 +324,7 @@ export default function SentimentPage() {
                 <div className="h-6 bg-white rounded-full overflow-hidden border">
                   <div 
                     className="h-full bg-blue-500 rounded-full flex items-center justify-end pr-2"
-                    style={{ width: `${(Number(businessRating) / 5) * 100}%` }}
+                    style={{ width:  }}
                   >
                     <span className="text-xs text-white font-bold">{Number(businessRating).toFixed(1)}</span>
                   </div>
@@ -346,10 +345,8 @@ export default function SentimentPage() {
                   <div className="flex-1">
                     <div className="h-6 bg-white rounded-full overflow-hidden border">
                       <div 
-                        className={`h-full rounded-full flex items-center justify-end pr-2 ${
-                          Number(cRating) > Number(businessRating) ? 'bg-red-400' : 'bg-green-400'
-                        }`}
-                        style={{ width: `${(Number(cRating) / 5) * 100}%` }}
+                        className={}
+                        style={{ width:  }}
                       >
                         <span className="text-xs text-white font-bold">{Number(cRating).toFixed(1)}</span>
                       </div>
@@ -367,3 +364,7 @@ export default function SentimentPage() {
     </div>
   );
 }
+'''
+
+with open('frontend/src/app/analysis/[sessionId]/sentiment/page.tsx', 'w') as f:
+    f.write(content)

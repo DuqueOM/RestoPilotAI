@@ -94,7 +94,7 @@ export default function BCGPage({ params }: BCGPageProps) {
     
     try {
       // Call backend API to recalculate BCG with new period
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      const API_URL = '';
       const response = await fetch(
         `${API_URL}/api/v1/analyze/bcg?session_id=${sessionId}&period=${period}`,
         { method: 'POST' }

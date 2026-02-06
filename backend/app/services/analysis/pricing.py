@@ -675,7 +675,6 @@ Extract all menu items with prices. Return JSON:
             
             # Market Share & Trend (Simulated or estimated as it's hard to get real values without POS data)
             # We can use confidence score or rating count as a proxy for "Market Share" relative to others
-            review_count = meta.get("user_ratings_total") or 0
             # Normalize to some share? Let's leave as estimated or random for demo/MVP if not calculated
             # For now, 0 to indicate unknown
             market_share = 0 

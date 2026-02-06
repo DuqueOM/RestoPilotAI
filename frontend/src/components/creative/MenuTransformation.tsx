@@ -78,7 +78,7 @@ export function MenuTransformation() {
     formData.append('target_style', selectedStyle);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/creative/menu-transform`, {
+      const response = await fetch(`/api/v1/creative/menu-transform`, {
         method: 'POST',
         body: formData,
       });

@@ -9,7 +9,6 @@ Capabilities:
 - Multimedia content analysis (photos, videos, menus)
 """
 
-import base64
 import json
 import re
 from dataclasses import dataclass, field
@@ -58,6 +57,8 @@ class CompetitorProfile:
     rating: Optional[float] = None
     user_ratings_total: Optional[int] = None
     price_level: Optional[int] = None  # 1-4 ($ to $$$$)
+    google_maps_uri: Optional[str] = None
+    google_maps_links: Optional[Dict[str, Any]] = None
 
     # Hours
     opening_hours: Optional[Dict[str, Any]] = None
@@ -121,7 +122,10 @@ class CompetitorProfile:
                 "opening_hours": self.opening_hours,
                 "reviews_count": len(self.reviews),
                 "reviews_summary": self.reviews_summary,
+                "reviews": self.reviews,
                 "photos_count": len(self.photos),
+                "google_maps_uri": self.google_maps_uri,
+                "google_maps_links": self.google_maps_links or {},
             },
             "social_media": [
                 {
@@ -307,6 +311,8 @@ class CompetitorEnrichmentService:
             rating=maps_data.get("rating"),
             user_ratings_total=maps_data.get("user_ratings_total"),
             price_level=maps_data.get("price_level"),
+            google_maps_uri=maps_data.get("url"),
+            google_maps_links=maps_data.get("google_maps_links"),
             opening_hours=maps_data.get("opening_hours"),
             reviews=maps_data.get("reviews", [])[:10],  # Top 10 reviews
             reviews_summary=reviews_summary,
@@ -361,7 +367,7 @@ class CompetitorEnrichmentService:
                 "id", "displayName", "formattedAddress", "nationalPhoneNumber",
                 "websiteUri", "rating", "userRatingCount", "priceLevel",
                 "regularOpeningHours", "reviews", "photos", "types",
-                "location", "googleMapsUri", "businessStatus", "editorialSummary"
+                "location", "googleMapsUri", "googleMapsLinks", "businessStatus", "editorialSummary"
             ]
             
             headers = {
@@ -395,6 +401,7 @@ class CompetitorEnrichmentService:
                         }
                     },
                     "url": data.get("googleMapsUri"),
+                    "google_maps_links": data.get("googleMapsLinks", {}),
                     "business_status": data.get("businessStatus"),
                     "editorial_summary": data.get("editorialSummary", {}).get("text")
                 }
@@ -425,10 +432,13 @@ class CompetitorEnrichmentService:
                     result["reviews"] = [
                         {
                             "author_name": r.get("authorAttribution", {}).get("displayName"),
+                            "author_photo": r.get("authorAttribution", {}).get("photoUri"),
+                            "author_uri": r.get("authorAttribution", {}).get("uri"),
                             "rating": r.get("rating"),
                             "text": r.get("text", {}).get("text"),
                             "time": r.get("publishTime"),
-                            "relative_time_description": r.get("relativePublishTimeDescription")
+                            "relative_time_description": r.get("relativePublishTimeDescription"),
+                            "google_maps_uri": r.get("googleMapsUri")
                         }
                         for r in data["reviews"]
                     ]

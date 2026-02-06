@@ -20,9 +20,15 @@ export default function CompetitorsPage() {
     );
   }
 
-  // Get competitors from session data
-  const competitors = unwrappedSession?.competitor_analysis?.competitors || sessionData?.competitor_analysis?.competitors || [];
-  const competitorContext = unwrappedSession?.competitor_context || sessionData?.competitor_context || "";
+  // Get competitors from session data - check multiple sources
+  const competitors = unwrappedSession?.competitor_analysis?.competitors 
+    || sessionData?.competitor_analysis?.competitors 
+    || unwrappedSession?.enriched_competitors 
+    || unwrappedSession?.competitors 
+    || sessionData?.enriched_competitors
+    || sessionData?.competitors
+    || [];
+  const competitorContext = unwrappedSession?.competitor_context || unwrappedSession?.business_context?.competitors_input || sessionData?.competitor_context || "";
 
   if (!competitors.length && !isLoading) {
     return (
@@ -54,81 +60,113 @@ export default function CompetitorsPage() {
 
       {/* Competitor Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {competitors.map((competitor: any, idx: number) => (
-          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-semibold text-gray-900">{competitor.name}</h3>
-                <p className="text-xs text-gray-500">{competitor.type}</p>
-              </div>
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                competitor.trend === 'up' ? 'bg-green-100 text-green-700' :
-                competitor.trend === 'down' ? 'bg-red-100 text-red-700' :
-                'bg-gray-100 text-gray-700'
-              }`}>
-                {competitor.trend === 'up' ? <TrendingUp className="h-3 w-3 inline" /> :
-                 competitor.trend === 'down' ? <TrendingDown className="h-3 w-3 inline" /> :
-                 '→'} {competitor.marketShare}%
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-              <span className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" /> {competitor.distance}
-              </span>
-              <span className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-500" /> {competitor.rating}
-              </span>
-              <span>{competitor.priceRange}</span>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs text-green-600 font-medium mb-1">Strengths</p>
-                <div className="flex flex-wrap gap-1">
-                  {competitor.strengths?.map((s: string, i: number) => (
-                    <span key={i} className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs">{s}</span>
-                  ))}
+        {competitors.map((competitor: any, idx: number) => {
+          const name = competitor.name || competitor.business_name || 'Unknown';
+          const rating = competitor.rating || competitor.google_rating;
+          const address = competitor.address || competitor.vicinity;
+          const priceRange = competitor.priceRange || competitor.price_level ? '$'.repeat(competitor.price_level || 2) : '';
+          const reviewCount = competitor.userRatingsTotal || competitor.user_ratings_total || competitor.total_reviews;
+          const types = competitor.type || competitor.types?.join(', ') || '';
+          const strengths = competitor.strengths || competitor.competitive_intelligence?.strengths || [];
+          const weaknesses = competitor.weaknesses || competitor.competitive_intelligence?.weaknesses || [];
+          
+          return (
+            <div key={idx} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{name}</h3>
+                  {types && <p className="text-xs text-gray-500">{types}</p>}
                 </div>
+                {competitor.trend && competitor.marketShare && (
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    competitor.trend === 'up' ? 'bg-green-100 text-green-700' :
+                    competitor.trend === 'down' ? 'bg-red-100 text-red-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {competitor.trend === 'up' ? <TrendingUp className="h-3 w-3 inline" /> :
+                     competitor.trend === 'down' ? <TrendingDown className="h-3 w-3 inline" /> :
+                     '→'} {competitor.marketShare}%
+                  </span>
+                )}
               </div>
-              <div>
-                <p className="text-xs text-red-600 font-medium mb-1">Weaknesses</p>
-                <div className="flex flex-wrap gap-1">
-                  {competitor.weaknesses?.map((w: string, i: number) => (
-                    <span key={i} className="px-2 py-0.5 bg-red-50 text-red-700 rounded text-xs">{w}</span>
-                  ))}
+
+              <div className="flex items-center gap-4 text-sm text-gray-600 mb-4 flex-wrap">
+                {address && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" /> {competitor.distance || address}
+                  </span>
+                )}
+                {rating && (
+                  <span className="flex items-center gap-1">
+                    <Star className="h-4 w-4 text-yellow-500" /> {rating}
+                    {reviewCount && <span className="text-xs text-gray-400">({reviewCount})</span>}
+                  </span>
+                )}
+                {priceRange && <span>{priceRange}</span>}
+              </div>
+
+              {(strengths.length > 0 || weaknesses.length > 0) && (
+                <div className="space-y-3">
+                  {strengths.length > 0 && (
+                    <div>
+                      <p className="text-xs text-green-600 font-medium mb-1">Strengths</p>
+                      <div className="flex flex-wrap gap-1">
+                        {strengths.map((s: string, i: number) => (
+                          <span key={i} className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {weaknesses.length > 0 && (
+                    <div>
+                      <p className="text-xs text-red-600 font-medium mb-1">Weaknesses</p>
+                      <div className="flex flex-wrap gap-1">
+                        {weaknesses.map((w: string, i: number) => (
+                          <span key={i} className="px-2 py-0.5 bg-red-50 text-red-700 rounded text-xs">{w}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
+
+              {/* Show social media / website if available from enrichment */}
+              {(competitor.website || competitor.contact?.website) && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <a 
+                    href={competitor.website || competitor.contact?.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Visit website →
+                  </a>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Market Position Summary */}
       <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-5 border border-orange-200">
         <h3 className="font-semibold text-orange-900 mb-3">📊 Market Positioning</h3>
-        <div className="grid md:grid-cols-4 gap-4">
-          <div className="bg-white/60 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-orange-700">
-              {100 - competitors.reduce((sum: number, c: any) => sum + (Number(c.marketShare) || 0), 0)}%
-            </p>
-            <p className="text-xs text-gray-600">Your Market Share</p>
-          </div>
+        <div className="grid md:grid-cols-3 gap-4">
           <div className="bg-white/60 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-orange-700">{competitors.length}</p>
             <p className="text-xs text-gray-600">Competitors</p>
           </div>
           <div className="bg-white/60 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-orange-700">
-              {(competitors.reduce((sum: number, c: any) => sum + (Number(c.rating) || 0), 0) / competitors.length).toFixed(1)}
+              {competitors.length > 0 ? (competitors.reduce((sum: number, c: any) => sum + (Number(c.rating || c.google_rating) || 0), 0) / competitors.length).toFixed(1) : 'N/A'}
             </p>
             <p className="text-xs text-gray-600">Average Rating</p>
           </div>
           <div className="bg-white/60 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-orange-700">
-              {competitors.filter((c: any) => c.trend === 'up').length}
+              {competitors.reduce((sum: number, c: any) => sum + (Number(c.userRatingsTotal || c.user_ratings_total || c.total_reviews) || 0), 0)}
             </p>
-            <p className="text-xs text-gray-600">Growing</p>
+            <p className="text-xs text-gray-600">Total Reviews</p>
           </div>
         </div>
       </div>

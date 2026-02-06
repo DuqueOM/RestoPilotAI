@@ -28,7 +28,7 @@ export default function ThoughtSignature({ signature }: ThoughtSignatureProps) {
   const [showAllSteps, setShowAllSteps] = useState(false)
 
   const confidenceColor = signature.confidence >= 0.8 ? 'text-green-600' : signature.confidence >= 0.6 ? 'text-yellow-600' : 'text-red-600'
-  const confidenceLabel = signature.confidence >= 0.8 ? 'Alta' : signature.confidence >= 0.6 ? 'Media' : 'Baja'
+  const confidenceLabel = signature.confidence >= 0.8 ? 'High' : signature.confidence >= 0.6 ? 'Medium' : 'Low'
   const thinkingLevel = signature.thinking_level || 'STANDARD'
 
   return (
@@ -43,7 +43,7 @@ export default function ThoughtSignature({ signature }: ThoughtSignatureProps) {
         </div>
         <div className="flex items-center gap-3">
           <span className={`text-sm font-medium ${confidenceColor}`}>
-            Confianza {confidenceLabel} ({(signature.confidence * 100).toFixed(0)}%)
+            Confidence {confidenceLabel} ({(signature.confidence * 100).toFixed(0)}%)
           </span>
           <button
             onClick={() => setExpanded(!expanded)}
@@ -52,12 +52,12 @@ export default function ThoughtSignature({ signature }: ThoughtSignatureProps) {
             {expanded ? (
               <>
                 <ChevronUp className="h-4 w-4" />
-                Colapsar
+                Collapse
               </>
             ) : (
               <>
                 <ChevronDown className="h-4 w-4" />
-                Expandir
+                Expand
               </>
             )}
           </button>
@@ -69,15 +69,15 @@ export default function ThoughtSignature({ signature }: ThoughtSignatureProps) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 text-purple-700">
             <ListChecks className="h-4 w-4" />
-            <span className="text-sm font-medium">Plan del Agente</span>
-            <span className="text-xs text-purple-500">({signature.plan.length} pasos)</span>
+            <span className="text-sm font-medium">Agent Plan</span>
+            <span className="text-xs text-purple-500">({signature.plan.length} steps)</span>
           </div>
           {signature.plan.length > 3 && (
             <button
               onClick={() => setShowAllSteps(!showAllSteps)}
               className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1"
             >
-              {showAllSteps ? 'Ver menos' : `Ver todos (+${signature.plan.length - 3})`}
+              {showAllSteps ? 'Show less' : `Show all (+${signature.plan.length - 3})`}
               {showAllSteps ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </button>
           )}
@@ -98,7 +98,7 @@ export default function ThoughtSignature({ signature }: ThoughtSignatureProps) {
             className="mt-2 w-full py-2 text-sm text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors flex items-center justify-center gap-1"
           >
             <Sparkles className="h-4 w-4" />
-            Mostrar {signature.plan.length - 3} pasos adicionales
+            Show {signature.plan.length - 3} more steps
           </button>
         )}
       </div>

@@ -1,80 +1,44 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DebateResult, MultiAgentDebatePanel } from '@/components/ai/MultiAgentDebatePanel';
+import { ThoughtBubbleStream } from '@/components/ai/ThoughtBubbleStream';
 import { useMarathonAgent } from '@/hooks/useMarathonAgent';
-import { useVibeEngineering } from '@/hooks/useVibeEngineering';
-import { BarChart3, CheckCircle2, Clock, Loader2, Megaphone, MessageSquare, PlayCircle, Target } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
-import { lazy, Suspense, useState } from 'react';
+import { BarChart3, CheckCircle2, Loader2, MapPin, Megaphone, MessageSquare, Star, Store, Target } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useSessionData } from './layout';
 
 // Lazy load heavy components for better performance
-const VerificationPanel = lazy(() => import('@/components/vibe-engineering/VerificationPanel').then(mod => ({ default: mod.VerificationPanel })));
-const CheckpointViewer = lazy(() => import('@/components/marathon-agent/CheckpointViewer').then(mod => ({ default: mod.CheckpointViewer })));
 const PipelineProgress = lazy(() => import('@/components/marathon-agent/PipelineProgress').then(mod => ({ default: mod.PipelineProgress })));
 const StepTimeline = lazy(() => import('@/components/marathon-agent/StepTimeline').then(mod => ({ default: mod.StepTimeline })));
-const AutoVerifyToggle = lazy(() => import('@/components/vibe-engineering/AutoVerifyToggle').then(mod => ({ default: mod.AutoVerifyToggle })));
 
 export default function AnalysisPage() {
   const params = useParams();
-  const router = useRouter();
   const sessionId = params.sessionId as string;
-  const { sessionData, isLoading: loadingSession } = useSessionData();
+  const { sessionData, isLoading: loadingSession, refreshSession } = useSessionData();
 
   // Handle potential nested data structure from backend wrapper
   const unwrappedData = (sessionData as any)?.data || sessionData;
   const activeTaskId = unwrappedData?.active_task_id || unwrappedData?.marathon_agent_context?.active_task_id || sessionId;
-
-  // Vibe Engineering State
-  const {
-    state: vibeState,
-    isVerifying,
-    error: vibeError,
-    startVerification,
-  } = useVibeEngineering(sessionId);
 
   // Marathon Agent State
   const {
     taskState,
     isRunning,
     error: marathonError,
-    startTask,
     cancelTask,
     recoverTask,
   } = useMarathonAgent(activeTaskId);
 
-  // Config State
-  const [autoVerify, setAutoVerify] = useState(true);
-  const [autoImprove, setAutoImprove] = useState(true);
-  const [qualityThreshold, setQualityThreshold] = useState(0.85);
-  const [maxIterations, setMaxIterations] = useState(3);
-
-  const handleStartAnalysis = async () => {
-    try {
-      // Start Marathon Agent pipeline
-      const taskId = await startTask({
-        task_type: 'full_analysis',
-        session_id: sessionId,
-        input_data: {},
-        enable_checkpoints: true,
-        checkpoint_interval_seconds: 60,
-        max_retries_per_step: 3,
-      });
-
-      console.log('Started task:', taskId);
-
-      // If auto-verify is enabled, logic would go here.
-      // Typically verification starts after task completion.
-    } catch (err) {
-      console.error('Failed to start analysis:', err);
-    }
-  };
+  // AI Transparency State
+  const [showThoughtStream, setShowThoughtStream] = useState(true);
+  const [debates, setDebates] = useState<DebateResult[]>([]);
+  const [loadingDebates, setLoadingDebates] = useState(false);
 
   // Calculate which analyses are complete
   const completedAnalyses = {
     bcg: !!(unwrappedData?.bcg_analysis?.items?.length || unwrappedData?.bcg?.items?.length),
-    competitors: !!unwrappedData?.competitor_analysis,
+    competitors: !!(unwrappedData?.competitor_analysis || unwrappedData?.competitors?.length || unwrappedData?.enriched_competitors?.length),
     sentiment: !!unwrappedData?.sentiment_analysis,
     campaigns: !!(
       Array.isArray(unwrappedData?.campaigns)
@@ -86,9 +50,48 @@ export default function AnalysisPage() {
   const totalCompleted = Object.values(completedAnalyses).filter(Boolean).length;
   const progressPercentage = (totalCompleted / 4) * 100;
 
+  // Business info from session
+  const restaurantInfo = unwrappedData?.restaurant_info || {};
+  const businessContext = unwrappedData?.business_context || {};
+
+  // Fetch debates when BCG data is available
+  const fetchDebates = useCallback(async () => {
+    if (!completedAnalyses.bcg || debates.length > 0) return;
+    
+    setLoadingDebates(true);
+    try {
+      const response = await fetch(`/api/v1/marathon/debates/bcg/${sessionId}?max_debates=3`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setDebates(data.debates || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch debates:', err instanceof Error ? err.message : err);
+    } finally {
+      setLoadingDebates(false);
+    }
+  }, [sessionId, completedAnalyses.bcg, debates.length]);
+
+  useEffect(() => {
+    if (completedAnalyses.bcg && debates.length === 0 && !loadingDebates) {
+      fetchDebates();
+    }
+  }, [completedAnalyses.bcg, debates.length, loadingDebates, fetchDebates]);
+
+  // Auto-refresh session data periodically while analysis is running
+  useEffect(() => {
+    if (!isRunning) return;
+    const interval = setInterval(() => {
+      refreshSession();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [isRunning, refreshSession]);
+
   if (loadingSession) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
@@ -96,328 +99,309 @@ export default function AnalysisPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header with general progress */}
+      {/* Business Info Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold">Analysis Overview</h1>
-            <p className="text-blue-100 text-sm mt-1">
-              Session: {sessionId.slice(0, 12)}...
-            </p>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Store className="h-6 w-6" />
+              {restaurantInfo.name || 'My Restaurant'}
+            </h1>
+            {restaurantInfo.location && (
+              <p className="text-blue-100 text-sm mt-1 flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                {restaurantInfo.location}
+              </p>
+            )}
+            {restaurantInfo.rating && (
+              <p className="text-blue-100 text-sm mt-1 flex items-center gap-1">
+                <Star className="h-4 w-4 text-yellow-300" />
+                {restaurantInfo.rating} ({restaurantInfo.user_ratings_total || 0} reviews)
+              </p>
+            )}
           </div>
-          <Button 
-            onClick={handleStartAnalysis} 
-            disabled={isRunning}
-            variant="secondary"
-            size="lg"
-          >
-            <PlayCircle className="h-5 w-5 mr-2" />
-            {isRunning ? 'Running...' : 'Start Full Analysis'}
-          </Button>
+          <div className="text-right">
+            {isRunning ? (
+              <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-lg">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span className="font-medium">Analyzing...</span>
+              </div>
+            ) : totalCompleted === 4 ? (
+              <div className="flex items-center gap-2 bg-green-500/30 px-4 py-2 rounded-lg">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="font-medium">Analysis Complete</span>
+              </div>
+            ) : (
+              <div className="text-blue-200 text-sm">
+                {totalCompleted}/4 analyses completed
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span>Analysis Progress</span>
-            <span>{totalCompleted}/4 Complete</span>
+            <span>{totalCompleted}/4</span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-3">
             <div 
-              className="bg-white rounded-full h-3 transition-all duration-500"
-              style={{ width: `${progressPercentage}%` }}
+              className={`rounded-full h-3 transition-all duration-500 ${isRunning ? 'bg-yellow-300 animate-pulse' : 'bg-white'}`}
+              style={{ width: `${Math.max(progressPercentage, isRunning ? 10 : 0)}%` }}
             />
           </div>
         </div>
       </div>
 
-      {/* Completed Analysis Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <AnalysisCard
+      {/* AI Thought Stream - Shows during active analysis */}
+      {(showThoughtStream || isRunning) && activeTaskId && (
+        <ThoughtBubbleStream
+          taskId={activeTaskId}
+          sessionId={sessionId}
+          onComplete={() => {
+            setShowThoughtStream(false);
+            refreshSession();
+          }}
+          onError={(error) => {
+            console.error('Thought stream error:', error);
+            setShowThoughtStream(false);
+          }}
+        />
+      )}
+
+      {/* Pipeline Progress - Shows when task is running */}
+      {taskState && (
+        <Suspense fallback={
+          <div className="flex items-center justify-center py-6">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        }>
+          <PipelineProgress
+            taskState={taskState}
+            onCancel={cancelTask}
+            onRecover={() => recoverTask(taskState.task_id)}
+          />
+          <StepTimeline steps={taskState.steps} />
+        </Suspense>
+      )}
+
+      {/* Summary Sections - Show inline summaries of each analysis */}
+      <div className="space-y-4">
+        {/* BCG Summary */}
+        <SummarySection
           title="BCG Matrix"
-          icon={<BarChart3 className="w-6 h-6" />}
+          icon={<BarChart3 className="w-5 h-5" />}
           completed={completedAnalyses.bcg}
-          onClick={() => router.push(`/analysis/${sessionId}/bcg`)}
-          description={completedAnalyses.bcg ? `${unwrappedData?.bcg_analysis?.items?.length || unwrappedData?.bcg?.items?.length || 0} products analyzed` : 'Not started'}
-        />
-        <AnalysisCard
+          isRunning={isRunning}
+        >
+          {completedAnalyses.bcg ? (
+            <BCGSummaryInline data={unwrappedData?.bcg_analysis || unwrappedData?.bcg} />
+          ) : (
+            <p className="text-sm text-gray-500">{isRunning ? 'Processing menu and BCG classification...' : 'Upload your menu and sales data to get BCG classification.'}</p>
+          )}
+        </SummarySection>
+
+        {/* Competitors Summary */}
+        <SummarySection
           title="Competitors"
-          icon={<Target className="w-6 h-6" />}
+          icon={<Target className="w-5 h-5" />}
           completed={completedAnalyses.competitors}
-          onClick={() => router.push(`/analysis/${sessionId}/competitors`)}
-          description={completedAnalyses.competitors ? 'Analysis complete' : 'Not started'}
-        />
-        <AnalysisCard
+          isRunning={isRunning}
+        >
+          {completedAnalyses.competitors ? (
+            <CompetitorsSummaryInline data={unwrappedData} />
+          ) : (
+            <p className="text-sm text-gray-500">{isRunning ? 'Analyzing nearby competitors...' : 'Competitor analysis will run automatically.'}</p>
+          )}
+        </SummarySection>
+
+        {/* Sentiment Summary */}
+        <SummarySection
           title="Sentiment"
-          icon={<MessageSquare className="w-6 h-6" />}
+          icon={<MessageSquare className="w-5 h-5" />}
           completed={completedAnalyses.sentiment}
-          onClick={() => router.push(`/analysis/${sessionId}/sentiment`)}
-          description={completedAnalyses.sentiment ? 'Analysis complete' : 'Not started'}
-        />
-        <AnalysisCard
+          isRunning={isRunning}
+        >
+          {completedAnalyses.sentiment ? (
+            <SentimentSummaryInline data={unwrappedData?.sentiment_analysis} />
+          ) : (
+            <p className="text-sm text-gray-500">{isRunning ? 'Analyzing reviews and sentiment...' : 'Sentiment analysis will run automatically.'}</p>
+          )}
+        </SummarySection>
+
+        {/* Campaigns Summary */}
+        <SummarySection
           title="Campaigns"
-          icon={<Megaphone className="w-6 h-6" />}
+          icon={<Megaphone className="w-5 h-5" />}
           completed={completedAnalyses.campaigns}
-          onClick={() => router.push(`/analysis/${sessionId}/campaigns`)}
-          description={completedAnalyses.campaigns ? `${unwrappedData?.campaigns?.campaigns?.length || 0} campaigns` : 'Not started'}
-        />
+          isRunning={isRunning}
+        >
+          {completedAnalyses.campaigns ? (
+            <CampaignsSummaryInline data={unwrappedData?.campaigns} />
+          ) : (
+            <p className="text-sm text-gray-500">{isRunning ? 'Generating marketing campaigns...' : 'Campaigns will be generated after analysis.'}</p>
+          )}
+        </SummarySection>
       </div>
 
-      {/* Detailed Analysis Summary */}
-      {totalCompleted > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Detailed Results</h2>
-          
-          {completedAnalyses.bcg && (
-            <SummaryCard 
-              title="BCG Matrix Analysis"
-              icon={<BarChart3 className="w-5 h-5" />}
-              href={`/analysis/${sessionId}/bcg`}
-            >
-              <BCGSummaryMini data={unwrappedData?.bcg_analysis || unwrappedData?.bcg} />
-            </SummaryCard>
-          )}
-          
-          {completedAnalyses.competitors && (
-            <SummaryCard 
-              title="Competitor Analysis"
-              icon={<Target className="w-5 h-5" />}
-              href={`/analysis/${sessionId}/competitors`}
-            >
-              <CompetitorsSummaryMini data={unwrappedData?.competitor_analysis} />
-            </SummaryCard>
-          )}
-          
-          {completedAnalyses.sentiment && (
-            <SummaryCard 
-              title="Sentiment Analysis"
-              icon={<MessageSquare className="w-5 h-5" />}
-              href={`/analysis/${sessionId}/sentiment`}
-            >
-              <SentimentSummaryMini data={unwrappedData?.sentiment_analysis} />
-            </SummaryCard>
-          )}
-          
-          {completedAnalyses.campaigns && (
-            <SummaryCard 
-              title="Marketing Campaigns"
-              icon={<Megaphone className="w-5 h-5" />}
-              href={`/analysis/${sessionId}/campaigns`}
-            >
-              <CampaignsSummaryMini data={unwrappedData?.campaigns} />
-            </SummaryCard>
-          )}
+      {/* Multi-Agent Debates */}
+      {debates.length > 0 && (
+        <MultiAgentDebatePanel
+          debates={debates}
+          expanded={true}
+          maxDebatesShown={3}
+        />
+      )}
+      {loadingDebates && (
+        <div className="flex items-center justify-center py-8 bg-indigo-50 rounded-lg border border-indigo-100">
+          <Loader2 className="h-5 w-5 animate-spin text-indigo-600 mr-2" />
+          <span className="text-indigo-700">Generating AI agent debates...</span>
         </div>
       )}
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="progress" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="progress">Pipeline Progress</TabsTrigger>
-          <TabsTrigger value="verification">Quality Verification</TabsTrigger>
-          <TabsTrigger value="checkpoints">Checkpoints</TabsTrigger>
-        </TabsList>
-
-        {/* Pipeline Progress Tab */}
-        <TabsContent value="progress" className="space-y-6">
-          {taskState ? (
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-              </div>
-            }>
-              <PipelineProgress
-                taskState={taskState}
-                onCancel={cancelTask}
-                onRecover={() => recoverTask(taskState.task_id)}
-              />
-              <StepTimeline steps={taskState.steps} />
-            </Suspense>
-          ) : (
-            <div className="text-center py-12 text-gray-500 border-2 border-dashed rounded-lg">
-              No active pipeline. Click "Start Full Analysis" to begin.
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Verification Tab */}
-        <TabsContent value="verification">
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
-          }>
-            <VerificationPanel state={vibeState} isVerifying={isVerifying} />
-          </Suspense>
-          {!vibeState && !isVerifying && (
-            <div className="text-center py-12 text-gray-500 border-2 border-dashed rounded-lg">
-              No verification data available yet.
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Checkpoints Tab */}
-        <TabsContent value="checkpoints">
-          {taskState ? (
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-              </div>
-            }>
-              <CheckpointViewer
-                checkpoints={taskState.checkpoints}
-                onRestore={(checkpointId) => {
-                  console.log('Restore from checkpoint:', checkpointId);
-                  // Currently triggering general recovery for the task
-                  recoverTask(taskState.task_id);
-                }}
-              />
-            </Suspense>
-          ) : (
-            <div className="text-center py-12 text-gray-500 border-2 border-dashed rounded-lg">
-              No checkpoints available yet.
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
       {/* Errors */}
-      {(vibeError || marathonError) && (
+      {marathonError && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm font-medium text-red-900">Error</p>
-          <p className="text-sm text-red-700">{vibeError || marathonError}</p>
+          <p className="text-sm text-red-700">{marathonError}</p>
         </div>
       )}
     </div>
   );
 }
 
-// Component for analysis cards
-function AnalysisCard({ 
-  title, 
-  icon, 
-  completed, 
-  onClick, 
-  description 
+// Reusable summary section component
+function SummarySection({ 
+  title, icon, completed, isRunning, children 
 }: { 
   title: string; 
   icon: React.ReactNode; 
-  completed: boolean; 
-  onClick: () => void;
-  description: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`p-4 rounded-lg border-2 transition-all text-left hover:shadow-md ${
-        completed 
-          ? 'border-green-500 bg-green-50' 
-          : 'border-gray-200 bg-white hover:border-gray-300'
-      }`}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <div className={completed ? 'text-green-600' : 'text-gray-400'}>
-          {icon}
-        </div>
-        {completed && <CheckCircle2 className="w-5 h-5 text-green-600" />}
-        {!completed && <Clock className="w-5 h-5 text-gray-400" />}
-      </div>
-      <h3 className="font-semibold text-gray-900">{title}</h3>
-      <p className="text-xs text-gray-600 mt-1">{description}</p>
-    </button>
-  );
-}
-
-// Component for summary cards
-function SummaryCard({ 
-  title, 
-  icon, 
-  href, 
-  children 
-}: { 
-  title: string; 
-  icon: React.ReactNode; 
-  href: string;
+  completed: boolean;
+  isRunning: boolean;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  
   return (
-    <div className="bg-white rounded-lg border p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="text-blue-600">{icon}</div>
-          <h3 className="font-semibold text-gray-900">{title}</h3>
+    <div className={`rounded-xl border p-5 transition-all ${
+      completed ? 'border-green-200 bg-green-50/50' : 
+      isRunning ? 'border-yellow-200 bg-yellow-50/30' : 
+      'border-gray-200 bg-white'
+    }`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className={completed ? 'text-green-600' : isRunning ? 'text-yellow-600' : 'text-gray-400'}>
+          {icon}
         </div>
-        <button
-          onClick={() => router.push(href)}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-        >
-          View Details →
-        </button>
+        <h3 className="font-semibold text-gray-900">{title}</h3>
+        {completed && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />}
+        {!completed && isRunning && <Loader2 className="w-4 h-4 text-yellow-500 animate-spin ml-auto" />}
       </div>
       {children}
     </div>
   );
 }
 
-// Mini summary components
-function BCGSummaryMini({ data }: { data: any }) {
+// Inline summary components with actual data
+function BCGSummaryInline({ data }: { data: any }) {
   if (!data) return null;
+  const items = data.items || [];
+  const stars = items.filter((i: any) => i.category_label === 'star' || i.category_label === 'Star').length;
+  const plowhorses = items.filter((i: any) => i.category_label === 'plowhorse' || i.category_label === 'Plowhorse' || i.category_label === 'cash_cow').length;
+  const puzzles = items.filter((i: any) => i.category_label === 'puzzle' || i.category_label === 'Puzzle' || i.category_label === 'question_mark').length;
+  const dogs = items.filter((i: any) => i.category_label === 'dog' || i.category_label === 'Dog').length;
   
   return (
-    <div className="grid grid-cols-4 gap-2 text-sm">
-      <div className="text-center p-2 bg-yellow-50 rounded">
-        <div className="text-2xl">⭐</div>
-        <div className="font-bold">{data.summary?.categories?.find((c: any) => c.category === 'star')?.count || 0}</div>
-        <div className="text-xs text-gray-600">Stars</div>
+    <div className="space-y-3">
+      <div className="grid grid-cols-4 gap-2 text-sm">
+        <div className="text-center p-2 bg-yellow-50 rounded-lg">
+          <div className="text-lg font-bold text-yellow-700">{stars}</div>
+          <div className="text-xs text-gray-600">Stars</div>
+        </div>
+        <div className="text-center p-2 bg-green-50 rounded-lg">
+          <div className="text-lg font-bold text-green-700">{plowhorses}</div>
+          <div className="text-xs text-gray-600">Plowhorses</div>
+        </div>
+        <div className="text-center p-2 bg-blue-50 rounded-lg">
+          <div className="text-lg font-bold text-blue-700">{puzzles}</div>
+          <div className="text-xs text-gray-600">Puzzles</div>
+        </div>
+        <div className="text-center p-2 bg-red-50 rounded-lg">
+          <div className="text-lg font-bold text-red-700">{dogs}</div>
+          <div className="text-xs text-gray-600">Dogs</div>
+        </div>
       </div>
-      <div className="text-center p-2 bg-green-50 rounded">
-        <div className="text-2xl">🐴</div>
-        <div className="font-bold">{data.summary?.categories?.find((c: any) => c.category === 'plowhorse')?.count || 0}</div>
-        <div className="text-xs text-gray-600">Plowhorses</div>
-      </div>
-      <div className="text-center p-2 bg-blue-50 rounded">
-        <div className="text-2xl">🧩</div>
-        <div className="font-bold">{data.summary?.categories?.find((c: any) => c.category === 'puzzle')?.count || 0}</div>
-        <div className="text-xs text-gray-600">Puzzles</div>
-      </div>
-      <div className="text-center p-2 bg-red-50 rounded">
-        <div className="text-2xl">🐕</div>
-        <div className="font-bold">{data.summary?.categories?.find((c: any) => c.category === 'dog')?.count || 0}</div>
-        <div className="text-xs text-gray-600">Dogs</div>
-      </div>
+      <p className="text-sm text-gray-600">{items.length} products analyzed. Go to BCG Matrix tab for details.</p>
     </div>
   );
 }
 
-function CompetitorsSummaryMini({ data }: { data: any }) {
-  if (!data) return null;
+function CompetitorsSummaryInline({ data }: { data: any }) {
+  const competitors = data?.competitor_analysis?.competitors || data?.enriched_competitors || data?.competitors || [];
+  if (!competitors.length) return <p className="text-sm text-gray-500">No competitor data.</p>;
   
   return (
-    <div className="text-sm text-gray-700">
-      <p>Competitors analyzed with strategic insights and recommendations.</p>
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {competitors.slice(0, 5).map((c: any, i: number) => (
+          <div key={i} className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 border text-sm">
+            <span className="font-medium text-gray-900">{c.name}</span>
+            {c.rating && (
+              <span className="flex items-center gap-0.5 text-yellow-600 text-xs">
+                <Star className="h-3 w-3" /> {c.rating}
+              </span>
+            )}
+          </div>
+        ))}
+        {competitors.length > 5 && (
+          <span className="text-sm text-gray-500 self-center">+{competitors.length - 5} more</span>
+        )}
+      </div>
+      <p className="text-sm text-gray-600">{competitors.length} competitors identified. Go to Competitors tab for details.</p>
     </div>
   );
 }
 
-function SentimentSummaryMini({ data }: { data: any }) {
+function SentimentSummaryInline({ data }: { data: any }) {
   if (!data) return null;
   
   return (
-    <div className="text-sm text-gray-700">
-      <p>Customer sentiment analysis complete with actionable insights.</p>
+    <div className="space-y-2">
+      {data.overall && (
+        <div className="flex items-center gap-4">
+          <div className={`text-2xl font-bold ${
+            data.overall.score >= 0.7 ? 'text-green-600' :
+            data.overall.score >= 0.5 ? 'text-yellow-600' : 'text-red-600'
+          }`}>
+            {(data.overall.score * 100).toFixed(0)}%
+          </div>
+          <div className="text-sm text-gray-600">
+            <p className="font-medium">{data.overall.label || 'Overall Sentiment'}</p>
+            <p>{data.sources?.reduce((sum: number, s: any) => sum + s.count, 0) || 0} reviews analyzed</p>
+          </div>
+        </div>
+      )}
+      <p className="text-sm text-gray-600">Go to Sentiment tab for full details.</p>
     </div>
   );
 }
 
-function CampaignsSummaryMini({ data }: { data: any }) {
+function CampaignsSummaryInline({ data }: { data: any }) {
   const campaigns = Array.isArray(data) ? data : data?.campaigns;
   if (!campaigns?.length) return null;
   
   return (
-    <div className="text-sm text-gray-700">
-      <p>{campaigns.length} AI-generated marketing campaigns ready to deploy.</p>
+    <div className="space-y-2">
+      <div className="space-y-1">
+        {campaigns.slice(0, 3).map((c: any, i: number) => (
+          <div key={i} className="flex items-center gap-2 text-sm">
+            <span className="text-purple-500">→</span>
+            <span className="font-medium text-gray-900">{c.title || c.name}</span>
+          </div>
+        ))}
+        {campaigns.length > 3 && (
+          <p className="text-xs text-gray-500">+{campaigns.length - 3} more campaigns</p>
+        )}
+      </div>
+      <p className="text-sm text-gray-600">{campaigns.length} campaigns generated. Go to Campaigns tab for details.</p>
     </div>
   );
 }

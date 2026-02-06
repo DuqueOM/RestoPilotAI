@@ -42,7 +42,7 @@ interface AIFeedback {
   ai_recommendation: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = '';
 
 export default function FeedbackSummary({ sessionId, sessionData }: FeedbackSummaryProps) {
   const [feedback, setFeedback] = useState<AIFeedback | null>(null);

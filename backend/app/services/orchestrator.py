@@ -32,7 +32,7 @@ from app.services.analysis.pricing import (
     CompetitorSource,
 )
 from app.services.analysis.sales_predictor import SalesPredictor
-from app.services.analysis.sentiment import SentimentAnalyzer
+from app.services.analysis.sentiment import ReviewData, SentimentAnalyzer, SentimentSource
 from app.services.campaigns.generator import CampaignGenerator
 from app.services.gemini.base_agent import GeminiAgent, ThinkingLevel
 from app.services.gemini.verification import VerificationAgent
@@ -260,9 +260,10 @@ class AnalysisOrchestrator:
             logger.error(f"Failed to load orchestrator session {session_id}: {e}")
             return None
 
-    async def create_session(self) -> str:
+    async def create_session(self, session_id: Optional[str] = None) -> str:
         """Create a new analysis session."""
-        session_id = str(uuid4())
+        if not session_id:
+            session_id = str(uuid4())
         state = AnalysisState(
             session_id=session_id,
             current_stage=PipelineStage.INITIALIZED,

@@ -39,6 +39,7 @@ interface NearbyPlace {
   placeId: string;
   distance?: string;
   types?: string[];
+  location?: { lat: number; lng: number };
   social_media?: Record<string, unknown>[];
   menu?: Record<string, unknown>;
   competitive_intelligence?: Record<string, unknown>;
@@ -54,9 +55,8 @@ interface LocationInputProps {
   placeholder?: string;
   autoFocus?: boolean;
   onBusinessEnriched?: (profile: any) => void;
+  onEnrichmentStarted?: () => void;
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 export function LocationInput({ 
   value, 
@@ -66,7 +66,8 @@ export function LocationInput({
   sessionId,
   placeholder,
   autoFocus,
-  onBusinessEnriched
+  onBusinessEnriched,
+  onEnrichmentStarted
 }: LocationInputProps) {
   // Google Maps Loader
   const { isLoaded } = useJsApiLoader({
@@ -81,6 +82,7 @@ export function LocationInput({
   const [showCandidates, setShowCandidates] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(initialLocation || null);
   const [error, setError] = useState<string | null>(null);
+  const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
   
   // Map State
   const [showMapPicker, setShowMapPicker] = useState(false);
@@ -89,17 +91,30 @@ export function LocationInput({
   const mapRef = useRef<google.maps.Map | null>(null);
   const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null);
 
-  // Sync internal state with prop value
+  // Keep stable refs for callbacks so async operations always call the latest version
+  const onBusinessEnrichedRef = useRef(onBusinessEnriched);
+  onBusinessEnrichedRef.current = onBusinessEnriched;
+  const onEnrichmentStartedRef = useRef(onEnrichmentStarted);
+  onEnrichmentStartedRef.current = onEnrichmentStarted;
+
+  // Sync internal state with prop value (only when value changes externally)
+  const internalUpdate = useRef(false);
   useEffect(() => {
+    if (internalUpdate.current) {
+      internalUpdate.current = false;
+      return;
+    }
     if (value !== undefined && value !== searchQuery) {
       setSearchQuery(value);
     }
-  }, [value, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setSearchQuery(newValue);
     if (onChange) {
+      internalUpdate.current = true;
       onChange(newValue);
     }
   };
@@ -123,14 +138,27 @@ export function LocationInput({
         formData.append('lng', selectedLocation.lng.toString());
       }
       
-      const response = await fetch(`${API_BASE}/api/v1/location/identify-business`, {
+      const response = await fetch(`/api/v1/location/identify-business`, {
         method: 'POST',
         body: formData
       });
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.detail || `Search failed (${response.status})`);
+        const contentType = response.headers.get('content-type') || '';
+        let detail = '';
+
+        if (contentType.includes('application/json')) {
+          const errorData = await response.json().catch(() => null);
+          detail =
+            errorData?.detail ||
+            errorData?.message ||
+            (typeof errorData === 'string' ? errorData : errorData ? JSON.stringify(errorData) : '');
+        } else {
+          const errorText = await response.text().catch(() => '');
+          detail = errorText.slice(0, 500);
+        }
+
+        throw new Error(detail ? `Search failed (${response.status}): ${detail}` : `Search failed (${response.status})`);
       }
       
       const data = await response.json();
@@ -141,9 +169,9 @@ export function LocationInput({
         setCandidates([]);
       }
       setShowCandidates(true);
-    } catch (err) {
-      console.error('Search error:', err);
-      setError('Failed to search for business. Please try again.');
+    } catch (err: any) {
+      console.error('Search error:', err?.message || err?.name || (typeof err === 'object' ? JSON.stringify(err, Object.getOwnPropertyNames(err || {})) : err));
+      setError(err instanceof Error ? err.message : (err?.message || 'Failed to search for business. Please try again.'));
       setShowCandidates(true);
     } finally {
       setIsSearching(false);
@@ -171,55 +199,46 @@ export function LocationInput({
     
     // Update the input text to the selected address
     if (onChange) {
+      internalUpdate.current = true;
       onChange(candidate.address);
     } else {
       setSearchQuery(candidate.address);
     }
     
-    // Set business in backend and enrich
-    if (sessionId) {
-      try {
-        const formData = new FormData();
-        formData.append('session_id', sessionId);
-        formData.append('place_id', candidate.placeId);
-        formData.append('enrich_profile', 'true');
-        
-        formData.append('name', candidate.name);
-        formData.append('address', candidate.address);
-        formData.append('lat', candidate.lat.toString());
-        formData.append('lng', candidate.lng.toString());
-        
-        await fetch(`${API_BASE}/api/v1/location/set-business`, {
-          method: 'POST',
-          body: formData
-        });
-      } catch (err) {
-        console.error('Failed to set business:', err);
-      }
-    } else {
-        // No session yet, but we want to enrich to populate the form
-        try {
-            const formData = new FormData();
-            formData.append('place_id', candidate.placeId);
-            
-            const response = await fetch(`${API_BASE}/api/v1/location/enrich-competitor`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.profile && onBusinessEnriched) {
-                    onBusinessEnriched(data.profile);
-                }
-            }
-        } catch (err) {
-            console.error('Failed to enrich business preview:', err);
+    // Load nearby competitors first (fast, no enrichment)
+    await loadNearbyCompetitors(loc, false);
+
+    // Enrich business profile in background (non-blocking)
+    if (candidate.placeId) {
+      if (onEnrichmentStartedRef.current) onEnrichmentStartedRef.current();
+      
+      const enrichForm = new FormData();
+      enrichForm.append('place_id', candidate.placeId);
+      if (sessionId) enrichForm.append('session_id', sessionId);
+
+      fetch(`/api/v1/location/enrich-competitor`, {
+        method: 'POST',
+        body: enrichForm,
+      }).then(res => {
+        if (!res.ok) {
+          console.warn('[RestoPilot] Enrichment response not OK:', res.status);
+          return null;
         }
+        return res.json();
+      }).then(data => {
+        if (data?.profile) {
+          console.log('[RestoPilot] Enrichment complete:', data.profile.name, 
+            'social:', (data.profile.social_media || []).map((s: any) => s.platform).join(', '));
+          if (onBusinessEnrichedRef.current) {
+            onBusinessEnrichedRef.current(data.profile);
+          }
+        } else {
+          console.warn('[RestoPilot] Enrichment returned no profile');
+        }
+      }).catch(err => {
+        console.warn('[RestoPilot] Background enrichment failed:', err);
+      });
     }
-    
-    // Load nearby competitors with enrichment
-    await loadNearbyCompetitors(loc, true);
   };
 
   // --- MAP PICKER ---
@@ -271,6 +290,7 @@ export function LocationInput({
             setMapCenter({ lat, lng });
             
             if (onChange) {
+                internalUpdate.current = true;
                 onChange(address);
             } else {
                 setSearchQuery(address);
@@ -289,7 +309,10 @@ export function LocationInput({
             name: "Pinned Location"
         };
         setSelectedLocation(loc);
-        if (onChange) onChange(loc.address);
+        if (onChange) {
+            internalUpdate.current = true;
+            onChange(loc.address);
+        }
     }
   };
 
@@ -329,7 +352,7 @@ export function LocationInput({
         formData.append('session_id', sessionId);
       }
       
-      const response = await fetch(`${API_BASE}/api/v1/location/nearby-restaurants`, {
+      const response = await fetch(`/api/v1/location/nearby-restaurants`, {
         method: 'POST',
         body: formData
       });
@@ -338,13 +361,14 @@ export function LocationInput({
       
       const data = await response.json();
       const restaurants = data.restaurants || [];
+      setNearbyPlaces(restaurants);
       
       if (onLocationSelect) {
         onLocationSelect(location, restaurants);
       }
     } catch (err) {
-      console.error('Nearby search error:', err);
-      setError('Failed to load competitors.');
+      console.error('Nearby search error:', err instanceof Error ? err.message : err);
+      // Don't block the UI - competitors are optional
     }
   };
 
@@ -460,7 +484,10 @@ export function LocationInput({
                     options={{
                         streetViewControl: false,
                         mapTypeControl: false,
-                        fullscreenControl: true
+                        fullscreenControl: true,
+                        zoomControl: true,
+                        scrollwheel: true,
+                        gestureHandling: 'greedy',
                     }}
                 >
                     <StandaloneSearchBox onLoad={onSearchBoxLoad} onPlacesChanged={onPlacesChanged}>
@@ -473,6 +500,17 @@ export function LocationInput({
                     {selectedLocation && (
                         <Marker position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }} />
                     )}
+                    {nearbyPlaces.filter(p => p.location?.lat).map((place, idx) => (
+                        <Marker
+                            key={place.placeId || `nearby-${idx}`}
+                            position={{ lat: place.location!.lat, lng: place.location!.lng }}
+                            icon={{
+                                url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                                scaledSize: new google.maps.Size(28, 28),
+                            }}
+                            title={place.name}
+                        />
+                    ))}
                 </GoogleMap>
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-lg text-xs font-medium text-gray-600 pointer-events-none">
                     Click anywhere to set your location
@@ -489,7 +527,7 @@ export function LocationInput({
                 <GoogleMap
                     mapContainerStyle={{ width: '100%', height: '100%' }}
                     center={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
-                    zoom={16}
+                    zoom={nearbyPlaces.length > 0 ? 14 : 16}
                     options={{
                         disableDefaultUI: true,
                         draggable: false,
@@ -499,6 +537,17 @@ export function LocationInput({
                     }}
                 >
                     <Marker position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }} />
+                    {nearbyPlaces.filter(p => p.location?.lat).map((place, idx) => (
+                        <Marker
+                            key={place.placeId || `preview-nearby-${idx}`}
+                            position={{ lat: place.location!.lat, lng: place.location!.lng }}
+                            icon={{
+                                url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                                scaledSize: new google.maps.Size(24, 24),
+                            }}
+                            title={place.name}
+                        />
+                    ))}
                 </GoogleMap>
               </div>
           )}

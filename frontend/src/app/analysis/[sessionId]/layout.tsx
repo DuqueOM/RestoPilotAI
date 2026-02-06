@@ -3,7 +3,7 @@
 import { api } from '@/lib/api';
 import { BarChart3, Brain, ChefHat, Loader2, Megaphone, MessageSquare, Sparkles, Target } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { createContext, ReactNode, use, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, use, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 interface AnalysisLayoutProps {
   children: ReactNode;
@@ -45,6 +45,7 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [taskState, setTaskState] = useState<any>(null);
+  const hasFetched = useRef(false);
   
   const pathParts = pathname.split('/');
   const lastPart = pathParts[pathParts.length - 1];
@@ -54,13 +55,12 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
   // Centralized fetch - RUNS ONLY ONCE
   const fetchSession = useCallback(async () => {
     try {
-      setIsLoading(true);
+      if (!hasFetched.current) setIsLoading(true);
       setError(null);
-      const data = (sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001')
-        ? await api.getDemoSession()
-        : await api.getSession(sessionId);
+      const data = await api.getSession(sessionId);
       
       setSessionData(data);
+      hasFetched.current = true;
       
       // Extract taskState if it exists (handle nested backend structure)
       const unwrappedData = (data as any)?.data || data;
@@ -77,7 +77,9 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
   }, [sessionId]);
 
   useEffect(() => {
-    fetchSession();
+    if (!hasFetched.current) {
+      fetchSession();
+    }
   }, [fetchSession]);
 
   return (
@@ -102,7 +104,7 @@ export default function AnalysisLayout({ children, params }: AnalysisLayoutProps
                 <span className="text-sm font-medium text-gray-600">Powered by Gemini 3</span>
               </div>
               <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-                {(sessionId === 'demo-session-001' || sessionId === 'margarita-pinta-demo-001') ? '🎭 Demo' : `Session: ${sessionId.slice(0, 8)}...`}
+                {`Session: ${sessionId.slice(0, 8)}...`}
               </span>
             </div>
           </div>

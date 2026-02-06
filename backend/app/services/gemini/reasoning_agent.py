@@ -1049,6 +1049,259 @@ Write the executive summary now:"""
         """Clear thought traces for new session."""
         self.thought_traces = []
 
+    async def multi_agent_debate(
+        self,
+        topic: str,
+        item_data: Dict[str, Any],
+        context: Dict[str, Any],
+        thinking_level: ThinkingLevel = ThinkingLevel.DEEP,
+    ) -> Dict[str, Any]:
+        """
+        Run a multi-agent debate on a strategic decision.
+        
+        Three AI personas debate the best course of action:
+        - CFO: Financial/cost perspective
+        - Growth Strategist: Growth/expansion perspective  
+        - Customer-Centric Marketer: Customer experience perspective
+        
+        Args:
+            topic: The decision topic to debate
+            item_data: Data about the item being discussed
+            context: Additional context (BCG data, sentiment, etc.)
+            thinking_level: Depth of reasoning
+            
+        Returns:
+            Debate result with all perspectives and consensus
+        """
+        config = self.THINKING_CONFIGS[thinking_level]
+        
+        # Agent definitions
+        agents = [
+            {
+                "id": "cfo",
+                "name": "CFO Conservador",
+                "role": "Chief Financial Officer",
+                "emoji": "👔",
+                "persona": """You are a conservative CFO focused on:
+                - Protecting margins and profitability
+                - Minimizing financial risk
+                - Optimizing cost structure
+                - ROI-driven decisions
+                Your priority is financial health over growth."""
+            },
+            {
+                "id": "strategist", 
+                "name": "Growth Strategist",
+                "role": "Strategic Growth Director",
+                "emoji": "📈",
+                "persona": """You are an ambitious Growth Strategist focused on:
+                - Market share expansion
+                - Revenue growth opportunities
+                - Competitive positioning
+                - Long-term strategic advantage
+                Your priority is sustainable growth."""
+            },
+            {
+                "id": "customer_centric",
+                "name": "Customer Experience Lead",
+                "role": "Customer-Centric Marketing Director", 
+                "emoji": "❤️",
+                "persona": """You are a customer-focused marketer focused on:
+                - Customer satisfaction and loyalty
+                - Brand perception and reputation
+                - Customer lifetime value
+                - Experience optimization
+                Your priority is customer delight."""
+            }
+        ]
+        
+        perspectives = []
+        
+        # Get each agent's perspective
+        for agent in agents:
+            agent_prompt = f"""{agent['persona']}
+
+DEBATE TOPIC: {topic}
+
+ITEM DATA:
+{json.dumps(item_data, indent=2, default=str)}
+
+CONTEXT:
+{json.dumps(context, indent=2, default=str)[:3000]}
+
+From your perspective as {agent['role']}, analyze this situation and provide your recommendation.
+
+RESPOND WITH VALID JSON:
+{{
+    "position": "agree|disagree|partial",
+    "reasoning": "Your main argument in 2-3 sentences",
+    "key_points": ["Point 1", "Point 2", "Point 3"],
+    "confidence": 0.85,
+    "suggested_action": "Your recommended action",
+    "risks_identified": ["Risk from your perspective"],
+    "benefits_identified": ["Benefit from your perspective"]
+}}"""
+
+            try:
+                response = await self.generate(
+                    prompt=agent_prompt,
+                    temperature=config["temperature"],
+                    max_output_tokens=1024,
+                    feature="multi_agent_debate",
+                )
+                
+                agent_response = self._parse_json_response(response)
+                
+                perspectives.append({
+                    "agentId": agent["id"],
+                    "agentName": agent["name"],
+                    "agentRole": agent["role"],
+                    "position": agent_response.get("position", "neutral"),
+                    "reasoning": agent_response.get("reasoning", ""),
+                    "keyPoints": agent_response.get("key_points", []),
+                    "confidence": agent_response.get("confidence", 0.7),
+                    "suggestedAction": agent_response.get("suggested_action", ""),
+                    "risks": agent_response.get("risks_identified", []),
+                    "benefits": agent_response.get("benefits_identified", []),
+                })
+                
+            except Exception as e:
+                logger.error(f"Agent {agent['id']} debate failed: {e}")
+                perspectives.append({
+                    "agentId": agent["id"],
+                    "agentName": agent["name"],
+                    "agentRole": agent["role"],
+                    "position": "neutral",
+                    "reasoning": f"Unable to generate perspective: {str(e)}",
+                    "keyPoints": [],
+                    "confidence": 0.5,
+                })
+        
+        # Generate consensus
+        consensus_prompt = f"""You are a neutral moderator synthesizing multiple expert perspectives.
+
+DEBATE TOPIC: {topic}
+
+PERSPECTIVES:
+{json.dumps(perspectives, indent=2, default=str)}
+
+Synthesize these perspectives into a balanced consensus recommendation.
+
+RESPOND WITH VALID JSON:
+{{
+    "consensus": "The agreed-upon recommendation in 2-3 sentences",
+    "consensus_confidence": 0.85,
+    "primary_recommendation": "The main action to take",
+    "dissent_note": "Any significant disagreement that should be noted (or null if consensus is strong)",
+    "key_tradeoffs": ["Tradeoff 1", "Tradeoff 2"],
+    "implementation_considerations": ["Consideration 1", "Consideration 2"]
+}}"""
+
+        try:
+            consensus_response = await self.generate(
+                prompt=consensus_prompt,
+                temperature=0.5,
+                max_output_tokens=1024,
+                feature="multi_agent_consensus",
+            )
+            
+            consensus_data = self._parse_json_response(consensus_response)
+            
+        except Exception as e:
+            logger.error(f"Consensus generation failed: {e}")
+            consensus_data = {
+                "consensus": "Unable to reach consensus",
+                "consensus_confidence": 0.5,
+                "primary_recommendation": perspectives[0].get("suggestedAction", "Review manually"),
+            }
+        
+        # Build final debate result
+        debate_result = {
+            "id": f"debate-{item_data.get('name', 'item')[:20]}-{datetime.now(timezone.utc).timestamp():.0f}",
+            "topic": topic,
+            "itemName": item_data.get("name"),
+            "category": item_data.get("category"),
+            "context": context.get("summary", ""),
+            "perspectives": perspectives,
+            "consensus": consensus_data.get("consensus", ""),
+            "consensusConfidence": consensus_data.get("consensus_confidence", 0.7),
+            "primaryRecommendation": consensus_data.get("primary_recommendation", ""),
+            "dissent": consensus_data.get("dissent_note"),
+            "keyTradeoffs": consensus_data.get("key_tradeoffs", []),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        
+        # Record thought trace
+        trace = ThoughtTrace(
+            step=f"Multi-Agent Debate: {topic}",
+            reasoning=consensus_data.get("consensus", ""),
+            observations=[p.get("reasoning", "") for p in perspectives],
+            decisions=[consensus_data.get("primary_recommendation", "")],
+            confidence=consensus_data.get("consensus_confidence", 0.7),
+        )
+        self.thought_traces.append(trace)
+        
+        return debate_result
+
+    async def run_bcg_debates(
+        self,
+        bcg_items: List[Dict[str, Any]],
+        context: Dict[str, Any],
+        max_debates: int = 5,
+    ) -> List[Dict[str, Any]]:
+        """
+        Run multi-agent debates for BCG strategic decisions.
+        
+        Focuses on items that need strategic attention:
+        - Dogs (remove/reposition?)
+        - Puzzles (invest/divest?)
+        - Plowhorses (improve margin?)
+        
+        Args:
+            bcg_items: List of BCG classified items
+            context: Analysis context
+            max_debates: Maximum number of debates to run
+            
+        Returns:
+            List of debate results
+        """
+        debates = []
+        
+        # Prioritize items for debate
+        priority_items = []
+        
+        for item in bcg_items:
+            category = item.get("category", "").lower()
+            if category == "dog":
+                priority_items.append((item, "high", f"¿Qué hacer con '{item.get('name')}'? (Dog - baja popularidad y margen)"))
+            elif category == "puzzle":
+                priority_items.append((item, "high", f"¿Invertir o desinvertir en '{item.get('name')}'? (Puzzle - alto potencial, baja tracción)"))
+            elif category == "plowhorse":
+                priority_items.append((item, "medium", f"¿Cómo mejorar el margen de '{item.get('name')}'? (Plowhorse - popular pero bajo margen)"))
+        
+        # Sort by priority and limit
+        priority_items.sort(key=lambda x: 0 if x[1] == "high" else 1)
+        priority_items = priority_items[:max_debates]
+        
+        for item, priority, topic in priority_items:
+            try:
+                debate = await self.multi_agent_debate(
+                    topic=topic,
+                    item_data=item,
+                    context={
+                        "bcg_category": item.get("category"),
+                        "popularity": item.get("popularity_pct"),
+                        "margin": item.get("cm_unitario"),
+                        "units_sold": item.get("units_sold"),
+                        **context
+                    },
+                )
+                debates.append(debate)
+            except Exception as e:
+                logger.error(f"Debate for {item.get('name')} failed: {e}")
+        
+        return debates
+
 
 # Alias for backward compatibility
 GeminiReasoningAgent = ReasoningAgent
