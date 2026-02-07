@@ -45,6 +45,17 @@ async def ingest_menu_image(
     # Create or get session using orchestrator to ensure state compatibility
     if not session_id or not load_session(session_id):
         session_id = await orchestrator.create_session()
+        # Initialize business session in deps store (orchestrator saves to its own dir)
+        sessions[session_id] = {
+            "session_id": session_id,
+            "menu_items": [],
+            "menu_extraction": None,
+            "sales_data": None,
+            "restaurant_info": {},
+            "competitors": [],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        save_session(session_id)
 
     session = load_session(session_id)
     if not session:

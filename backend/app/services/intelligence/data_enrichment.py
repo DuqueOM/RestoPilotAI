@@ -859,6 +859,10 @@ Summarize in 2-3 paragraphs."""
                 max_output_tokens=1024,
             )
 
+            if not response_text:
+                logger.warning("Gemini returned empty response for review analysis")
+                return None
+
             summary = response_text.strip()
             logger.info("Reviews analyzed and summarized")
             return summary
