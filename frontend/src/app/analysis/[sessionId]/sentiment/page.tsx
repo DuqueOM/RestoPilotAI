@@ -1,7 +1,7 @@
 'use client';
 
 import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
-import { CheckCircle2, ExternalLink, Loader2, MapPin, MessageCircle, Shield, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Facebook, Instagram, Loader2, MapPin, MessageCircle, Shield, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { useSessionData } from '../layout';
@@ -100,7 +100,7 @@ export default function SentimentPage() {
                 <Star className="h-2.5 w-2.5" /> Gemini 3 Pro · Multi-source NLP
               </span>
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">Customer reviews, ratings, and emotional intelligence from Google Maps</p>
+            <p className="text-sm text-gray-500 mt-0.5">Customer reviews, ratings, and emotional intelligence from Google Maps, Instagram & Facebook</p>
           </div>
           {googleMapsUrl && (
             <a
@@ -300,6 +300,130 @@ export default function SentimentPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Social Media Analysis */}
+      {sentimentData?.social_media_analysis && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              📱 Social Media Sentiment
+            </h3>
+            {sentimentData.social_media_analysis.overall_social_sentiment && (
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                sentimentData.social_media_analysis.overall_social_sentiment >= 0.7 ? 'bg-green-100 text-green-700' :
+                sentimentData.social_media_analysis.overall_social_sentiment >= 0.5 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+              }`}>
+                {(sentimentData.social_media_analysis.overall_social_sentiment * 100).toFixed(0)}% Positive
+              </span>
+            )}
+          </div>
+
+          {sentimentData.social_media_analysis.brand_perception && (
+            <p className="text-sm text-gray-600 mb-4 italic">
+              &ldquo;{sentimentData.social_media_analysis.brand_perception}&rdquo;
+            </p>
+          )}
+
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            {sentimentData.social_media_analysis.platforms?.map((platform: any, idx: number) => (
+              <div key={idx} className={`rounded-lg p-4 border ${
+                platform.platform === 'instagram' ? 'bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200' :
+                platform.platform === 'facebook' ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200' :
+                'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center gap-2 mb-3">
+                  {platform.platform === 'instagram' ? (
+                    <Instagram className="h-5 w-5 text-pink-600" />
+                  ) : platform.platform === 'facebook' ? (
+                    <Facebook className="h-5 w-5 text-blue-600" />
+                  ) : (
+                    <MessageCircle className="h-5 w-5 text-gray-600" />
+                  )}
+                  <span className="font-semibold text-gray-900 capitalize">{platform.platform}</span>
+                  {platform.estimated_followers && (
+                    <span className="text-xs text-gray-500 ml-auto">{platform.estimated_followers.toLocaleString()} followers</span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+                  <div>
+                    <p className="text-xs text-gray-500">Sentiment</p>
+                    <p className={`text-sm font-bold ${
+                      platform.sentiment_score >= 0.7 ? 'text-green-600' :
+                      platform.sentiment_score >= 0.5 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>{(platform.sentiment_score * 100).toFixed(0)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Engagement</p>
+                    <p className="text-sm font-bold text-gray-700 capitalize">{platform.engagement_level}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Content</p>
+                    <p className="text-sm font-bold text-gray-700 capitalize">{platform.content_quality}</p>
+                  </div>
+                </div>
+
+                {platform.key_observations?.length > 0 && (
+                  <div className="mb-2">
+                    <p className="text-xs font-medium text-gray-600 mb-1">Key Observations:</p>
+                    <ul className="space-y-0.5">
+                      {platform.key_observations.slice(0, 3).map((obs: string, i: number) => (
+                        <li key={i} className="text-xs text-gray-600 flex items-start gap-1">
+                          <span className="text-green-500 mt-0.5">✓</span> {obs}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {platform.improvement_suggestions?.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-600 mb-1">Suggestions:</p>
+                    <ul className="space-y-0.5">
+                      {platform.improvement_suggestions.slice(0, 3).map((sug: string, i: number) => (
+                        <li key={i} className="text-xs text-gray-500 flex items-start gap-1">
+                          <span className="text-blue-500 mt-0.5">→</span> {sug}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {platform.url && (
+                  <a href={platform.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800">
+                    Visit profile <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {(sentimentData.social_media_analysis.strengths?.length > 0 || sentimentData.social_media_analysis.opportunities?.length > 0) && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {sentimentData.social_media_analysis.strengths?.length > 0 && (
+                <div className="bg-green-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-green-800 mb-1">💪 Strengths</p>
+                  <ul className="space-y-0.5">
+                    {sentimentData.social_media_analysis.strengths.map((s: string, i: number) => (
+                      <li key={i} className="text-xs text-green-700">• {s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {sentimentData.social_media_analysis.opportunities?.length > 0 && (
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-blue-800 mb-1">🚀 Opportunities</p>
+                  <ul className="space-y-0.5">
+                    {sentimentData.social_media_analysis.opportunities.map((o: string, i: number) => (
+                      <li key={i} className="text-xs text-blue-700">• {o}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

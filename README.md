@@ -420,7 +420,8 @@ RestoPilotAI/
 │   ├── ENHANCED_AGENT_USAGE.md
 │   ├── GROUNDING_GUIDE.md
 │   ├── STREAMING_GUIDE.md
-│   └── VIDEO_ANALYSIS_GUIDE.md
+│   ├── VIDEO_ANALYSIS_GUIDE.md
+│   └── QUICK_START.md
 ├── scripts/                     # Setup and utility scripts
 │   ├── seed_demo_data.py        # Generate demo restaurant data
 │   ├── setup_api_key.sh         # API key configuration helper

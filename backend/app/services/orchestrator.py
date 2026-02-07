@@ -115,6 +115,10 @@ class AnalysisState:
     # Context Data
     business_context: Dict[str, Any] = field(default_factory=dict) # History, values, goals, etc.
     competitor_urls: List[str] = field(default_factory=list)
+    
+    # Business Profile (Google Maps enrichment + social media)
+    business_profile_enriched: Optional[Dict[str, Any]] = None
+    social_media: Dict[str, str] = field(default_factory=dict)  # {"instagram": url, "facebook": url, ...}
 
     # Intelligence Data
     image_scores: Dict[str, float] = field(default_factory=dict)
@@ -439,9 +443,11 @@ class AnalysisOrchestrator:
                     self._run_neighborhood_analysis,
                 )
 
-            # 7. Sentiment Analysis
-            # (In a real scenario, we'd fetch reviews here. For now we simulate or use discovered data)
-            if state.discovered_competitors:
+            # 7. Sentiment Analysis (Google Maps reviews + social media + competitor reviews)
+            has_own_reviews = bool(state.business_profile_enriched)
+            has_social_media = bool(state.social_media)
+            has_competitor_reviews = bool(state.discovered_competitors)
+            if has_own_reviews or has_social_media or has_competitor_reviews:
                 await self._run_stage(
                     state,
                     PipelineStage.SENTIMENT_ANALYSIS,
@@ -1157,41 +1163,73 @@ class AnalysisOrchestrator:
             state.competitor_analysis = result.to_dict()
 
     async def _run_sentiment_analysis(self, state: AnalysisState):
-        """Run sentiment analysis on discovered reviews."""
+        """Run comprehensive sentiment analysis from all available sources."""
         self._add_thought_trace(
             state,
             step="Sentiment Analysis",
-            reasoning="Analyzing customer sentiment from reviews and photos",
-            observations=["Processing sentiment data"],
-            decisions=["Identifying key themes and item-level sentiment"],
+            reasoning="Analyzing customer sentiment from Google Maps reviews, competitor reviews, and social media signals",
+            observations=["Collecting reviews from all available sources"],
+            decisions=["Building multi-source sentiment profile"],
             confidence=0.8,
         )
 
-        # Collect reviews from discovered competitors
-        # This acts as a proxy for market sentiment or our own if we are in the list
         reviews = []
+        sources_used = []
+
+        # 1. Business's own Google Maps reviews (primary source)
+        own_profile = state.business_profile_enriched or {}
+        own_gmaps = own_profile.get("google_maps", {})
+        own_reviews = own_gmaps.get("reviews", own_profile.get("reviews", []))
+        for r in own_reviews:
+            if isinstance(r, dict) and r.get("text"):
+                reviews.append(
+                    ReviewData(
+                        source=SentimentSource.GOOGLE,
+                        text=r.get("text", ""),
+                        rating=r.get("rating"),
+                        reviewer=r.get("author_name"),
+                        date=r.get("relative_time_description") or r.get("time"),
+                    )
+                )
+        if own_reviews:
+            sources_used.append(SentimentSource.GOOGLE)
+
+        own_review_count = len(reviews)
+
+        # 2. Competitor reviews (for market context comparison)
         for comp in state.discovered_competitors:
-            # Check for reviews in the enriched competitor profile
             comp_reviews = comp.get("reviews", [])
+            if not comp_reviews:
+                comp_gmaps = comp.get("google_maps", {})
+                comp_reviews = comp_gmaps.get("reviews", [])
             for r in comp_reviews:
-                # Normalize review data structure
-                if isinstance(r, dict):
+                if isinstance(r, dict) and r.get("text"):
                     reviews.append(
                         ReviewData(
-                            source=SentimentSource.GOOGLE, # Defaulting to Google for now
+                            source=SentimentSource.GOOGLE,
                             text=r.get("text", ""),
                             rating=r.get("rating"),
                             reviewer=r.get("author_name"),
                             date=r.get("relative_time_description"),
                         )
                     )
-        
+
+        competitor_review_count = len(reviews) - own_review_count
+
+        # 3. Social media URLs for grounded sentiment analysis
+        social_media = state.social_media or {}
+        social_media_urls = {k: v for k, v in social_media.items() if v}
+
         self._add_thought_trace(
             state,
             step="Review Aggregation",
-            reasoning=f"Aggregated {len(reviews)} reviews from discovered competitors",
-            observations=[f"Source count: {len(state.discovered_competitors)}"],
-            decisions=["Proceeding with multi-modal sentiment analysis"],
+            reasoning=f"Aggregated {len(reviews)} reviews ({own_review_count} own, {competitor_review_count} competitors) + {len(social_media_urls)} social media profiles",
+            observations=[
+                f"Own Google Maps reviews: {own_review_count}",
+                f"Competitor reviews: {competitor_review_count}",
+                f"Social media profiles: {list(social_media_urls.keys())}",
+            ],
+            decisions=["Proceeding with multi-source sentiment analysis"],
             confidence=0.9,
         )
 
@@ -1200,6 +1238,9 @@ class AnalysisOrchestrator:
             reviews=reviews,
             menu_items=[item["name"] for item in state.menu_items if "name" in item],
             bcg_data=state.bcg_analysis,
+            sources=sources_used or [SentimentSource.GOOGLE],
+            social_media_urls=social_media_urls,
+            restaurant_name=state.restaurant_name,
         )
 
         # FEATURE #2: VIBE ENGINEERING - Autonomous Verification

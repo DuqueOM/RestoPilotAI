@@ -2,12 +2,14 @@
   "session_id": "margarita-pinta-demo-001",
   "restaurant_info": {
     "name": "Margarita Pinta",
-    "location": "Cl 20 #40A-10, Pasto, Nari\u00f1o, Colombia",
-    "cuisine_type": "Gastrobar / Cocteler\u00eda",
+    "location": "Cl 20 #40A-10, Pasto, Nariño, Colombia",
+    "cuisine_type": "Gastrobar / Coctelería",
     "social_media": {
       "instagram": "https://www.instagram.com/margaritapintapasto/",
       "facebook": "https://www.facebook.com/MargaritaPintaRestauranteBar"
-    }
+    },
+    "google_maps_link": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A",
+    "place_id": "ChIJk6_FQpxyQI4RGnN1234ABCD"
   },
   "status": "completed",
   "created_at": "2026-02-04T15:36:24.841026+00:00",
@@ -16,23 +18,23 @@
     "items": [
       {
         "name": "Margarita",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Tequila Olmeca, Triple Sec, zumo de lim\u00f3n, jarabe de goma, Finest Call",
+        "description": "Tequila Olmeca, Triple Sec, zumo de limón, jarabe de goma, Finest Call",
         "unit": "unit"
       },
       {
         "name": "Margarita Blue",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Tequila Olmeca, Blue Cura\u00e7ao, zumo de lim\u00f3n, jarabe de goma, Finest Call",
+        "description": "Tequila Olmeca, Blue Curaçao, zumo de limón, jarabe de goma, Finest Call",
         "unit": "unit"
       },
       {
         "name": "Margarita en Llamas",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Tequila Olmeca, Triple Sec, ginebra Beefeater, licor de cerezas",
@@ -40,31 +42,31 @@
       },
       {
         "name": "Margarita Ardiente",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Tequila Olmeca, aguardiente de an\u00eds, zumo de lim\u00f3n, jarabe de goma, jalape\u00f1os",
+        "description": "Tequila Olmeca, aguardiente de anís, zumo de limón, jarabe de goma, jalapeños",
         "unit": "unit"
       },
       {
         "name": "Piel de Iguana",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Vodka Absolut, licor de kiwi, zumo de lim\u00f3n, jarabe de goma, Sprite",
+        "description": "Vodka Absolut, licor de kiwi, zumo de limón, jarabe de goma, Sprite",
         "unit": "unit"
       },
       {
         "name": "Long Island",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 38000.0,
         "cost": 13300.0,
-        "description": "Ron Blanco, ginebra Beefeater, tequila Olmeca, Triple Sec, zumo de lim\u00f3n, t\u00e9 o Coca Cola",
+        "description": "Ron Blanco, ginebra Beefeater, tequila Olmeca, Triple Sec, zumo de limón, té o Coca Cola",
         "unit": "unit"
       },
       {
-        "name": "Dulce Mar\u00eda",
-        "category": "Cocteler\u00eda",
+        "name": "Dulce María",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Vodka Absolut, amaretto, helado de chocolate",
@@ -72,15 +74,15 @@
       },
       {
         "name": "Cosmopolitan",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Vodka Absolut Citron, Triple Sec, jugo de ar\u00e1ndano",
+        "description": "Vodka Absolut Citron, Triple Sec, jugo de arándano",
         "unit": "unit"
       },
       {
         "name": "Gold Martini",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Tequila Olmeca, Triple Sec, piel de naranja",
@@ -88,31 +90,31 @@
       },
       {
         "name": "White Lady",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 36000.0,
         "cost": 12600.0,
-        "description": "Ginebra Beefeater, Triple Sec, zumo de lim\u00f3n, jarabe de goma",
+        "description": "Ginebra Beefeater, Triple Sec, zumo de limón, jarabe de goma",
         "unit": "unit"
       },
       {
         "name": "Tom Collins",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Ginebra Beefeater, zumo de lim\u00f3n, jarabe de jengibre, soda",
+        "description": "Ginebra Beefeater, zumo de limón, jarabe de jengibre, soda",
         "unit": "unit"
       },
       {
         "name": "Gin Tonic",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Ginebra Beefeater, agua t\u00f3nica, lim\u00f3n",
+        "description": "Ginebra Beefeater, agua tónica, limón",
         "unit": "unit"
       },
       {
         "name": "Dry Martini",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Ginebra Beefeater, vermut extra dry, aceitunas",
@@ -120,15 +122,15 @@
       },
       {
         "name": "Dirty Martini",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Ginebra Beefeater, vermut extra dry, jugo de aceituna",
         "unit": "unit"
       },
       {
-        "name": "Sangr\u00eda Margarita",
-        "category": "Cocteler\u00eda",
+        "name": "Sangría Margarita",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Vino, amaretto, brandy, frutos rojos, frutos secos",
@@ -136,7 +138,7 @@
       },
       {
         "name": "Alexander",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Brandy, licor de cacao, crema de leche",
@@ -144,7 +146,7 @@
       },
       {
         "name": "Vin Broule",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Vino Cabernet Sauvignon, vermut rosso, brandy, naranja, especias",
@@ -152,15 +154,15 @@
       },
       {
         "name": "Old Fashioned",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Jack Daniel's, angostura bitter, piel de naranja y lim\u00f3n, turbinado de az\u00facar, soda",
+        "description": "Jack Daniel's, angostura bitter, piel de naranja y limón, turbinado de azúcar, soda",
         "unit": "unit"
       },
       {
         "name": "Manhattan",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Jack Daniel's, vermut rosso, gotas amargas",
@@ -168,15 +170,15 @@
       },
       {
         "name": "Mojito",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
-        "description": "Ron Blanco, Finest Call mojito, hierbabuena, zumo de lim\u00f3n, jarabe de goma, soda",
+        "description": "Ron Blanco, Finest Call mojito, hierbabuena, zumo de limón, jarabe de goma, soda",
         "unit": "unit"
       },
       {
         "name": "Bayless Frozen",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 34000.0,
         "cost": 11900.0,
         "description": "Crema de whisky, ron dorado, helado de vainilla, crema de leche",
@@ -184,34 +186,34 @@
       },
       {
         "name": "Hervido con Aguardiente",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 20000.0,
         "cost": 7000.0,
-        "description": "Mora, lulo o maracuy\u00e1 con aguardiente",
+        "description": "Mora, lulo o maracuyá con aguardiente",
         "unit": "unit"
       },
       {
         "name": "Hervido con Ron",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 20000.0,
         "cost": 7000.0,
-        "description": "Mora, lulo o maracuy\u00e1 con ron",
+        "description": "Mora, lulo o maracuyá con ron",
         "unit": "unit"
       },
       {
         "name": "Hervido con Brandy",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 20000.0,
         "cost": 7000.0,
-        "description": "Mora, lulo o maracuy\u00e1 con brandy",
+        "description": "Mora, lulo o maracuyá con brandy",
         "unit": "unit"
       },
       {
         "name": "Hervido con Tequila",
-        "category": "Cocteler\u00eda",
+        "category": "Coctelería",
         "price": 25000.0,
         "cost": 8750.0,
-        "description": "Mora, lulo o maracuy\u00e1 con tequila",
+        "description": "Mora, lulo o maracuyá con tequila",
         "unit": "unit"
       },
       {
@@ -247,11 +249,11 @@
         "unit": "bot"
       },
       {
-        "name": "Don Julio A\u00f1ejo (bot)",
+        "name": "Don Julio Añejo (bot)",
         "category": "Tequila",
         "price": 580000.0,
         "cost": 319000.0,
-        "description": "Tequila a\u00f1ejo premium",
+        "description": "Tequila añejo premium",
         "unit": "bot"
       },
       {
@@ -259,7 +261,7 @@
         "category": "Tequila",
         "price": 850000.0,
         "cost": 467500.0,
-        "description": "Tequila cristalino edici\u00f3n especial",
+        "description": "Tequila cristalino edición especial",
         "unit": "bot"
       },
       {
@@ -279,7 +281,7 @@
         "unit": "bot"
       },
       {
-        "name": "Jos\u00e9 Cuervo (trago)",
+        "name": "José Cuervo (trago)",
         "category": "Tequila",
         "price": 20000.0,
         "cost": 7000.0,
@@ -287,7 +289,7 @@
         "unit": "trago"
       },
       {
-        "name": "Jos\u00e9 Cuervo (med)",
+        "name": "José Cuervo (med)",
         "category": "Tequila",
         "price": 110000.0,
         "cost": 60500.0,
@@ -295,7 +297,7 @@
         "unit": "med"
       },
       {
-        "name": "Jos\u00e9 Cuervo (bot)",
+        "name": "José Cuervo (bot)",
         "category": "Tequila",
         "price": 180000.0,
         "cost": 99000.0,
@@ -315,7 +317,7 @@
         "category": "Ginebra",
         "price": 390000.0,
         "cost": 214500.0,
-        "description": "Ginebra premium con pepino y p\u00e9talos de rosa",
+        "description": "Ginebra premium con pepino y pétalos de rosa",
         "unit": "bot"
       },
       {
@@ -327,11 +329,11 @@
         "unit": "bot"
       },
       {
-        "name": "Bacard\u00ed Lim\u00f3n (bot)",
+        "name": "Bacardí Limón (bot)",
         "category": "Ron",
         "price": 160000.0,
         "cost": 88000.0,
-        "description": "Ron blanco con sabor a lim\u00f3n",
+        "description": "Ron blanco con sabor a limón",
         "unit": "bot"
       },
       {
@@ -387,7 +389,7 @@
         "category": "Whisky",
         "price": 1500000.0,
         "cost": 825000.0,
-        "description": "Whisky escoc\u00e9s de lujo 21 a\u00f1os",
+        "description": "Whisky escocés de lujo 21 años",
         "unit": "bot"
       },
       {
@@ -395,7 +397,7 @@
         "category": "Whisky",
         "price": 550000.0,
         "cost": 302500.0,
-        "description": "Whisky escoc\u00e9s 18 a\u00f1os",
+        "description": "Whisky escocés 18 años",
         "unit": "bot"
       },
       {
@@ -403,7 +405,7 @@
         "category": "Whisky",
         "price": 35000.0,
         "cost": 12250.0,
-        "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+        "description": "Whisky escocés 12 años",
         "unit": "trago"
       },
       {
@@ -411,7 +413,7 @@
         "category": "Whisky",
         "price": 180000.0,
         "cost": 99000.0,
-        "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+        "description": "Whisky escocés 12 años",
         "unit": "med"
       },
       {
@@ -419,7 +421,7 @@
         "category": "Whisky",
         "price": 300000.0,
         "cost": 165000.0,
-        "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+        "description": "Whisky escocés 12 años",
         "unit": "bot"
       },
       {
@@ -427,7 +429,7 @@
         "category": "Whisky",
         "price": 360000.0,
         "cost": 198000.0,
-        "description": "Whisky escoc\u00e9s premium",
+        "description": "Whisky escocés premium",
         "unit": "bot"
       },
       {
@@ -435,7 +437,7 @@
         "category": "Whisky",
         "price": 180000.0,
         "cost": 99000.0,
-        "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+        "description": "Whisky escocés 12 años",
         "unit": "med"
       },
       {
@@ -443,7 +445,7 @@
         "category": "Whisky",
         "price": 320000.0,
         "cost": 176000.0,
-        "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+        "description": "Whisky escocés 12 años",
         "unit": "bot"
       },
       {
@@ -451,7 +453,7 @@
         "category": "Whisky",
         "price": 310000.0,
         "cost": 170500.0,
-        "description": "Whisky escoc\u00e9s premium",
+        "description": "Whisky escocés premium",
         "unit": "bot"
       },
       {
@@ -459,7 +461,7 @@
         "category": "Whisky",
         "price": 800000.0,
         "cost": 440000.0,
-        "description": "Whisky escoc\u00e9s ultra premium",
+        "description": "Whisky escocés ultra premium",
         "unit": "med"
       },
       {
@@ -467,7 +469,7 @@
         "category": "Whisky",
         "price": 1500000.0,
         "cost": 825000.0,
-        "description": "Whisky escoc\u00e9s ultra premium",
+        "description": "Whisky escocés ultra premium",
         "unit": "bot"
       },
       {
@@ -475,7 +477,7 @@
         "category": "Whisky",
         "price": 320000.0,
         "cost": 176000.0,
-        "description": "Whisky escoc\u00e9s 12 a\u00f1os",
+        "description": "Whisky escocés 12 años",
         "unit": "bot"
       },
       {
@@ -483,7 +485,7 @@
         "category": "Whisky",
         "price": 150000.0,
         "cost": 82500.0,
-        "description": "Whisky escoc\u00e9s blended",
+        "description": "Whisky escocés blended",
         "unit": "bot"
       },
       {
@@ -491,7 +493,7 @@
         "category": "Whisky",
         "price": 130000.0,
         "cost": 71500.0,
-        "description": "Whisky irland\u00e9s",
+        "description": "Whisky irlandés",
         "unit": "med"
       },
       {
@@ -499,7 +501,7 @@
         "category": "Whisky",
         "price": 220000.0,
         "cost": 121000.0,
-        "description": "Whisky irland\u00e9s",
+        "description": "Whisky irlandés",
         "unit": "bot"
       },
       {
@@ -507,7 +509,7 @@
         "category": "Whisky",
         "price": 180000.0,
         "cost": 99000.0,
-        "description": "Whisky escoc\u00e9s blended",
+        "description": "Whisky escocés blended",
         "unit": "bot"
       },
       {
@@ -515,7 +517,7 @@
         "category": "Whisky",
         "price": 320000.0,
         "cost": 176000.0,
-        "description": "Whisky escoc\u00e9s ahumado",
+        "description": "Whisky escocés ahumado",
         "unit": "bot"
       },
       {
@@ -547,7 +549,7 @@
         "category": "Licores",
         "price": 160000.0,
         "cost": 88000.0,
-        "description": "Crema de whisky irland\u00e9s",
+        "description": "Crema de whisky irlandés",
         "unit": "bot"
       },
       {
@@ -603,7 +605,7 @@
         "category": "Bebida",
         "price": 3000.0,
         "cost": 1500.0,
-        "description": "Preparaci\u00f3n tradicional",
+        "description": "Preparación tradicional",
         "unit": "unit"
       },
       {
@@ -623,11 +625,11 @@
         "unit": "unit"
       },
       {
-        "name": "T\u00f3nica",
+        "name": "Tónica",
         "category": "Bebida",
         "price": 8000.0,
         "cost": 4000.0,
-        "description": "Agua t\u00f3nica",
+        "description": "Agua tónica",
         "unit": "unit"
       },
       {
@@ -651,7 +653,7 @@
         "category": "Bebida",
         "price": 15000.0,
         "cost": 7500.0,
-        "description": "Gaseosa presentaci\u00f3n grande",
+        "description": "Gaseosa presentación grande",
         "unit": "unit"
       },
       {
@@ -667,7 +669,7 @@
         "category": "Entradas",
         "price": 15000.0,
         "cost": 4950.0,
-        "description": "Papas a la francesa cubiertas de queso y tocineta, acompa\u00f1adas de salsas de la casa",
+        "description": "Papas a la francesa cubiertas de queso y tocineta, acompañadas de salsas de la casa",
         "unit": "unit"
       },
       {
@@ -675,7 +677,7 @@
         "category": "Entradas",
         "price": 18000.0,
         "cost": 5940.0,
-        "description": "2 chorizos santarrosanos acompa\u00f1ados de arepa asada y rodajas de lim\u00f3n",
+        "description": "2 chorizos santarrosanos acompañados de arepa asada y rodajas de limón",
         "unit": "unit"
       },
       {
@@ -683,7 +685,7 @@
         "category": "Entradas",
         "price": 28000.0,
         "cost": 9240.0,
-        "description": "Deliciosos chicharrones acompa\u00f1ados de papa salteada y salsa de guacamole",
+        "description": "Deliciosos chicharrones acompañados de papa salteada y salsa de guacamole",
         "unit": "unit"
       },
       {
@@ -707,7 +709,7 @@
         "category": "Carnes",
         "price": 38000.0,
         "cost": 12540.0,
-        "description": "Carne de cerdo apanada acompa\u00f1ada de papas a la francesa y ensalada de la casa",
+        "description": "Carne de cerdo apanada acompañada de papas a la francesa y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -715,7 +717,7 @@
         "category": "Carnes",
         "price": 52000.0,
         "cost": 17160.0,
-        "description": "Medallones de lomo fino de res albardados en tocineta, en reducci\u00f3n de vino y champi\u00f1ones, con papa salada o cascos de papa amarilla o papas a la francesa y ensalada de la casa",
+        "description": "Medallones de lomo fino de res albardados en tocineta, en reducción de vino y champiñones, con papa salada o cascos de papa amarilla o papas a la francesa y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -731,7 +733,7 @@
         "category": "Costillas",
         "price": 45000.0,
         "cost": 14850.0,
-        "description": "Costilla de cerdo a la parrilla, ba\u00f1adas en salsa de tocineta, queso y BBQ ahumado, con papas fritas, bastones de zanahoria y apio con queso de untar",
+        "description": "Costilla de cerdo a la parrilla, bañadas en salsa de tocineta, queso y BBQ ahumado, con papas fritas, bastones de zanahoria y apio con queso de untar",
         "unit": "unit"
       },
       {
@@ -779,7 +781,7 @@
         "category": "Pollo",
         "price": 35000.0,
         "cost": 11550.0,
-        "description": "Pechuga de pollo cocida o apanada en cord\u00f3n blue y glaseado de mora, con papas a la francesa, arepita en cama de queso, pl\u00e1tano maduro y ensalada de la casa",
+        "description": "Pechuga de pollo cocida o apanada en cordón blue y glaseado de mora, con papas a la francesa, arepita en cama de queso, plátano maduro y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -787,7 +789,7 @@
         "category": "Pollo",
         "price": 35000.0,
         "cost": 11550.0,
-        "description": "Pechuga de pollo ba\u00f1ada en salsa de queso, con papas a la francesa, arepita en cama de queso, pl\u00e1tano maduro y ensalada de la casa",
+        "description": "Pechuga de pollo bañada en salsa de queso, con papas a la francesa, arepita en cama de queso, plátano maduro y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -803,7 +805,7 @@
         "category": "Pollo",
         "price": 28000.0,
         "cost": 9240.0,
-        "description": "Deliciosas crispetas de pollo apanado acompa\u00f1adas de papas a la francesa",
+        "description": "Deliciosas crispetas de pollo apanado acompañadas de papas a la francesa",
         "unit": "unit"
       },
       {
@@ -811,7 +813,7 @@
         "category": "Alitas",
         "price": 38000.0,
         "cost": 12540.0,
-        "description": "Alitas caramelizadas en salsa BBQ acompa\u00f1adas de papas a la francesa y ensalada de la casa",
+        "description": "Alitas caramelizadas en salsa BBQ acompañadas de papas a la francesa y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -819,7 +821,7 @@
         "category": "Alitas",
         "price": 38000.0,
         "cost": 12540.0,
-        "description": "Alitas caramelizadas en salsa de mango picante acompa\u00f1adas de papas a la francesa y ensalada de la casa",
+        "description": "Alitas caramelizadas en salsa de mango picante acompañadas de papas a la francesa y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -827,7 +829,7 @@
         "category": "Alitas",
         "price": 38000.0,
         "cost": 12540.0,
-        "description": "Alitas caramelizadas en salsa miel mostaza acompa\u00f1adas de papas a la francesa y ensalada de la casa",
+        "description": "Alitas caramelizadas en salsa miel mostaza acompañadas de papas a la francesa y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -835,7 +837,7 @@
         "category": "Mariscos",
         "price": 60000.0,
         "cost": 21000.0,
-        "description": "Camar\u00f3n, palmito, calamar, concha y almeja con patac\u00f3n, arroz y ensalada de la casa",
+        "description": "Camarón, palmito, calamar, concha y almeja con patacón, arroz y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -843,7 +845,7 @@
         "category": "Mariscos",
         "price": 55000.0,
         "cost": 19250.0,
-        "description": "Camarones rebozados en coco con aderezo criollo, chips de pl\u00e1tano verde y ensalada de la casa",
+        "description": "Camarones rebozados en coco con aderezo criollo, chips de plátano verde y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -851,47 +853,47 @@
         "category": "Mariscos",
         "price": 58000.0,
         "cost": 20300.0,
-        "description": "Exquisitos camarones selectos en salsa de queso, con salsa de la casa, ensalada de la casa y chips de pl\u00e1tano verde",
+        "description": "Exquisitos camarones selectos en salsa de queso, con salsa de la casa, ensalada de la casa y chips de plátano verde",
         "unit": "unit"
       },
       {
-        "name": "Ceviche de Camar\u00f3n",
+        "name": "Ceviche de Camarón",
         "category": "Mariscos",
         "price": 58000.0,
         "cost": 20300.0,
-        "description": "Camar\u00f3n fresco marinado en lim\u00f3n, cebolla morada, tomate, piment\u00f3n, aj\u00ed y cilantro, con chips de pl\u00e1tano verde",
+        "description": "Camarón fresco marinado en limón, cebolla morada, tomate, pimentón, ají y cilantro, con chips de plátano verde",
         "unit": "unit"
       },
       {
-        "name": "Arroz Margarita de Camar\u00f3n",
+        "name": "Arroz Margarita de Camarón",
         "category": "Mariscos",
         "price": 58000.0,
         "cost": 20300.0,
-        "description": "Arroz salteado con camarones, cebolla morada, zanahoria, cilantro y piment\u00f3n, con patacones, ensalada de la casa y chips de pl\u00e1tano verde",
+        "description": "Arroz salteado con camarones, cebolla morada, zanahoria, cilantro y pimentón, con patacones, ensalada de la casa y chips de plátano verde",
         "unit": "unit"
       },
       {
-        "name": "Salm\u00f3n en Salsa de Camarones",
-        "category": "Salm\u00f3n",
+        "name": "Salmón en Salsa de Camarones",
+        "category": "Salmón",
         "price": 65000.0,
         "cost": 22750.0,
-        "description": "Salm\u00f3n con salsa de camarones en leche de coco, anillos de cebolla, chips de pl\u00e1tano verde y ensalada de la casa",
+        "description": "Salmón con salsa de camarones en leche de coco, anillos de cebolla, chips de plátano verde y ensalada de la casa",
         "unit": "unit"
       },
       {
-        "name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
-        "category": "Salm\u00f3n",
+        "name": "Salmón en Salsa de Maracuyá",
+        "category": "Salmón",
         "price": 58000.0,
         "cost": 20300.0,
-        "description": "Salm\u00f3n con salsa de maracuy\u00e1 o naranja, anillos de cebolla, chips de pl\u00e1tano verde y ensalada de la casa",
+        "description": "Salmón con salsa de maracuyá o naranja, anillos de cebolla, chips de plátano verde y ensalada de la casa",
         "unit": "unit"
       },
       {
-        "name": "Salm\u00f3n Margarita",
-        "category": "Salm\u00f3n",
+        "name": "Salmón Margarita",
+        "category": "Salmón",
         "price": 58000.0,
         "cost": 20300.0,
-        "description": "Salm\u00f3n a la parrilla con salsa de cilantro, chips de pl\u00e1tano verde y ensalada de la casa",
+        "description": "Salmón a la parrilla con salsa de cilantro, chips de plátano verde y ensalada de la casa",
         "unit": "unit"
       },
       {
@@ -899,7 +901,7 @@
         "category": "Hamburguesas",
         "price": 28000.0,
         "cost": 9240.0,
-        "description": "Pan artesanal, carne de res y cerdo, ba\u00f1o en salsa de uvillas, pi\u00f1a, queso cheddar, doble crema, lechuga, tomate, jam\u00f3n, salsa de la casa y papas a la francesa",
+        "description": "Pan artesanal, carne de res y cerdo, baño en salsa de uvillas, piña, queso cheddar, doble crema, lechuga, tomate, jamón, salsa de la casa y papas a la francesa",
         "unit": "unit"
       },
       {
@@ -907,28 +909,28 @@
         "category": "Hamburguesas",
         "price": 28000.0,
         "cost": 9240.0,
-        "description": "Pan artesanal, carne de res y cerdo, queso parmesano, lechuga, tomate, jam\u00f3n, jalape\u00f1os, guacamole y salsa de la casa con papas a la francesa",
+        "description": "Pan artesanal, carne de res y cerdo, queso parmesano, lechuga, tomate, jamón, jalapeños, guacamole y salsa de la casa con papas a la francesa",
         "unit": "unit"
       },
       {
-        "name": "Hamburguesa Cl\u00e1sica",
+        "name": "Hamburguesa Clásica",
         "category": "Hamburguesas",
         "price": 28000.0,
         "cost": 9240.0,
-        "description": "Pan artesanal, carne de res y cerdo, jam\u00f3n, queso, tocineta, queso cheddar, tomate, lechuga y salsa de la casa con papas a la francesa",
+        "description": "Pan artesanal, carne de res y cerdo, jamón, queso, tocineta, queso cheddar, tomate, lechuga y salsa de la casa con papas a la francesa",
         "unit": "unit"
       },
       {
-        "name": "S\u00e1ndwich de Pollo",
-        "category": "S\u00e1ndwiches",
+        "name": "Sándwich de Pollo",
+        "category": "Sándwiches",
         "price": 28000.0,
         "cost": 9240.0,
         "description": "Pollo, queso mozzarella derretido, tomate, lechuga y salsa de la casa con papas a la francesa",
         "unit": "unit"
       },
       {
-        "name": "S\u00e1ndwich Ropa Vieja",
-        "category": "S\u00e1ndwiches",
+        "name": "Sándwich Ropa Vieja",
+        "category": "Sándwiches",
         "price": 28000.0,
         "cost": 9240.0,
         "description": "Carne desmechada en salsa a la criolla, queso mozzarella, cebolla caramelizada, pepino, lechuga y salsa de la casa con papas a la francesa",
@@ -939,7 +941,7 @@
         "category": "Crepes",
         "price": 28000.0,
         "cost": 9240.0,
-        "description": "Crepe mixta al wok de res y pollo en salsa criolla con queso, tomates cherry, r\u00fagula fresca y tocineta crocante",
+        "description": "Crepe mixta al wok de res y pollo en salsa criolla con queso, tomates cherry, rúgula fresca y tocineta crocante",
         "unit": "unit"
       },
       {
@@ -951,15 +953,15 @@
         "unit": "unit"
       },
       {
-        "name": "Crepes Pollo con Champi\u00f1ones",
+        "name": "Crepes Pollo con Champiñones",
         "category": "Crepes",
         "price": 28000.0,
         "cost": 9240.0,
-        "description": "Delicioso pollo con champi\u00f1ones en salsa velout\u00e9 y queso mozzarella",
+        "description": "Delicioso pollo con champiñones en salsa velouté y queso mozzarella",
         "unit": "unit"
       },
       {
-        "name": "Spaghetti a la Bolo\u00f1esa",
+        "name": "Spaghetti a la Boloñesa",
         "category": "Pastas",
         "price": 31000.0,
         "cost": 10230.0,
@@ -976,7 +978,7 @@
       },
       {
         "name": "Limonada Natural",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 6000.0,
         "cost": 1980.0,
         "description": "Limonada tradicional",
@@ -984,7 +986,7 @@
       },
       {
         "name": "Limonada Campesina",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 7000.0,
         "cost": 2310.0,
         "description": "Limonada con panela",
@@ -992,15 +994,15 @@
       },
       {
         "name": "Limonada Anisada",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 7000.0,
         "cost": 2310.0,
-        "description": "Limonada con an\u00eds",
+        "description": "Limonada con anís",
         "unit": "unit"
       },
       {
         "name": "Limonada Cerezada Especial",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 13000.0,
         "cost": 4290.0,
         "description": "Limonada con cerezas",
@@ -1008,7 +1010,7 @@
       },
       {
         "name": "Limonada Hierbabuena",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 13000.0,
         "cost": 4290.0,
         "description": "Limonada con hierbabuena fresca",
@@ -1016,7 +1018,7 @@
       },
       {
         "name": "Limonada de Coco Especial",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 13000.0,
         "cost": 4290.0,
         "description": "Limonada con coco",
@@ -1024,31 +1026,31 @@
       },
       {
         "name": "Batidos de Fruta",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 10000.0,
         "cost": 3300.0,
-        "description": "En agua o leche. Maracuy\u00e1, fresa, mora, naranja o lulo",
+        "description": "En agua o leche. Maracuyá, fresa, mora, naranja o lulo",
         "unit": "unit"
       },
       {
         "name": "Jugo Natural en Agua",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 7000.0,
         "cost": 2310.0,
-        "description": "Maracuy\u00e1, fresa, mora, naranja o lulo",
+        "description": "Maracuyá, fresa, mora, naranja o lulo",
         "unit": "unit"
       },
       {
         "name": "Jugo Natural en Leche",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 8000.0,
         "cost": 2640.0,
-        "description": "Maracuy\u00e1, fresa, mora, naranja o lulo",
+        "description": "Maracuyá, fresa, mora, naranja o lulo",
         "unit": "unit"
       },
       {
         "name": "Malteada de Bailey's",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 34000.0,
         "cost": 11220.0,
         "description": "Deliciosa malteada con crema de whisky",
@@ -1056,31 +1058,31 @@
       },
       {
         "name": "Soda Italiana",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 18000.0,
         "cost": 5940.0,
         "description": "Soda con jarabe de frutas",
         "unit": "unit"
       },
       {
-        "name": "Milo Fr\u00edo",
-        "category": "Bebidas Fr\u00edas",
+        "name": "Milo Frío",
+        "category": "Bebidas Frías",
         "price": 8000.0,
         "cost": 2640.0,
-        "description": "Bebida de chocolate con leche fr\u00eda",
+        "description": "Bebida de chocolate con leche fría",
         "unit": "unit"
       },
       {
         "name": "Frappuccino",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 13000.0,
         "cost": 4290.0,
-        "description": "Caf\u00e9 frapp\u00e9 con crema",
+        "description": "Café frappé con crema",
         "unit": "unit"
       },
       {
         "name": "Jugo de Naranja",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 10000.0,
         "cost": 3300.0,
         "description": "Jugo natural de naranja",
@@ -1096,18 +1098,18 @@
       },
       {
         "name": "Malteada",
-        "category": "Bebidas Fr\u00edas",
+        "category": "Bebidas Frías",
         "price": 15000.0,
         "cost": 4950.0,
-        "description": "Deliciosa mezcla cremosa con pulpas frescas batidas, combinadas con l\u00e1cteos y helado. Sabores: mora, mango, maracuy\u00e1, frutos rojos",
+        "description": "Deliciosa mezcla cremosa con pulpas frescas batidas, combinadas con lácteos y helado. Sabores: mora, mango, maracuyá, frutos rojos",
         "unit": "unit"
       },
       {
-        "name": "Granizado de Caf\u00e9",
-        "category": "Bebidas Fr\u00edas",
+        "name": "Granizado de Café",
+        "category": "Bebidas Frías",
         "price": 15000.0,
         "cost": 4950.0,
-        "description": "Caf\u00e9 granizado con hielo",
+        "description": "Café granizado con hielo",
         "unit": "unit"
       }
     ],
@@ -1118,13 +1120,13 @@
       "Alitas",
       "Tequila",
       "Bebida",
-      "Salm\u00f3n",
+      "Salmón",
       "Entradas",
-      "Bebidas Fr\u00edas",
+      "Bebidas Frías",
       "Vino",
       "Postres",
       "Hamburguesas",
-      "Cocteler\u00eda",
+      "Coctelería",
       "Pollo",
       "Cerveza",
       "Carnes",
@@ -1136,7 +1138,7 @@
       "Ron",
       "Licores",
       "Snacks",
-      "S\u00e1ndwiches",
+      "Sándwiches",
       "Whisky"
     ],
     "extraction_confidence": 1.0
@@ -1295,7 +1297,7 @@
         }
       },
       {
-        "name": "Dulce Mar\u00eda",
+        "name": "Dulce María",
         "price": 34000.0,
         "cost": 11900.0,
         "category": "star",
@@ -1495,7 +1497,7 @@
         }
       },
       {
-        "name": "Sangr\u00eda Margarita",
+        "name": "Sangría Margarita",
         "price": 34000.0,
         "cost": 11900.0,
         "category": "star",
@@ -1870,7 +1872,7 @@
         }
       },
       {
-        "name": "Don Julio A\u00f1ejo (bot)",
+        "name": "Don Julio Añejo (bot)",
         "price": 580000.0,
         "cost": 319000.0,
         "category": "dog",
@@ -1970,7 +1972,7 @@
         }
       },
       {
-        "name": "Jos\u00e9 Cuervo (trago)",
+        "name": "José Cuervo (trago)",
         "price": 20000.0,
         "cost": 7000.0,
         "category": "star",
@@ -1995,7 +1997,7 @@
         }
       },
       {
-        "name": "Jos\u00e9 Cuervo (med)",
+        "name": "José Cuervo (med)",
         "price": 110000.0,
         "cost": 60500.0,
         "category": "dog",
@@ -2020,7 +2022,7 @@
         }
       },
       {
-        "name": "Jos\u00e9 Cuervo (bot)",
+        "name": "José Cuervo (bot)",
         "price": 180000.0,
         "cost": 99000.0,
         "category": "dog",
@@ -2120,7 +2122,7 @@
         }
       },
       {
-        "name": "Bacard\u00ed Lim\u00f3n (bot)",
+        "name": "Bacardí Limón (bot)",
         "price": 160000.0,
         "cost": 88000.0,
         "category": "plowhorse",
@@ -3045,7 +3047,7 @@
         }
       },
       {
-        "name": "T\u00f3nica",
+        "name": "Tónica",
         "price": 8000.0,
         "cost": 4000.0,
         "category": "dog",
@@ -3770,7 +3772,7 @@
         }
       },
       {
-        "name": "Ceviche de Camar\u00f3n",
+        "name": "Ceviche de Camarón",
         "price": 58000.0,
         "cost": 20300.0,
         "category": "puzzle",
@@ -3795,7 +3797,7 @@
         }
       },
       {
-        "name": "Arroz Margarita de Camar\u00f3n",
+        "name": "Arroz Margarita de Camarón",
         "price": 58000.0,
         "cost": 20300.0,
         "category": "puzzle",
@@ -3820,7 +3822,7 @@
         }
       },
       {
-        "name": "Salm\u00f3n en Salsa de Camarones",
+        "name": "Salmón en Salsa de Camarones",
         "price": 65000.0,
         "cost": 22750.0,
         "category": "puzzle",
@@ -3845,7 +3847,7 @@
         }
       },
       {
-        "name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+        "name": "Salmón en Salsa de Maracuyá",
         "price": 58000.0,
         "cost": 20300.0,
         "category": "puzzle",
@@ -3870,7 +3872,7 @@
         }
       },
       {
-        "name": "Salm\u00f3n Margarita",
+        "name": "Salmón Margarita",
         "price": 58000.0,
         "cost": 20300.0,
         "category": "star",
@@ -3945,7 +3947,7 @@
         }
       },
       {
-        "name": "Hamburguesa Cl\u00e1sica",
+        "name": "Hamburguesa Clásica",
         "price": 28000.0,
         "cost": 9240.0,
         "category": "star",
@@ -3970,7 +3972,7 @@
         }
       },
       {
-        "name": "S\u00e1ndwich de Pollo",
+        "name": "Sándwich de Pollo",
         "price": 28000.0,
         "cost": 9240.0,
         "category": "star",
@@ -3995,7 +3997,7 @@
         }
       },
       {
-        "name": "S\u00e1ndwich Ropa Vieja",
+        "name": "Sándwich Ropa Vieja",
         "price": 28000.0,
         "cost": 9240.0,
         "category": "star",
@@ -4070,7 +4072,7 @@
         }
       },
       {
-        "name": "Crepes Pollo con Champi\u00f1ones",
+        "name": "Crepes Pollo con Champiñones",
         "price": 28000.0,
         "cost": 9240.0,
         "category": "star",
@@ -4095,7 +4097,7 @@
         }
       },
       {
-        "name": "Spaghetti a la Bolo\u00f1esa",
+        "name": "Spaghetti a la Boloñesa",
         "price": 31000.0,
         "cost": 10230.0,
         "category": "star",
@@ -4420,7 +4422,7 @@
         }
       },
       {
-        "name": "Milo Fr\u00edo",
+        "name": "Milo Frío",
         "price": 8000.0,
         "cost": 2640.0,
         "category": "puzzle",
@@ -4545,7 +4547,7 @@
         }
       },
       {
-        "name": "Granizado de Caf\u00e9",
+        "name": "Granizado de Café",
         "price": 15000.0,
         "cost": 4950.0,
         "category": "puzzle",
@@ -4638,7 +4640,7 @@
           "contribution": 2430000.0
         },
         {
-          "name": "Bacard\u00ed Lim\u00f3n (bot)",
+          "name": "Bacardí Limón (bot)",
           "contribution": 2376000.0
         },
         {
@@ -4676,12 +4678,12 @@
       "dogs_list": [
         "Olmeca Altos (bot)",
         "Olmeca Tradicional (bot)",
-        "Don Julio A\u00f1ejo (bot)",
+        "Don Julio Añejo (bot)",
         "Don Julio 70 (bot)",
         "Jimador (med)",
         "Jimador (bot)",
-        "Jos\u00e9 Cuervo (med)",
-        "Jos\u00e9 Cuervo (bot)",
+        "José Cuervo (med)",
+        "José Cuervo (bot)",
         "Royal Salute (bot)",
         "Chivas 18 (bot)",
         "Chivas 12 (med)",
@@ -4705,7 +4707,7 @@
         "Vaso Michelado",
         "Agua",
         "Gaseosa",
-        "T\u00f3nica",
+        "Tónica",
         "Soda",
         "Red Bull",
         "Gaseosa 1.5L",
@@ -4736,8 +4738,8 @@
         "target_category": "STAR",
         "target_audience": "Social groups 25-45",
         "copy": {
-          "social_media": "\ud83c\udf79 CHIVAS 12 (TRAGO) NIGHTS! \ud83c\udf79\n\nExperience the best of Pasto. 2x1 every Thursday.\n\n#MargaritaPinta #Pasto",
-          "email_subject": "\ud83c\udf36\ufe0f Spice up your night!",
+          "social_media": "🍹 CHIVAS 12 (TRAGO) NIGHTS! 🍹\n\nExperience the best of Pasto. 2x1 every Thursday.\n\n#MargaritaPinta #Pasto",
+          "email_subject": "🌶️ Spice up your night!",
           "email_body": "Join us for our signature specials."
         },
         "timing": "Thursdays 6pm-11pm",
@@ -4749,7 +4751,7 @@
         "target_category": "CASH_COW",
         "target_audience": "University students",
         "copy": {
-          "social_media": "\ud83d\udcda Study Break? \ud83c\udf7b\n\nShow your student ID for 15% off beers and nachos.\n\n#PastoStudents #HappyHour",
+          "social_media": "📚 Study Break? 🍻\n\nShow your student ID for 15% off beers and nachos.\n\n#PastoStudents #HappyHour",
           "email_subject": "Study hard, relax hard",
           "email_body": "You deserve a break."
         },
@@ -4762,15 +4764,15 @@
         "target_category": "QUESTION_MARK",
         "target_audience": "Locals and tourists",
         "copy": {
-          "social_media": "\ud83d\udd25 HERVIDO COMO NUNCA ANTES \ud83d\udd25\n\nTradici\u00f3n Nari\u00f1ense + Licores Premium.\n\nVen a probar nuestro Hervido con Tequila. El calorcito que necesitas esta noche.\n\n#Pasto #Tradicion",
-          "email_subject": "Tradition meets Innovation \u2615",
-          "email_body": "Discover our unique twist on the Nari\u00f1o classic."
+          "social_media": "🔥 HERVIDO COMO NUNCA ANTES 🔥\n\nTradición Nariñense + Licores Premium.\n\nVen a probar nuestro Hervido con Tequila. El calorcito que necesitas esta noche.\n\n#Pasto #Tradicion",
+          "email_subject": "Tradition meets Innovation ☕",
+          "email_body": "Discover our unique twist on the Nariño classic."
         },
         "timing": "Cold evenings / Weekends",
         "expected_impact": "Convert local curiosity into sales"
       }
     ],
-    "thought_process": "Analysis of 178 menu items reveals strong potential in Cocteler\u00eda stars."
+    "thought_process": "Analysis of 178 menu items reveals strong potential in Coctelería stars."
   },
   "sales_data": [
     {
@@ -4778,7 +4780,7 @@
       "item_name": "Margarita Blue",
       "quantity": 1,
       "revenue": 34000.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 34000.0,
       "unit_cost": 11900.0
     },
@@ -4811,7 +4813,7 @@
     },
     {
       "date": "01-01-23",
-      "item_name": "Jos\u00e9 Cuervo",
+      "item_name": "José Cuervo",
       "quantity": 1,
       "revenue": 20000.0,
       "category": "Tequila",
@@ -4913,7 +4915,7 @@
       "item_name": "Alexander",
       "quantity": 1,
       "revenue": 36070.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 36070.0,
       "unit_cost": 12624.0
     },
@@ -4940,7 +4942,7 @@
       "item_name": "Dry Martini",
       "quantity": 2,
       "revenue": 72140.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 36070.0,
       "unit_cost": 12624.0
     },
@@ -4949,7 +4951,7 @@
       "item_name": "Piel de Iguana",
       "quantity": 1,
       "revenue": 36070.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 36070.0,
       "unit_cost": 12624.0
     },
@@ -4967,7 +4969,7 @@
       "item_name": "Margarita Ardiente",
       "quantity": 1,
       "revenue": 36070.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 36070.0,
       "unit_cost": 12624.0
     },
@@ -4994,16 +4996,16 @@
       "item_name": "Hervido con Tequila",
       "quantity": 1,
       "revenue": 26522.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 26522.0,
       "unit_cost": 9282.0
     },
     {
       "date": "01-01-24",
-      "item_name": "S\u00e1ndwich de Pollo",
+      "item_name": "Sándwich de Pollo",
       "quantity": 1,
       "revenue": 29705.0,
-      "category": "S\u00e1ndwiches",
+      "category": "Sándwiches",
       "unit_price": 29705.0,
       "unit_cost": 9802.0
     },
@@ -5057,7 +5059,7 @@
       "item_name": "Margarita en Llamas",
       "quantity": 1,
       "revenue": 36070.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 36070.0,
       "unit_cost": 12624.0
     },
@@ -5066,7 +5068,7 @@
       "item_name": "Margarita en Llamas",
       "quantity": 1,
       "revenue": 36070.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 36070.0,
       "unit_cost": 12624.0
     },
@@ -5075,7 +5077,7 @@
       "item_name": "Margarita",
       "quantity": 1,
       "revenue": 36070.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 36070.0,
       "unit_cost": 12624.0
     },
@@ -5180,10 +5182,10 @@
     },
     {
       "date": "01-01-24",
-      "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+      "item_name": "Salmón en Salsa de Maracuyá",
       "quantity": 1,
       "revenue": 61532.0,
-      "category": "Salm\u00f3n",
+      "category": "Salmón",
       "unit_price": 61532.0,
       "unit_cost": 21536.0
     },
@@ -5219,13 +5221,13 @@
       "item_name": "Hervido con Brandy",
       "quantity": 1,
       "revenue": 22510.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 22510.0,
       "unit_cost": 7878.0
     },
     {
       "date": "01-01-25",
-      "item_name": "Jos\u00e9 Cuervo",
+      "item_name": "José Cuervo",
       "quantity": 1,
       "revenue": 22510.0,
       "category": "Tequila",
@@ -5246,7 +5248,7 @@
       "item_name": "Tom Collins",
       "quantity": 2,
       "revenue": 76534.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 38267.0,
       "unit_cost": 13393.0
     },
@@ -5264,7 +5266,7 @@
       "item_name": "Piel de Iguana",
       "quantity": 1,
       "revenue": 38267.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 38267.0,
       "unit_cost": 13393.0
     },
@@ -5282,7 +5284,7 @@
       "item_name": "Margarita Blue",
       "quantity": 1,
       "revenue": 38267.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 38267.0,
       "unit_cost": 13393.0
     },
@@ -5315,7 +5317,7 @@
     },
     {
       "date": "01-01-25",
-      "item_name": "Hamburguesa Cl\u00e1sica",
+      "item_name": "Hamburguesa Clásica",
       "quantity": 1,
       "revenue": 31514.0,
       "category": "Hamburguesas",
@@ -5324,7 +5326,7 @@
     },
     {
       "date": "01-01-25",
-      "item_name": "Spaghetti a la Bolo\u00f1esa",
+      "item_name": "Spaghetti a la Boloñesa",
       "quantity": 1,
       "revenue": 34890.0,
       "category": "Pastas",
@@ -5354,7 +5356,7 @@
       "item_name": "Piel de Iguana",
       "quantity": 2,
       "revenue": 76534.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 38267.0,
       "unit_cost": 13393.0
     },
@@ -5363,7 +5365,7 @@
       "item_name": "Hervido con Ron",
       "quantity": 1,
       "revenue": 22510.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 22510.0,
       "unit_cost": 7878.0
     },
@@ -5390,7 +5392,7 @@
       "item_name": "Bayless Frozen",
       "quantity": 1,
       "revenue": 38267.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 38267.0,
       "unit_cost": 13393.0
     },
@@ -5414,7 +5416,7 @@
     },
     {
       "date": "01-01-25",
-      "item_name": "Jos\u00e9 Cuervo",
+      "item_name": "José Cuervo",
       "quantity": 1,
       "revenue": 22510.0,
       "category": "Tequila",
@@ -5450,10 +5452,10 @@
     },
     {
       "date": "01-01-25",
-      "item_name": "S\u00e1ndwich Ropa Vieja",
+      "item_name": "Sándwich Ropa Vieja",
       "quantity": 1,
       "revenue": 31514.0,
-      "category": "S\u00e1ndwiches",
+      "category": "Sándwiches",
       "unit_price": 31514.0,
       "unit_cost": 10399.0
     },
@@ -5471,7 +5473,7 @@
       "item_name": "Hervido con Ron",
       "quantity": 1,
       "revenue": 22510.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 22510.0,
       "unit_cost": 7878.0
     },
@@ -5498,7 +5500,7 @@
       "item_name": "White Lady",
       "quantity": 1,
       "revenue": 40518.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 40518.0,
       "unit_cost": 14181.0
     },
@@ -5513,19 +5515,19 @@
     },
     {
       "date": "01-01-25",
-      "item_name": "Salm\u00f3n Margarita",
+      "item_name": "Salmón Margarita",
       "quantity": 1,
       "revenue": 65279.0,
-      "category": "Salm\u00f3n",
+      "category": "Salmón",
       "unit_price": 65279.0,
       "unit_cost": 22847.0
     },
     {
       "date": "01-01-25",
-      "item_name": "Salm\u00f3n en Salsa de Maracuy\u00e1",
+      "item_name": "Salmón en Salsa de Maracuyá",
       "quantity": 1,
       "revenue": 65279.0,
-      "category": "Salm\u00f3n",
+      "category": "Salmón",
       "unit_price": 65279.0,
       "unit_cost": 22847.0
     },
@@ -5534,7 +5536,7 @@
       "item_name": "Tom Collins",
       "quantity": 1,
       "revenue": 38267.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 38267.0,
       "unit_cost": 13393.0
     },
@@ -5561,7 +5563,7 @@
       "item_name": "Alexander",
       "quantity": 1,
       "revenue": 38267.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 38267.0,
       "unit_cost": 13393.0
     },
@@ -5570,7 +5572,7 @@
       "item_name": "Hervido con Aguardiente",
       "quantity": 1,
       "revenue": 22510.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 22510.0,
       "unit_cost": 7878.0
     },
@@ -5579,7 +5581,7 @@
       "item_name": "Piel de Iguana",
       "quantity": 1,
       "revenue": 38267.0,
-      "category": "Cocteler\u00eda",
+      "category": "Coctelería",
       "unit_price": 38267.0,
       "unit_cost": 13393.0
     },
@@ -5615,7 +5617,7 @@
       "item_name": "Limonada Natural",
       "quantity": 1,
       "revenue": 6753.0,
-      "category": "Bebidas Fr\u00edas",
+      "category": "Bebidas Frías",
       "unit_price": 6753.0,
       "unit_cost": 2228.0
     },
@@ -5648,7 +5650,7 @@
     },
     {
       "date": "01-01-25",
-      "item_name": "Crepes Pollo con Champi\u00f1ones",
+      "item_name": "Crepes Pollo con Champiñones",
       "quantity": 1,
       "revenue": 31514.0,
       "category": "Crepes",
@@ -5666,7 +5668,7 @@
     },
     {
       "date": "01-01-25",
-      "item_name": "Spaghetti a la Bolo\u00f1esa",
+      "item_name": "Spaghetti a la Boloñesa",
       "quantity": 1,
       "revenue": 34890.0,
       "category": "Pastas",
@@ -5677,13 +5679,13 @@
   "competitor_analysis": {
     "competitors": [
       {
-        "name": "Vud\u00fa Cocteler\u00eda",
+        "name": "Vudú Coctelería",
         "type": "Directo",
         "distance": "300m",
         "rating": 4.6,
         "priceRange": "$$$",
         "strengths": [
-          "Cocteler\u00eda de autor",
+          "Coctelería de autor",
           "Ambiente moderno"
         ],
         "weaknesses": [
@@ -5700,8 +5702,8 @@
         "rating": 4.4,
         "priceRange": "$$$",
         "strengths": [
-          "Ubicaci\u00f3n hist\u00f3rica",
-          "M\u00fasica en vivo"
+          "Ubicación histórica",
+          "Música en vivo"
         ],
         "weaknesses": [
           "Servicio lento",
@@ -5717,12 +5719,12 @@
         "rating": 4.3,
         "priceRange": "$$$$",
         "strengths": [
-          "Vista panor\u00e1mica",
+          "Vista panorámica",
           "Eventos exclusivos"
         ],
         "weaknesses": [
           "Precios altos",
-          "Dif\u00edcil acceso"
+          "Difícil acceso"
         ],
         "marketShare": 15,
         "trend": "down"
@@ -5739,26 +5741,26 @@
     "sources": [
       {
         "name": "Google Reviews",
-        "count": 245,
+        "count": 12,
         "avgRating": 4.6,
         "sentiment": 0.88
       },
       {
-        "name": "TripAdvisor",
-        "count": 120,
-        "avgRating": 4.5,
+        "name": "Instagram",
+        "count": 0,
+        "avgRating": null,
         "sentiment": 0.82
       },
       {
-        "name": "Instagram",
-        "count": 560,
+        "name": "Facebook",
+        "count": 0,
         "avgRating": null,
-        "sentiment": 0.9
+        "sentiment": 0.78
       }
     ],
     "topics": [
       {
-        "topic": "Cocteler\u00eda",
+        "topic": "Coctelería",
         "sentiment": 0.95,
         "mentions": 180,
         "trend": "up"
@@ -5784,16 +5786,16 @@
     ],
     "recentReviews": [
       {
-        "text": "El Margarita Ardiente es espectacular, una experiencia \u00fanica en Pasto.",
+        "text": "El Margarita Ardiente es espectacular, una experiencia única en Pasto.",
         "rating": 5,
         "source": "Google",
-        "date": "hace 2 d\u00edas"
+        "date": "hace 2 días"
       },
       {
-        "text": "Muy buen ambiente, la m\u00fasica es genial. Las costillas recomendad\u00edsimas.",
+        "text": "Muy buen ambiente, la música es genial. Las costillas recomendadísimas.",
         "rating": 5,
         "source": "TripAdvisor",
-        "date": "hace 5 d\u00edas"
+        "date": "hace 5 días"
       },
       {
         "text": "Un poco demorado el servicio el viernes, pero los cocteles valen la pena.",
@@ -5801,7 +5803,81 @@
         "source": "Google",
         "date": "hace 1 semana"
       }
-    ]
+    ],
+    "social_media_analysis": {
+      "platforms": [
+        {
+          "platform": "instagram",
+          "url": "https://www.instagram.com/margaritapintapasto/",
+          "estimated_followers": 3200,
+          "engagement_level": "medium",
+          "content_quality": "good",
+          "posting_frequency": "weekly",
+          "sentiment_score": 0.82,
+          "key_observations": [
+            "Fotografía de platos con buena iluminación y composición",
+            "Contenido de cócteles artesanales genera más engagement",
+            "Stories de eventos en vivo tienen buena respuesta",
+            "Uso consistente de la identidad visual de marca"
+          ],
+          "improvement_suggestions": [
+            "Aumentar frecuencia de publicaciones a 4-5 por semana",
+            "Incorporar Reels de preparación de cócteles",
+            "Crear highlights organizados por categorías (Cócteles, Platos, Eventos)",
+            "Usar más hashtags locales (#PastoFoodie, #GastrobarPasto)"
+          ]
+        },
+        {
+          "platform": "facebook",
+          "url": "https://www.facebook.com/MargaritaPintaRestauranteBar",
+          "estimated_followers": 5800,
+          "engagement_level": "medium",
+          "content_quality": "good",
+          "posting_frequency": "weekly",
+          "sentiment_score": 0.78,
+          "key_observations": [
+            "Buena presencia con fotos de eventos y promociones",
+            "Los clientes dejan reseñas positivas frecuentemente",
+            "Las publicaciones de eventos especiales generan más interacción",
+            "Respuesta activa a comentarios y mensajes"
+          ],
+          "improvement_suggestions": [
+            "Crear eventos de Facebook para noches temáticas",
+            "Publicar ofertas exclusivas para seguidores",
+            "Compartir contenido generado por usuarios (UGC)",
+            "Implementar Facebook Ads segmentados para Pasto y alrededores"
+          ]
+        }
+      ],
+      "overall_social_sentiment": 0.8,
+      "brand_perception": "Gastrobar moderno y acogedor con identidad visual fuerte, reconocido por sus cócteles artesanales y ambiente para socializar",
+      "strengths": [
+        "Fotografía de producto consistente y atractiva",
+        "Buena interacción con la comunidad local",
+        "Identidad de marca clara y diferenciada",
+        "Presencia activa en múltiples plataformas"
+      ],
+      "weaknesses": [
+        "Frecuencia de publicación irregular",
+        "Poco uso de formatos de video (Reels, Stories)",
+        "Falta de estrategia de hashtags locales",
+        "No hay programa de influencers locales"
+      ],
+      "opportunities": [
+        "Colaboraciones con influencers gastronómicos de Nariño",
+        "Campañas de contenido generado por usuarios",
+        "Series de contenido (ej: 'Cóctel de la semana')",
+        "Marketing de eventos y experiencias"
+      ],
+      "confidence": 0.75
+    },
+    "counts": {
+      "sources_used": [
+        "google",
+        "instagram",
+        "facebook"
+      ]
+    }
   },
   "predictions": {
     "session_id": "margarita-pinta-demo-001",
@@ -5996,6 +6072,166 @@
       "Forecast based on historical daily average of $3,699,959.",
       "Projected revenue stability with expected weekend peaks.",
       "Inventory planning should account for 30% higher demand on Fridays and Saturdays."
+    ]
+  },
+  "business_profile_enriched": {
+    "name": "Margarita Pinta",
+    "rating": 4.6,
+    "user_ratings_total": 892,
+    "price_level": 2,
+    "location": {
+      "address": "Cl 20 #40A-10, Pasto, Nariño, Colombia",
+      "coordinates": {
+        "lat": 1.2136,
+        "lng": -77.2811
+      },
+      "place_id": "ChIJk6_FQpxyQI4RGnN1234ABCD"
+    },
+    "contact": {
+      "phone": "+57 2 7310456",
+      "website": null,
+      "whatsapp_business": "+57 3001234567"
+    },
+    "google_maps": {
+      "rating": 4.6,
+      "user_ratings_total": 892,
+      "price_level": 2,
+      "opening_hours": {
+        "weekday_text": [
+          "Lunes: Cerrado",
+          "Martes: 12:00 – 23:00",
+          "Miércoles: 12:00 – 23:00",
+          "Jueves: 12:00 – 00:00",
+          "Viernes: 12:00 – 01:00",
+          "Sábado: 12:00 – 01:00",
+          "Domingo: 12:00 – 22:00"
+        ]
+      },
+      "reviews_count": 12,
+      "reviews_summary": "Los clientes destacan la calidad de los cócteles artesanales, la presentación de los platos y el ambiente acogedor. Algunos mencionan que los precios son un poco elevados para Pasto, pero la experiencia lo vale.",
+      "reviews": [
+        {
+          "author_name": "Carlos Andrés M.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 5,
+          "text": "Excelente lugar! Los cócteles son de otro nivel, especialmente el Margarita de maracuyá. La comida es deliciosa, probé las costillas BBQ y quedé encantado. El ambiente es muy agradable para ir en pareja o con amigos. Muy recomendado!",
+          "relative_time_description": "hace 2 semanas",
+          "google_maps_uri": "https://maps.app.goo.gl/review1"
+        },
+        {
+          "author_name": "María José L.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 4,
+          "text": "Muy buen ambiente y la carta de cócteles es impresionante. Pedimos la tabla de quesos y el lomo en salsa de champiñones. Todo estaba rico pero las porciones podrían ser un poco más generosas para el precio. El servicio fue atento y rápido.",
+          "relative_time_description": "hace 1 mes",
+          "google_maps_uri": "https://maps.app.goo.gl/review2"
+        },
+        {
+          "author_name": "Andrés Felipe R.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 5,
+          "text": "El mejor gastrobar de Pasto sin duda. La presentación de los platos es espectacular, se nota que cuidan cada detalle. Los mojitos son los mejores que he probado en la ciudad. El lugar tiene una decoración muy bonita y moderna.",
+          "relative_time_description": "hace 1 mes",
+          "google_maps_uri": "https://maps.app.goo.gl/review3"
+        },
+        {
+          "author_name": "Laura Valentina C.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 5,
+          "text": "Fuimos para celebrar un cumpleaños y la experiencia fue increíble. El personal fue muy amable y nos ayudó con la decoración de la mesa. Los shots de tequila con limón y sal de gusano son imperdibles. La hamburguesa artesanal es la mejor de Pasto!",
+          "relative_time_description": "hace 2 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review4"
+        },
+        {
+          "author_name": "Santiago P.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 4,
+          "text": "Buen lugar para pasar un rato agradable. La música en vivo los viernes es un plus. Los nachos con guacamole están buenos pero esperaba más cantidad. Los cócteles sí son generosos y bien preparados. Volveré!",
+          "relative_time_description": "hace 2 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review5"
+        },
+        {
+          "author_name": "Diana Marcela G.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 5,
+          "text": "Me encanta este lugar! Siempre que vengo a Pasto paso por aquí. Las alitas BBQ son adictivas y el ambiente es perfecto para después del trabajo. El servicio siempre es excelente y los meseros conocen bien la carta.",
+          "relative_time_description": "hace 3 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review6"
+        },
+        {
+          "author_name": "Juan David H.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 3,
+          "text": "El lugar es bonito y los tragos buenos, pero la última vez que fui el servicio estuvo un poco lento. Esperamos casi 40 minutos por los platos. La comida cuando llegó estaba bien pero la espera fue mucho. Espero que mejoren ese aspecto.",
+          "relative_time_description": "hace 3 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review7"
+        },
+        {
+          "author_name": "Camila Andrea V.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 5,
+          "text": "Celebramos nuestro aniversario aquí y todo fue perfecto. El ambiente romántico, la comida exquisita y los cócteles creativos. El postre de brownie con helado es divino. Definitivamente el mejor restaurante-bar de la ciudad.",
+          "relative_time_description": "hace 4 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review8"
+        },
+        {
+          "author_name": "Roberto M.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 4,
+          "text": "Buena opción para salir con amigos. La carta de licores es muy completa y los precios son razonables para la calidad. Las empanadas de camarón son espectaculares. Lo único es que a veces está muy lleno y no hay reservas.",
+          "relative_time_description": "hace 4 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review9"
+        },
+        {
+          "author_name": "Natalia S.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 5,
+          "text": "El brunch de los domingos es increíble! Los huevos benedictinos con salmón ahumado son una delicia. El café es de origen nariñense y se nota la calidad. El personal siempre atento y con buena actitud. 100% recomendado!",
+          "relative_time_description": "hace 5 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review10"
+        },
+        {
+          "author_name": "Felipe A.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 4,
+          "text": "Vine por recomendación y no me decepcionó. El ceviche de camarón está fresco y bien sazonado. Los gin tonics tienen buena variedad de botánicos. El único detalle es el estacionamiento, no hay cerca y toca caminar un poco.",
+          "relative_time_description": "hace 5 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review11"
+        },
+        {
+          "author_name": "Valentina R.",
+          "author_photo": "https://lh3.googleusercontent.com/a/default-user",
+          "rating": 5,
+          "text": "Mi lugar favorito en Pasto! La decoración es hermosa, la comida deliciosa y los tragos creativos. Me encanta que siempre están innovando con el menú. Las noches de DJ los sábados son geniales. Nunca me canso de venir!",
+          "relative_time_description": "hace 6 meses",
+          "google_maps_uri": "https://maps.app.goo.gl/review12"
+        }
+      ],
+      "photos_count": 45,
+      "google_maps_uri": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A",
+      "google_maps_links": {
+        "placeUri": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A",
+        "reviewsUri": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A",
+        "photosUri": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A"
+      }
+    },
+    "social_media": [
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/margaritapintapasto/",
+        "handle": "margaritapintapasto",
+        "followers": null,
+        "verified": false,
+        "metadata": {}
+      },
+      {
+        "platform": "facebook",
+        "url": "https://www.facebook.com/MargaritaPintaRestauranteBar",
+        "handle": "MargaritaPintaRestauranteBar",
+        "followers": null,
+        "verified": false,
+        "metadata": {}
+      }
     ]
   }
 }

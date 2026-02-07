@@ -19,6 +19,8 @@ RESTAURANT_INFO = {
     "name": "Margarita Pinta",
     "location": "Cl 20 #40A-10, Pasto, Nariño, Colombia",
     "cuisine_type": "Gastrobar / Coctelería",
+    "google_maps_link": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A",
+    "place_id": "ChIJk6_FQpxyQI4RGnN1234ABCD",
     "social_media": {
         "instagram": "https://www.instagram.com/margaritapintapasto/",
         "facebook": "https://www.facebook.com/MargaritaPintaRestauranteBar"
@@ -571,7 +573,7 @@ def create_demo_json():
         "market_position": "Strong contender in the premium gastrobar segment."
     }
 
-    # 8. Generate Sentiment Data
+    # 8. Generate Sentiment Data (integrated: Google Maps + Social Media)
     sentiment_data = {
         "overall": {
             "score": 0.85,
@@ -579,21 +581,84 @@ def create_demo_json():
             "trend": "improving"
         },
         "sources": [
-            {"name": "Google Reviews", "count": 245, "avgRating": 4.6, "sentiment": 0.88},
-            {"name": "TripAdvisor", "count": 120, "avgRating": 4.5, "sentiment": 0.82},
-            {"name": "Instagram", "count": 560, "avgRating": None, "sentiment": 0.90}
+            {"name": "Google Reviews", "count": 12, "avgRating": 4.6, "sentiment": 0.88},
+            {"name": "Instagram", "count": 0, "avgRating": None, "sentiment": 0.82},
+            {"name": "Facebook", "count": 0, "avgRating": None, "sentiment": 0.78}
         ],
         "topics": [
             {"topic": "Coctelería", "sentiment": 0.95, "mentions": 180, "trend": "up"},
             {"topic": "Ambiente", "sentiment": 0.92, "mentions": 150, "trend": "stable"},
             {"topic": "Comida", "sentiment": 0.80, "mentions": 90, "trend": "up"},
-            {"topic": "Tiempo de espera", "sentiment": 0.60, "mentions": 45, "trend": "down"}
+            {"topic": "Tiempo de espera", "sentiment": 0.60, "mentions": 45, "trend": "down"},
+            {"topic": "Social Media Presence", "sentiment": 0.80, "mentions": 0, "trend": "stable"}
         ],
         "recentReviews": [
-            {"text": "El Margarita Ardiente es espectacular, una experiencia única en Pasto.", "rating": 5, "source": "Google", "date": "hace 2 días"},
-            {"text": "Muy buen ambiente, la música es genial. Las costillas recomendadísimas.", "rating": 5, "source": "TripAdvisor", "date": "hace 5 días"},
-            {"text": "Un poco demorado el servicio el viernes, pero los cocteles valen la pena.", "rating": 4, "source": "Google", "date": "hace 1 semana"}
-        ]
+            {"text": "Excelente lugar! Los cócteles son de otro nivel, especialmente el Margarita de maracuyá.", "rating": 5, "source": "google", "date": "hace 2 semanas"},
+            {"text": "Muy buen ambiente y la carta de cócteles es impresionante. Las porciones podrían ser más generosas.", "rating": 4, "source": "google", "date": "hace 1 mes"},
+            {"text": "El mejor gastrobar de Pasto sin duda. La presentación de los platos es espectacular.", "rating": 5, "source": "google", "date": "hace 1 mes"}
+        ],
+        "counts": {
+            "sources_used": ["google", "instagram", "facebook"]
+        },
+        "social_media_analysis": {
+            "platforms": [
+                {
+                    "platform": "instagram",
+                    "url": "https://www.instagram.com/margaritapintapasto/",
+                    "estimated_followers": 3200,
+                    "engagement_level": "medium",
+                    "content_quality": "good",
+                    "posting_frequency": "weekly",
+                    "sentiment_score": 0.82,
+                    "key_observations": [
+                        "Fotografía de platos con buena iluminación y composición",
+                        "Contenido de cócteles artesanales genera más engagement",
+                        "Stories de eventos en vivo tienen buena respuesta"
+                    ],
+                    "improvement_suggestions": [
+                        "Aumentar frecuencia de publicaciones a 4-5 por semana",
+                        "Incorporar Reels de preparación de cócteles",
+                        "Usar más hashtags locales (#PastoFoodie, #GastrobarPasto)"
+                    ]
+                },
+                {
+                    "platform": "facebook",
+                    "url": "https://www.facebook.com/MargaritaPintaRestauranteBar",
+                    "estimated_followers": 5800,
+                    "engagement_level": "medium",
+                    "content_quality": "good",
+                    "posting_frequency": "weekly",
+                    "sentiment_score": 0.78,
+                    "key_observations": [
+                        "Buena presencia con fotos de eventos y promociones",
+                        "Los clientes dejan reseñas positivas frecuentemente",
+                        "Respuesta activa a comentarios y mensajes"
+                    ],
+                    "improvement_suggestions": [
+                        "Crear eventos de Facebook para noches temáticas",
+                        "Publicar ofertas exclusivas para seguidores",
+                        "Implementar Facebook Ads segmentados para Pasto"
+                    ]
+                }
+            ],
+            "overall_social_sentiment": 0.80,
+            "brand_perception": "Gastrobar moderno y acogedor con identidad visual fuerte, reconocido por sus cócteles artesanales",
+            "strengths": [
+                "Fotografía de producto consistente y atractiva",
+                "Buena interacción con la comunidad local",
+                "Identidad de marca clara y diferenciada"
+            ],
+            "weaknesses": [
+                "Frecuencia de publicación irregular",
+                "Poco uso de formatos de video (Reels, Stories)"
+            ],
+            "opportunities": [
+                "Colaboraciones con influencers gastronómicos de Nariño",
+                "Campañas de contenido generado por usuarios",
+                "Series de contenido (ej: 'Cóctel de la semana')"
+            ],
+            "confidence": 0.75
+        }
     }
 
     # 9. Generate Predictions Data (Based on historical patterns)
@@ -657,7 +722,45 @@ def create_demo_json():
         ]
     }
 
-    # 10. Full Session Structure
+    # 10. Business Profile Enriched (Google Maps + Social Media)
+    business_profile_enriched = {
+        "name": "Margarita Pinta",
+        "rating": 4.6,
+        "user_ratings_total": 892,
+        "price_level": 2,
+        "location": {
+            "address": "Cl 20 #40A-10, Pasto, Nariño, Colombia",
+            "coordinates": {"lat": 1.2136, "lng": -77.2811},
+            "place_id": "ChIJk6_FQpxyQI4RGnN1234ABCD"
+        },
+        "google_maps": {
+            "rating": 4.6,
+            "user_ratings_total": 892,
+            "reviews_count": 12,
+            "reviews_summary": "Los clientes destacan la calidad de los cócteles artesanales, la presentación de los platos y el ambiente acogedor.",
+            "reviews": [
+                {"author_name": "Carlos Andrés M.", "rating": 5, "text": "Excelente lugar! Los cócteles son de otro nivel, especialmente el Margarita de maracuyá.", "relative_time_description": "hace 2 semanas"},
+                {"author_name": "María José L.", "rating": 4, "text": "Muy buen ambiente y la carta de cócteles es impresionante. Las porciones podrían ser más generosas.", "relative_time_description": "hace 1 mes"},
+                {"author_name": "Andrés Felipe R.", "rating": 5, "text": "El mejor gastrobar de Pasto sin duda. La presentación de los platos es espectacular.", "relative_time_description": "hace 1 mes"},
+                {"author_name": "Laura Valentina C.", "rating": 5, "text": "La experiencia fue increíble. La hamburguesa artesanal es la mejor de Pasto!", "relative_time_description": "hace 2 meses"},
+                {"author_name": "Santiago P.", "rating": 4, "text": "Buen lugar. La música en vivo los viernes es un plus. Los cócteles son generosos.", "relative_time_description": "hace 2 meses"},
+                {"author_name": "Diana Marcela G.", "rating": 5, "text": "Las alitas BBQ son adictivas y el ambiente es perfecto para después del trabajo.", "relative_time_description": "hace 3 meses"},
+                {"author_name": "Juan David H.", "rating": 3, "text": "El lugar es bonito y los tragos buenos, pero el servicio estuvo un poco lento.", "relative_time_description": "hace 3 meses"},
+                {"author_name": "Camila Andrea V.", "rating": 5, "text": "Celebramos nuestro aniversario aquí y todo fue perfecto. El postre de brownie con helado es divino.", "relative_time_description": "hace 4 meses"},
+            ],
+            "google_maps_uri": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A",
+            "google_maps_links": {
+                "placeUri": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A",
+                "reviewsUri": "https://maps.app.goo.gl/Uyeex6CDKf9K32K4A"
+            }
+        },
+        "social_media": [
+            {"platform": "instagram", "url": "https://www.instagram.com/margaritapintapasto/", "handle": "margaritapintapasto"},
+            {"platform": "facebook", "url": "https://www.facebook.com/MargaritaPintaRestauranteBar", "handle": "MargaritaPintaRestauranteBar"}
+        ]
+    }
+
+    # 11. Full Session Structure
     session_data = {
         "session_id": DEMO_SESSION_ID,
         "restaurant_info": RESTAURANT_INFO,
@@ -669,7 +772,8 @@ def create_demo_json():
         "sales_data": sales_data[:100], # Preview
         "competitor_analysis": competitor_data,
         "sentiment_analysis": sentiment_data,
-        "predictions": predictions_data
+        "predictions": predictions_data,
+        "business_profile_enriched": business_profile_enriched
     }
 
     # 11. Save Files

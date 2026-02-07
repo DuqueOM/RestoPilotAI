@@ -99,6 +99,7 @@ async def start_marathon_task(
             # Load business session data if available
             business_session = load_session(session_id)
             
+            restaurant_info = business_session.get("restaurant_info", {}) if business_session else {}
             state = AnalysisState(
                 session_id=session_id,
                 current_stage=PipelineStage.INITIALIZED,
@@ -106,7 +107,9 @@ async def start_marathon_task(
                 thought_traces=[],
                 menu_items=business_session.get("menu_items", []) if business_session else [],
                 sales_data=business_session.get("sales_data", []) if business_session else [],
-                restaurant_name=business_session.get("restaurant_info", {}).get("name", "Restaurant") if business_session else "Restaurant",
+                restaurant_name=restaurant_info.get("name", "Restaurant"),
+                business_profile_enriched=business_session.get("business_profile_enriched") if business_session else None,
+                social_media=restaurant_info.get("social_media", {}),
                 auto_verify=config.auto_verify,
                 auto_improve=config.auto_improve
             )

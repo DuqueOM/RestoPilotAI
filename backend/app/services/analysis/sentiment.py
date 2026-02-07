@@ -153,9 +153,10 @@ class SentimentAnalysisResult:
     grounding_sources: List[Dict[str, str]] = field(default_factory=list)
     grounded: bool = False
     analyzed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    social_media_analysis: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result = {
             "analysis_id": self.analysis_id,
             "restaurant_id": self.restaurant_id,
             "overall": {
@@ -194,6 +195,9 @@ class SentimentAnalysisResult:
             "grounding_sources": self.grounding_sources,
             "grounded": self.grounded,
         }
+        if self.social_media_analysis:
+            result["social_media_analysis"] = self.social_media_analysis
+        return result
 
 
 class SentimentAnalyzer:
@@ -220,9 +224,11 @@ class SentimentAnalyzer:
         menu_items: Optional[List[str]] = None,
         bcg_data: Optional[Dict[str, Any]] = None,
         sources: List[SentimentSource] = None,
+        social_media_urls: Optional[Dict[str, str]] = None,
+        restaurant_name: Optional[str] = None,
     ) -> SentimentAnalysisResult:
         """
-        Comprehensive sentiment analysis from reviews and photos.
+        Comprehensive sentiment analysis from reviews, photos, and social media.
 
         Args:
             restaurant_id: Restaurant identifier
@@ -231,6 +237,8 @@ class SentimentAnalyzer:
             menu_items: List of menu item names for matching
             bcg_data: BCG classification data for cross-reference
             sources: Sources to analyze
+            social_media_urls: Dict of social media platform URLs (instagram, facebook, etc.)
+            restaurant_name: Name of the restaurant for social media search
 
         Returns:
             SentimentAnalysisResult with comprehensive insights
@@ -242,11 +250,13 @@ class SentimentAnalyzer:
             analysis_id=analysis_id,
             reviews=len(reviews) if reviews else 0,
             photos=len(customer_photos) if customer_photos else 0,
+            social_media=list(social_media_urls.keys()) if social_media_urls else [],
         )
 
         # Initialize results
         text_sentiment = {}
         visual_sentiment = {}
+        social_sentiment = {}
 
         # Step 1: Analyze text reviews
         if reviews:
@@ -258,7 +268,30 @@ class SentimentAnalyzer:
                 customer_photos, menu_items
             )
 
-        # Step 3: Map sentiment to items
+        # Step 3: Analyze social media sentiment (grounded search)
+        if social_media_urls:
+            social_sentiment = await self._analyze_social_media_sentiment(
+                social_media_urls, restaurant_name or "restaurant"
+            )
+            # Merge social media sources into text_sentiment sources
+            if social_sentiment.get("sources"):
+                existing_sources = text_sentiment.get("sources", [])
+                existing_sources.extend(social_sentiment["sources"])
+                text_sentiment["sources"] = existing_sources
+            # Add social media topics to existing topics
+            if social_sentiment.get("topics"):
+                existing_topics = text_sentiment.get("topics", [])
+                existing_topics.extend(social_sentiment["topics"])
+                text_sentiment["topics"] = existing_topics
+            # Track social media sources
+            for platform in social_media_urls:
+                src = SentimentSource.INSTAGRAM if "instagram" in platform.lower() else (
+                    SentimentSource.FACEBOOK if "facebook" in platform.lower() else None
+                )
+                if src and src not in (sources or []):
+                    sources = (sources or []) + [src]
+
+        # Step 4: Map sentiment to items
         item_sentiments = await self._map_sentiment_to_items(
             text_sentiment,
             visual_sentiment,
@@ -266,7 +299,7 @@ class SentimentAnalyzer:
             bcg_data,
         )
 
-        # Step 4: Generate recommendations
+        # Step 5: Generate recommendations
         recommendations = await self._generate_recommendations(
             item_sentiments,
             text_sentiment,
@@ -286,10 +319,15 @@ class SentimentAnalyzer:
             sources=sources or [],
         )
 
+        # Attach social media analysis as separate section
+        if social_sentiment:
+            result.social_media_analysis = social_sentiment
+
         logger.info(
             "Sentiment analysis completed",
             analysis_id=analysis_id,
             overall_score=result.overall_sentiment_score,
+            social_media_integrated=bool(social_sentiment),
         )
 
         return result
@@ -505,6 +543,115 @@ RESPOND WITH JSON:
         )
 
         return result
+
+    async def _analyze_social_media_sentiment(
+        self,
+        social_media_urls: Dict[str, str],
+        restaurant_name: str,
+    ) -> Dict[str, Any]:
+        """
+        Analyze social media sentiment using Gemini with Google Search grounding.
+        
+        Uses grounded search to find public sentiment signals about the restaurant
+        from Instagram, Facebook, and other social platforms.
+        """
+        if not social_media_urls:
+            return {}
+
+        platforms_info = "\n".join(
+            f"- {platform.capitalize()}: {url}"
+            for platform, url in social_media_urls.items()
+            if url
+        )
+
+        prompt = f"""Analyze the social media presence and public sentiment for this restaurant:
+
+RESTAURANT: {restaurant_name}
+SOCIAL MEDIA PROFILES:
+{platforms_info}
+
+Search for and analyze:
+1. Public engagement patterns (likes, comments, shares trends)
+2. Customer sentiment in comments and mentions
+3. Content strategy effectiveness (food photos, stories, reels)
+4. Community engagement and response patterns
+5. Brand perception on social media
+6. Notable mentions, reviews, or influencer coverage
+
+RESPOND WITH JSON:
+{{
+    "platforms": [
+        {{
+            "platform": "instagram",
+            "url": "...",
+            "estimated_followers": null,
+            "engagement_level": "high|medium|low",
+            "content_quality": "excellent|good|average|poor",
+            "posting_frequency": "daily|weekly|sporadic",
+            "sentiment_score": 0.8,
+            "key_observations": ["Active food photography", "Good community engagement"],
+            "improvement_suggestions": ["Post more stories", "Use trending hashtags"]
+        }}
+    ],
+    "overall_social_sentiment": 0.75,
+    "brand_perception": "Trendy gastrobar with strong visual identity",
+    "strengths": ["Strong food photography", "Active community"],
+    "weaknesses": ["Inconsistent posting schedule"],
+    "opportunities": ["Influencer collaborations", "User-generated content campaigns"],
+    "sources": [
+        {{
+            "name": "Instagram",
+            "count": 0,
+            "avgRating": null,
+            "sentiment": 0.8
+        }}
+    ],
+    "topics": [
+        {{
+            "topic": "Social Media Presence",
+            "sentiment": 0.75,
+            "mentions": 0,
+            "trend": "stable"
+        }}
+    ],
+    "confidence": 0.7
+}}"""
+
+        try:
+            response = await self.reasoning.generate_with_grounding(
+                prompt=prompt,
+                temperature=0.4,
+                max_output_tokens=4096,
+                enable_grounding=True,
+            )
+
+            result = self.reasoning._parse_json_response(
+                response.get("answer", response)
+            )
+
+            # Extract grounding metadata
+            if response.get("grounded"):
+                grounding_chunks = response.get("grounding_metadata", {}).get(
+                    "grounding_chunks", []
+                )
+                result["grounding_sources"] = [
+                    {"uri": chunk.get("uri"), "title": chunk.get("title")}
+                    for chunk in grounding_chunks
+                    if chunk.get("uri")
+                ]
+                result["grounded"] = True
+
+            logger.info(
+                f"Social media sentiment analysis completed for {restaurant_name}: "
+                f"score={result.get('overall_social_sentiment', 'N/A')}, "
+                f"platforms={len(result.get('platforms', []))}"
+            )
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Social media sentiment analysis failed: {e}")
+            return {"error": str(e), "confidence": 0}
 
     async def _map_sentiment_to_items(
         self,
