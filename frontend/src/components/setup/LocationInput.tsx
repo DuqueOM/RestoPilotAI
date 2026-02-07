@@ -222,6 +222,7 @@ export function LocationInput({
       }).then(res => {
         if (!res.ok) {
           console.warn('[RestoPilot] Enrichment response not OK:', res.status);
+          if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
           return null;
         }
         return res.json();
@@ -232,11 +233,13 @@ export function LocationInput({
           if (onBusinessEnrichedRef.current) {
             onBusinessEnrichedRef.current(data.profile);
           }
-        } else {
+        } else if (data !== null) {
           console.warn('[RestoPilot] Enrichment returned no profile');
+          if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
         }
       }).catch(err => {
         console.warn('[RestoPilot] Background enrichment failed:', err);
+        if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
       });
     }
   };

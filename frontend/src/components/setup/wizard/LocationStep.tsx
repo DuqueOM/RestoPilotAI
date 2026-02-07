@@ -40,6 +40,7 @@ export function LocationStep() {
 
   const handleBusinessEnriched = (profile: any) => {
     setIsEnriching(false);
+    if (!profile) return; // Enrichment failed — just stop the spinner
     setEnrichmentDone(true);
 
     const updates: Partial<typeof formData> = {

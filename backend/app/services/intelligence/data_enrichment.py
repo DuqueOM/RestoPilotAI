@@ -422,7 +422,7 @@ class CompetitorEnrichmentService:
                             "photo_reference": p["name"], # store resource name as ref
                             "height": p.get("heightPx"),
                             "width": p.get("widthPx"),
-                            "html_attributions": [p.get("authorAttributions", [{}])[0].get("displayName", "")]
+                            "html_attributions": [(p.get("authorAttributions") or [{}])[0].get("displayName", "")]
                         }
                         for p in data["photos"]
                     ]
@@ -435,7 +435,7 @@ class CompetitorEnrichmentService:
                             "author_photo": r.get("authorAttribution", {}).get("photoUri"),
                             "author_uri": r.get("authorAttribution", {}).get("uri"),
                             "rating": r.get("rating"),
-                            "text": r.get("text", {}).get("text"),
+                            "text": (r.get("text") or {}).get("text") if isinstance(r.get("text"), (dict, type(None))) else r.get("text"),
                             "time": r.get("publishTime"),
                             "relative_time_description": r.get("relativePublishTimeDescription"),
                             "google_maps_uri": r.get("googleMapsUri")
@@ -835,7 +835,7 @@ Respond in JSON:
         try:
             reviews_text = "\n\n".join(
                 [
-                    f"Rating: {r.get('rating')}/5 - {r.get('text', '')[:200]}"
+                    f"Rating: {r.get('rating')}/5 - {(r.get('text') or '')[:200]}"
                     for r in reviews[:10]
                 ]
             )
