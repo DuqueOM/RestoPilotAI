@@ -140,8 +140,7 @@ frontend/
 ├── tsconfig.json                # TypeScript configuration
 ├── .eslintrc.json               # ESLint rules
 ├── components.json              # shadcn/ui config
-├── Dockerfile                   # Production container
-└── netlify.toml                 # Netlify deployment config
+└── Dockerfile                   # Production container (Cloud Run)
 ```
 
 ---

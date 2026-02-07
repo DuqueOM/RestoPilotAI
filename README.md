@@ -264,7 +264,7 @@ Each stage produces **thought signatures** and supports **checkpoint recovery**.
 |-----------|-----------|
 | Containerization | Docker + Docker Compose |
 | CI/CD | GitHub Actions |
-| Deployment | Netlify (frontend) + Docker (backend) |
+| Deployment | Google Cloud Run (frontend + backend) |
 
 ---
 
@@ -413,7 +413,6 @@ RestoPilotAI/
 │   │   ├── hooks/               # 7 custom hooks (WebSocket, API, etc.)
 │   │   └── lib/api/             # Typed API client (50+ methods)
 │   ├── Dockerfile
-│   ├── netlify.toml
 │   └── README.md                # Frontend documentation
 ├── docs/                        # Extended documentation
 │   ├── ADVANCED_MULTIMODAL_GUIDE.md
@@ -423,7 +422,17 @@ RestoPilotAI/
 │   ├── STREAMING_GUIDE.md
 │   └── VIDEO_ANALYSIS_GUIDE.md
 ├── scripts/                     # Setup and utility scripts
+│   ├── seed_demo_data.py        # Generate demo restaurant data
+│   ├── setup_api_key.sh         # API key configuration helper
+│   └── test_gemini_api.py       # Gemini API diagnostic tool
+├── tests/                       # Test suite (pytest)
+│   ├── smoke_test_demo.py       # Demo data smoke tests
+│   ├── test_apis.py             # API endpoint tests
+│   ├── test_competitive_intelligence.py
+│   ├── test_vibe_engineering.py
+│   └── test_wow_features.py
 ├── docker-compose.yml           # Multi-service Docker orchestration
+├── cloudbuild.yaml              # Google Cloud Build config (Cloud Run)
 ├── Makefile                     # Development commands
 ├── .env.example                 # Environment variable template
 ├── MODEL_CARD.md                # AI Model Card

@@ -1,5 +1,0 @@
-{
-  "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.15.7"
-  }
-}

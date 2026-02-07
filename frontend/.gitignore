@@ -27,10 +27,6 @@ npm-debug.log*
 .DS_Store
 *.pem
 
-# Vercel/Netlify
-.vercel
-.netlify
-
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
