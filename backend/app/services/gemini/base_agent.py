@@ -542,14 +542,14 @@ This thought trace will be visible for transparency."""
                     "search_queries": []
                 }
                 
-                if hasattr(candidate.grounding_metadata, 'grounding_chunks'):
+                if hasattr(candidate.grounding_metadata, 'grounding_chunks') and candidate.grounding_metadata.grounding_chunks:
                     for chunk in candidate.grounding_metadata.grounding_chunks:
                         grounding_metadata["grounding_chunks"].append({
                             "uri": getattr(chunk.web, 'uri', None) if hasattr(chunk, 'web') else None,
                             "title": getattr(chunk.web, 'title', None) if hasattr(chunk, 'web') else None
                         })
                 
-                if hasattr(candidate.grounding_metadata, 'search_entry_point'):
+                if hasattr(candidate.grounding_metadata, 'search_entry_point') and candidate.grounding_metadata.search_entry_point:
                     grounding_metadata["search_queries"] = [
                         candidate.grounding_metadata.search_entry_point.rendered_content
                     ]
