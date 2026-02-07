@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import fitz  # PyMuPDF
 import pytesseract
+from app.core.config import get_settings
 from app.services.gemini.base_agent import GeminiAgent
 from loguru import logger
 from pdf2image import convert_from_path
@@ -166,6 +167,30 @@ class MenuExtractor:
                 logger.error(f"PDF conversion failed: {e2}")
                 raise ValueError(f"Could not convert PDF to image: {e2}")
 
+    def _truncate_pdf(self, pdf_path: str, max_pages: int) -> str:
+        """Truncate a PDF to max_pages and return the path to the truncated file."""
+        try:
+            doc = fitz.open(pdf_path)
+            total_pages = len(doc)
+            if total_pages <= max_pages:
+                doc.close()
+                return pdf_path
+
+            logger.warning(
+                f"PDF has {total_pages} pages, truncating to {max_pages} for processing"
+            )
+            # Create truncated copy
+            truncated_path = pdf_path.replace(".pdf", f"_first{max_pages}.pdf")
+            truncated_doc = fitz.open()
+            truncated_doc.insert_pdf(doc, from_page=0, to_page=max_pages - 1)
+            truncated_doc.save(truncated_path)
+            truncated_doc.close()
+            doc.close()
+            return truncated_path
+        except Exception as e:
+            logger.error(f"PDF truncation failed: {e}")
+            return pdf_path
+
     async def extract_from_pdf_all_pages(
         self,
         pdf_path: str,
@@ -175,14 +200,20 @@ class MenuExtractor:
         """
         Extract menu items from a PDF using Gemini Native PDF support.
         """
+        settings = get_settings()
+        max_pages = settings.max_pdf_pages
+
+        # Truncate large PDFs to avoid Gemini limits
+        working_pdf = self._truncate_pdf(pdf_path, max_pages)
+
         logger.info(
-            f"Extracting menu from PDF using Native Gemini File API: {pdf_path}"
+            f"Extracting menu from PDF using Native Gemini File API: {working_pdf}"
         )
 
         try:
             # 1. Try Native PDF Extraction (Best for mixed content and context)
             gemini_result = await self.agent.extract_menu_from_pdf(
-                pdf_path, additional_context=business_context
+                working_pdf, additional_context=business_context
             )
 
             items = gemini_result.get("items", [])
@@ -216,7 +247,7 @@ class MenuExtractor:
 
         # Fallback: Convert to images and process page by page (Legacy method)
         return await self._extract_from_pdf_images_fallback(
-            pdf_path, use_ocr, business_context
+            working_pdf, use_ocr, business_context
         )
 
     async def _extract_from_pdf_images_fallback(

@@ -166,7 +166,8 @@ class Settings(BaseSettings):
     ws_heartbeat_interval: int = 30
 
     # ==================== File Upload ====================
-    max_upload_size_mb: int = 10
+    max_upload_size_mb: int = 50
+    max_pdf_pages: int = 30
     allowed_image_extensions: str = "jpg,jpeg,png,webp,pdf"
     allowed_data_extensions: str = "csv,xlsx"
     allowed_audio_extensions: str = "mp3,wav,m4a,ogg,webm,flac,aac"
