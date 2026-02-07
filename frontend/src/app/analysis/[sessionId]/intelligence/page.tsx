@@ -1,6 +1,8 @@
 'use client';
 
 import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
+import { LiveTranscriptionBox } from '@/components/multimodal/LiveTranscriptionBox';
+import { VideoAnalysisZone } from '@/components/multimodal/VideoAnalysisZone';
 import {
   Brain,
   Camera,
@@ -16,12 +18,14 @@ import {
   Zap,
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 import { useSessionData } from '../layout';
 
 export default function IntelligencePage() {
   const params = useParams();
   const sessionId = params.sessionId as string;
   const { sessionData, isLoading } = useSessionData();
+  const [activeDemo, setActiveDemo] = useState<'video' | 'audio'>('video');
 
   const unwrapped = (sessionData as any)?.data || sessionData;
   const restaurantName = unwrapped?.restaurant_info?.name || unwrapped?.restaurant_name || 'Restaurant';
@@ -31,7 +35,6 @@ export default function IntelligencePage() {
   const hasBCG = !!(unwrapped?.bcg_analysis?.items?.length || unwrapped?.bcg?.items?.length);
   const hasCampaigns = !!(Array.isArray(unwrapped?.campaigns) ? unwrapped.campaigns.length : unwrapped?.campaigns?.campaigns?.length);
   const hasSocialMedia = !!unwrapped?.sentiment_analysis?.social_media_analysis;
-  const hasBusinessProfile = !!unwrapped?.business_profile_enriched;
 
   if (isLoading) {
     return (
@@ -214,6 +217,67 @@ export default function IntelligencePage() {
               <span className="text-sm font-bold">{item.value}</span>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Interactive Demo: Try It Live */}
+      <div className="bg-white rounded-xl border border-indigo-200 overflow-hidden">
+        <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-indigo-600" />
+            Try It Live — Multimodal Input
+          </h3>
+          <p className="text-sm text-gray-500 mt-0.5">Upload a video or record audio to see Gemini 3 process it in real-time</p>
+        </div>
+
+        {/* Demo Tabs */}
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveDemo('video')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 flex items-center justify-center gap-2 ${
+              activeDemo === 'video'
+                ? 'border-pink-500 text-pink-600 bg-pink-50/50'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Video className="h-4 w-4" />
+            Native Video Analysis
+            <GeminiCapabilityBadge capabilities={['video']} size="xs" />
+          </button>
+          <button
+            onClick={() => setActiveDemo('audio')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 flex items-center justify-center gap-2 ${
+              activeDemo === 'audio'
+                ? 'border-emerald-500 text-emerald-600 bg-emerald-50/50'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Mic className="h-4 w-4" />
+            Voice Understanding
+            <GeminiCapabilityBadge capabilities={['audio']} size="xs" />
+          </button>
+        </div>
+
+        {/* Demo Content */}
+        <div className="p-4">
+          {activeDemo === 'video' ? (
+            <VideoAnalysisZone
+              sessionId={sessionId}
+              onAnalysisComplete={(result) => {
+                console.log('[AI Intelligence] Video analysis complete:', result);
+              }}
+              onError={(error) => {
+                console.warn('[AI Intelligence] Video analysis error:', error);
+              }}
+            />
+          ) : (
+            <LiveTranscriptionBox
+              onTranscriptionComplete={(text, segments) => {
+                console.log('[AI Intelligence] Transcription complete:', text, segments);
+              }}
+              placeholder="Press the microphone to start recording — Gemini 3 will transcribe and analyze your voice in real-time"
+            />
+          )}
         </div>
       </div>
 

@@ -71,19 +71,21 @@ const nextConfig = {
   },
 
   // Rewrites to proxy API requests to backend
+  // Uses NEXT_PUBLIC_API_URL for Cloud Run deployment (defaults to localhost:8000 for local dev)
   async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
       {
         source: '/health',
-        destination: 'http://localhost:8000/health',
+        destination: `${backendUrl}/health`,
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://localhost:8000/uploads/:path*',
+        destination: `${backendUrl}/uploads/:path*`,
       },
     ]
   },

@@ -42,7 +42,7 @@ steps:
       - '-t'
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:latest'
       - '--build-arg'
-      - 'NEXT_PUBLIC_API_URL='
+      - 'NEXT_PUBLIC_API_URL=https://${_BACKEND_SERVICE}-$PROJECT_NUMBER.${_REGION}.run.app'
       - './frontend'
 
   # ============================================================
@@ -109,6 +109,8 @@ steps:
       - '3'
       - '--min-instances'
       - '0'
+      - '--set-env-vars'
+      - 'NEXT_PUBLIC_API_URL=https://${_BACKEND_SERVICE}-$PROJECT_NUMBER.${_REGION}.run.app'
 
 images:
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:$COMMIT_SHA'
