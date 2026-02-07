@@ -223,6 +223,9 @@ class BCGClassifier:
                 gross_profit = 0
             sales_by_item[item_name]["gross_profits"].append(gross_profit)
 
+        # Build fuzzy lookup index for name matching
+        sales_name_index = self._build_name_index(sales_by_item)
+
         # Calculate TOTAL GROSS PROFIT for the portfolio (key BCG metric)
         total_gross_profit = sum(
             sum(s["gross_profits"]) for s in sales_by_item.values()
@@ -233,18 +236,15 @@ class BCGClassifier:
 
         # Calculate metrics for each item
         metrics = []
+        empty_sales = {"units": [], "dates": [], "revenues": [], "costs": [], "gross_profits": []}
         for item in menu_items:
             item_name = item.get("name")
-            sales = sales_by_item.get(
-                item_name,
-                {
-                    "units": [],
-                    "dates": [],
-                    "revenues": [],
-                    "costs": [],
-                    "gross_profits": [],
-                },
-            )
+            # Try exact match first, then fuzzy match via normalized index
+            sales = sales_by_item.get(item_name)
+            if not sales:
+                sales = self._fuzzy_lookup_sales(item_name, sales_by_item, sales_name_index)
+            if not sales:
+                sales = empty_sales
 
             total_item_units = sum(sales["units"]) if sales["units"] else 0
             total_item_revenue = sum(sales["revenues"]) if sales["revenues"] else 0
@@ -329,6 +329,65 @@ class BCGClassifier:
 
         return metrics
 
+    @staticmethod
+    def _normalize_name(name: str) -> str:
+        """Normalize a product name for fuzzy matching."""
+        import re
+        import unicodedata
+        name = name.strip().lower()
+        # Remove accents
+        name = unicodedata.normalize("NFD", name)
+        name = "".join(c for c in name if unicodedata.category(c) != "Mn")
+        # Remove parenthetical suffixes like (Botella), (Trago), (Media)
+        name = re.sub(r"\s*\(.*?\)\s*", "", name).strip()
+        # Remove special punctuation (backticks, apostrophes, quotes)
+        name = re.sub(r"[`'\"']", "", name)
+        # Normalize whitespace
+        name = re.sub(r"\s+", " ", name)
+        return name
+
+    def _build_name_index(self, sales_by_item: Dict[str, Any]) -> Dict[str, str]:
+        """Build a normalized name → original name index for fuzzy lookups."""
+        index = {}
+        for original_name in sales_by_item:
+            norm = self._normalize_name(original_name)
+            index[norm] = original_name
+        return index
+
+    def _fuzzy_lookup_sales(
+        self,
+        menu_item_name: str,
+        sales_by_item: Dict[str, Any],
+        name_index: Dict[str, str],
+    ) -> Optional[Dict[str, Any]]:
+        """Try to find sales data for a menu item using normalized name matching."""
+        if not menu_item_name:
+            return None
+        norm = self._normalize_name(menu_item_name)
+        # 1. Exact normalized match
+        if norm in name_index:
+            return sales_by_item.get(name_index[norm])
+        # 2. Substring match
+        for sales_norm, sales_original in name_index.items():
+            if norm in sales_norm or sales_norm in norm:
+                return sales_by_item.get(sales_original)
+        # 3. Token overlap match (handles spelling variations)
+        norm_tokens = set(norm.split())
+        if len(norm_tokens) >= 1:
+            best_match = None
+            best_overlap = 0
+            for sales_norm, sales_original in name_index.items():
+                sales_tokens = set(sales_norm.split())
+                overlap = len(norm_tokens & sales_tokens)
+                # Require majority token overlap
+                min_len = min(len(norm_tokens), len(sales_tokens))
+                if min_len > 0 and overlap / min_len >= 0.6 and overlap > best_overlap:
+                    best_overlap = overlap
+                    best_match = sales_original
+            if best_match:
+                return sales_by_item.get(best_match)
+        return None
+
     def _calculate_growth_rate(self, units: List[int], dates: List[Any]) -> float:
         """Calculate growth rate from sales data."""
 
@@ -392,13 +451,31 @@ class BCGClassifier:
         Returns detailed strategic recommendations specific to restaurant context.
         """
 
+        has_sales_data = item.get("data_points", 0) > 0
         high_share = item["market_share"] >= thresholds["high_share_threshold"]
         high_growth = item["growth_rate"] >= thresholds["high_growth_threshold"]
         # Margin thresholds for future enhanced classification
         _high_margin = item["margin"] >= 0.60  # 60%+ margin is excellent
         _low_margin = item["margin"] < 0.40  # Below 40% needs attention
 
-        if high_share and high_growth:
+        # Items with NO sales data → Question Mark (unknown potential, needs investigation)
+        if not has_sales_data:
+            bcg_class = BCGClass.QUESTION_MARK
+            label = "Question Mark ❓"
+            strategy = {
+                "summary": "NO SALES DATA - This item is on the menu but has no recorded sales. Investigate why.",
+                "actions": [
+                    "Verify this item is actively offered to customers",
+                    "Check if staff is aware of and recommending this dish",
+                    "Consider a promotional push to test real demand",
+                    "Review pricing — may be too high for the target market",
+                    "If new item, allow 2-4 weeks before re-evaluating",
+                ],
+                "investment_recommendation": "Test — run a promotion to gauge demand",
+                "pricing_recommendation": "Review competitiveness vs similar items",
+            }
+            priority = "high"
+        elif high_share and high_growth:
             bcg_class = BCGClass.STAR
             label = "Star ⭐"
             strategy = self._get_star_strategy(item)

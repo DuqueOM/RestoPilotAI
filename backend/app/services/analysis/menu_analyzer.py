@@ -654,8 +654,8 @@ Respond in JSON:
             processed_item = {
                 "name": name,
                 "price": round(float(price), 2),
-                "description": item.get("description", "").strip() or None,
-                "category": item.get("category", "").strip() or "Other",
+                "description": (item.get("description") or "").strip() or None,
+                "category": (item.get("category") or "").strip() or "Other",
                 "confidence": item.get("confidence", 0.8),
                 "dietary_tags": self._extract_dietary_tags(item),
             }

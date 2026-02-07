@@ -1368,7 +1368,7 @@ class AnalysisOrchestrator:
             self._save_checkpoint(state, success=False, error=str(e))
 
     async def _process_sales_data(self, state: AnalysisState, sales_csv: str):
-        """Process sales CSV data."""
+        """Process sales CSV data and enrich menu with sales-only items."""
         import csv
         from io import StringIO
 
@@ -1376,14 +1376,20 @@ class AnalysisOrchestrator:
         sales_records = list(reader)
 
         for record in sales_records:
+            item_name = record.get("item_name", record.get("product", ""))
+            price_val = record.get("price", record.get("subtotal_tiket", 0))
+            cost_val = record.get("cost", record.get("unit_cost", 0))
             state.sales_data.append(
                 {
-                    "item_name": record.get("item_name", record.get("product", "")),
+                    "item_name": item_name,
                     "sale_date": record.get("date", record.get("sale_date", "")),
                     "units_sold": int(
                         record.get("units_sold", record.get("quantity", 0))
                     ),
+                    "price": float(price_val) if price_val else 0,
+                    "cost": float(cost_val) if cost_val else 0,
                     "revenue": float(record.get("revenue", record.get("total", 0))),
+                    "category": record.get("categoria", record.get("category", "")),
                     "had_promotion": record.get("had_promotion", "").lower() == "true",
                     "promotion_discount": float(
                         record.get("promotion_discount", 0) or 0
@@ -1391,17 +1397,86 @@ class AnalysisOrchestrator:
                 }
             )
 
+        # Enrich menu: add items found in sales but not in extracted menu
+        items_added = self._enrich_menu_from_sales(state)
+
         self._add_thought_trace(
             state,
             step="Sales Data Processing",
-            reasoning="Parsing and validating historical sales records",
+            reasoning="Parsing sales records and cross-referencing with menu extraction",
             observations=[
                 f"Processed {len(state.sales_data)} sales records",
-                "Date range identified from CSV",
+                f"Found {items_added} additional items in sales not in menu extraction",
+                f"Total menu items after enrichment: {len(state.menu_items)}",
             ],
-            decisions=["Data validated and ready for analysis"],
+            decisions=["Data validated, menu enriched from sales source"],
             confidence=0.9,
         )
+
+    def _enrich_menu_from_sales(self, state: "AnalysisState") -> int:
+        """Add items that appear in sales data but not in the extracted menu."""
+        import unicodedata
+
+        def normalize(name: str) -> str:
+            """Normalize name for comparison: lowercase, strip accents, remove parenthetical suffixes."""
+            import re
+            name = name.strip().lower()
+            # Remove accents
+            name = unicodedata.normalize("NFD", name)
+            name = "".join(c for c in name if unicodedata.category(c) != "Mn")
+            # Remove common suffixes like (Botella), (Trago), (Media)
+            name = re.sub(r"\s*\(.*?\)\s*", "", name).strip()
+            # Remove special punctuation
+            name = re.sub(r"[`'\"']", "", name)
+            name = re.sub(r"\s+", " ", name)
+            return name
+
+        # Build normalized lookup of existing menu items
+        menu_names_normalized = {}
+        for item in state.menu_items:
+            norm = normalize(item.get("name", ""))
+            menu_names_normalized[norm] = item
+
+        # Aggregate sales by item name to get avg price, cost, category
+        sales_agg = {}
+        for record in state.sales_data:
+            item_name = record.get("item_name", "")
+            if not item_name:
+                continue
+            if item_name not in sales_agg:
+                sales_agg[item_name] = {
+                    "prices": [], "costs": [], "category": record.get("category", ""),
+                    "count": 0,
+                }
+            if record.get("price"):
+                sales_agg[item_name]["prices"].append(record["price"])
+            if record.get("cost"):
+                sales_agg[item_name]["costs"].append(record["cost"])
+            sales_agg[item_name]["count"] += 1
+
+        added = 0
+        for sales_name, agg in sales_agg.items():
+            norm = normalize(sales_name)
+            if norm not in menu_names_normalized:
+                # This item is in sales but NOT in menu — add it
+                avg_price = sum(agg["prices"]) / len(agg["prices"]) if agg["prices"] else 0
+                avg_cost = sum(agg["costs"]) / len(agg["costs"]) if agg["costs"] else 0
+                state.menu_items.append({
+                    "name": sales_name,
+                    "price": round(avg_price, 2),
+                    "cost": round(avg_cost, 2),
+                    "category": agg["category"] or "Other",
+                    "description": None,
+                    "confidence": 0.7,
+                    "source": "sales_enrichment",
+                    "dietary_tags": [],
+                })
+                menu_names_normalized[norm] = state.menu_items[-1]
+                added += 1
+
+        if added:
+            logger.info(f"Menu enriched with {added} items from sales data")
+        return added
 
     async def _run_bcg_classification(
         self, state: AnalysisState, thinking_level: ThinkingLevel
