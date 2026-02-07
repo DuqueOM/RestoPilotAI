@@ -1,7 +1,7 @@
 'use client';
 
 import { api } from '@/lib/api';
-import { BarChart3, Brain, CheckCircle2, ChefHat, Loader2, Megaphone, MessageSquare, Sparkles, Target } from 'lucide-react';
+import { BarChart3, Brain, CheckCircle2, ChefHat, Eye, Loader2, Megaphone, MessageSquare, Sparkles, Target } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, ReactNode, use, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
@@ -33,6 +33,7 @@ const tabs = [
   { value: 'bcg', label: 'BCG Matrix', href: '/bcg', icon: BarChart3, dataKey: 'bcg' },
   { value: 'competitors', label: 'Competitors', href: '/competitors', icon: Target, dataKey: 'competitors' },
   { value: 'sentiment', label: 'Sentiment', href: '/sentiment', icon: MessageSquare, dataKey: 'sentiment' },
+  { value: 'intelligence', label: 'AI Intelligence', href: '/intelligence', icon: Eye, dataKey: null },
   { value: 'campaigns', label: 'Campaigns', href: '/campaigns', icon: Megaphone, dataKey: 'campaigns' },
 ];
 

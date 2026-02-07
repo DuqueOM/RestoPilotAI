@@ -1,5 +1,7 @@
 'use client';
 
+import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
+import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
 import { CreativeAutopilot } from '@/components/creative/CreativeAutopilot';
 import { Campaign, CampaignResult } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -139,11 +141,9 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
                 <Sparkles className="w-5 h-5 text-purple-600" />
                 Creative Studio & Campaigns
               </h1>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-rose-50 to-purple-50 border border-purple-200/60 rounded-full text-[10px] font-semibold text-purple-700">
-                <Zap className="h-2.5 w-2.5" /> Imagen 3 · Creative Autopilot
-              </span>
+              <GeminiCapabilityBadge capabilities={['pro', 'image-gen', 'creative-autopilot', 'thinking', 'debate']} size="xs" />
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">AI-generated marketing campaigns, predictions, and creative assets</p>
+            <p className="text-sm text-gray-500 mt-0.5">AI-generated campaigns, Imagen 3 creative assets & sales predictions</p>
           </div>
         </div>
       </div>
@@ -232,6 +232,14 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">{data.thought_process}</p>
                 </div>
               )}
+
+              {/* AI Agent Debate on Campaign Strategy */}
+              <AgentDebateTrigger
+                sessionId={sessionId}
+                topic={`Campaign Strategy: ${data.campaigns.length} campaigns targeting ${[...new Set(data.campaigns.map(c => c.target_category))].join(', ')}`}
+                context={`Campaigns: ${data.campaigns.map(c => c.title).join(', ')}. Restaurant: ${restaurantName}`}
+                variant="card"
+              />
             </>
           )}
         </div>

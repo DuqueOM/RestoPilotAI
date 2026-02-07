@@ -1,6 +1,7 @@
 'use client';
 
 import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
+import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
 import { GroundingSources } from '@/components/common/GroundingSources';
 import { Globe, Loader2, MapPin, Search, Shield, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
 import { useParams } from 'next/navigation';
@@ -69,11 +70,9 @@ export default function CompetitorsPage() {
                 <Target className="w-5 h-5 text-teal-600" />
                 Competitor Analysis
               </h1>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/60 rounded-full text-[10px] font-semibold text-blue-700">
-                <Globe className="h-2.5 w-2.5" /> Google Search Grounding · Auto-cited
-              </span>
+              <GeminiCapabilityBadge capabilities={['pro', 'grounding', 'thinking', 'debate']} size="xs" />
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">Market intelligence on {competitors.length} nearby competitors with Google Search grounding</p>
+            <p className="text-sm text-gray-500 mt-0.5">Real-time market intelligence via Google Search grounding & multi-agent debate</p>
           </div>
         </div>
       </div>

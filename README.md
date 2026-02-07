@@ -102,6 +102,7 @@ flowchart TD
         Dashboard[Analysis Dashboard] --> Proxy
         BCG[BCG Matrix] --> Proxy
         Sentiment[Sentiment] --> Proxy
+        Intelligence[AI Intelligence] --> Proxy
         Campaigns[Creative Studio] --> Proxy
         Proxy{{Next.js API Proxy}}
     end
@@ -111,7 +112,7 @@ flowchart TD
     subgraph Backend["Backend — FastAPI"]
         API[API Routes \n 80+ endpoints] --> Orchestrator
 
-        subgraph Orchestrator["Marathon Orchestrator \n 17-stage pipeline with checkpoints"]
+        subgraph Orchestrator["Marathon Orchestrator \n 14-stage pipeline with checkpoints"]
             direction LR
             Ingest[Data Ingestion] --> MenuEx[Menu Extraction]
             MenuEx --> CompDisc[Competitor Discovery]
@@ -150,7 +151,7 @@ flowchart TD
     style Orchestrator fill:#1a1a4e,stroke:#16213e,color:#e0e0ff
 ```
 
-### Analysis Pipeline (17 Stages)
+### Analysis Pipeline (14 Stages)
 
 ```
 Data Ingestion → Menu Extraction → Competitor Parsing → Competitor Discovery
@@ -187,10 +188,19 @@ Each stage produces **thought signatures** and supports **checkpoint recovery**.
 
 ### 💬 Sentiment Analysis
 - **Google Maps Review Mining** — extract and analyze real customer reviews
+- **Social Media Intelligence** — Instagram & Facebook sentiment via Google Search grounding
 - **Photo Sentiment** — visual appeal and presentation quality scoring
 - **NPS Estimation** — Net Promoter Score derived from review patterns
 - **Category Breakdown** — service, food quality, ambiance, value scores
 - **Actionable Recommendations** — prioritized improvement suggestions
+
+### 🧿 AI Intelligence Dashboard
+- **Gemini 3 Capability Showcase** — visual map of all multimodal capabilities used
+- **Pipeline Status** — real-time view of which analysis stages are complete
+- **Document Intelligence** — menu extraction, dish analysis, visual quality scoring
+- **Native Video Understanding** — restaurant walkthrough analysis, ambiance scoring
+- **Voice Understanding** — audio transcription, multilingual business context
+- **Architecture Overview** — input modalities → processing pipeline → output capabilities
 
 ### 🎨 Creative Studio & Campaigns
 - **AI Campaign Generation** — complete marketing campaign proposals

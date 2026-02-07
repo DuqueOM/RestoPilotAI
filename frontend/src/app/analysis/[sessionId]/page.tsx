@@ -1,5 +1,6 @@
 'use client';
 
+import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
 import { DebateResult, MultiAgentDebatePanel } from '@/components/ai/MultiAgentDebatePanel';
 import { QualityAssurancePanel } from '@/components/ai/QualityAssurancePanel';
 import { ThoughtBubbleStream } from '@/components/ai/ThoughtBubbleStream';
@@ -157,7 +158,7 @@ export default function AnalysisPage() {
                   {restaurantInfo.name || 'My Restaurant'}
                 </h1>
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full text-[10px] font-semibold text-blue-100">
-                  <Brain className="h-3 w-3" /> Marathon Agent · 17-stage Pipeline
+                  <Brain className="h-3 w-3" /> Marathon Agent · 14-stage Pipeline
                 </span>
               </div>
               {restaurantInfo.location && (
@@ -213,6 +214,18 @@ export default function AnalysisPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Gemini 3 Capabilities Showcase */}
+      <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-blue-100 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-4 w-4 text-blue-600" />
+          <span className="text-sm font-semibold text-gray-800">Powered by Gemini 3 — Multimodal AI Capabilities</span>
+        </div>
+        <GeminiCapabilityBadge
+          capabilities={['pro', 'vision', 'video', 'audio', 'image-gen', 'grounding', 'thinking', 'vibe', 'creative-autopilot', 'marathon', 'debate', 'context-cache']}
+          size="sm"
+        />
       </div>
 
       {/* AI Thought Stream - Shows during active analysis */}

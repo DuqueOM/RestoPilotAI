@@ -51,6 +51,7 @@ frontend/
 │   │           ├── bcg/page.tsx     # BCG matrix analysis
 │   │           ├── campaigns/page.tsx   # Creative studio & campaigns
 │   │           ├── competitors/page.tsx # Competitor analysis
+│   │           ├── intelligence/page.tsx # AI Intelligence showcase
 │   │           └── sentiment/page.tsx   # Sentiment analysis
 │   ├── components/
 │   │   ├── ai/                  # AI Transparency components
@@ -59,7 +60,8 @@ frontend/
 │   │   │   ├── VerifiedSourceBadge.tsx   # Grounding source badges
 │   │   │   ├── AgentDebateTrigger.tsx    # Multi-agent debate trigger
 │   │   │   ├── MultiAgentDebatePanel.tsx # Debate visualization
-│   │   │   └── QualityAssurancePanel.tsx # Vibe Engineering QA
+│   │   │   ├── QualityAssurancePanel.tsx # Vibe Engineering QA
+│   │   │   └── GeminiCapabilityBadge.tsx # Gemini 3 capability badges
 │   │   ├── analysis/            # Analysis visualization
 │   │   │   ├── AdvancedAnalytics.tsx     # Advanced patterns & trends
 │   │   │   ├── AgentDashboard.tsx        # AI agent activity dashboard

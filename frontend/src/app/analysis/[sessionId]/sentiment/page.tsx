@@ -1,6 +1,7 @@
 'use client';
 
 import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
+import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
 import { CheckCircle2, ExternalLink, Facebook, Instagram, Loader2, MapPin, MessageCircle, Shield, Star, ThumbsDown, ThumbsUp, TrendingUp } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -96,11 +97,9 @@ export default function SentimentPage() {
                 <MessageCircle className="w-5 h-5 text-rose-500" />
                 Sentiment Analysis
               </h1>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/60 rounded-full text-[10px] font-semibold text-blue-700">
-                <Star className="h-2.5 w-2.5" /> Gemini 3 Pro · Multi-source NLP
-              </span>
+              <GeminiCapabilityBadge capabilities={['pro', 'grounding', 'vibe', 'debate']} size="xs" />
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">Customer reviews, ratings, and emotional intelligence from Google Maps, Instagram & Facebook</p>
+            <p className="text-sm text-gray-500 mt-0.5">Multi-source NLP from Google Maps, Instagram & Facebook via search grounding</p>
           </div>
           {googleMapsUrl && (
             <a

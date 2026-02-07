@@ -57,7 +57,7 @@ backend/
 │   │   ├── analysis.py          # BCG, Prediction, Campaign, ThoughtSignature schemas
 │   │   └── business.py          # Menu, Sales, Extraction schemas
 │   └── services/
-│       ├── orchestrator.py      # AnalysisOrchestrator — 17-stage pipeline
+│       ├── orchestrator.py      # AnalysisOrchestrator — 14-stage pipeline
 │       ├── analysis/
 │       │   ├── bcg.py           # BCGClassifier — Star/CashCow/QuestionMark/Dog
 │       │   ├── menu_analyzer.py # MenuExtractor — multimodal menu digitization

@@ -2,6 +2,7 @@
 
 import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
 import { ConfidenceIndicator } from '@/components/ai/ConfidenceIndicator';
+import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
 import { MenuItemsTable } from '@/components/analysis/MenuItemsTable';
 import { GroundingSources } from '@/components/common/GroundingSources';
 import { MenuTransformationIntegrated } from '@/components/creative/MenuTransformationIntegrated';
@@ -172,11 +173,9 @@ export default function BCGPage({ params }: BCGPageProps) {
                 <BarChart3 className="w-5 h-5 text-amber-600" />
                 Menu Engineering & BCG Matrix
               </h1>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/60 rounded-full text-[10px] font-semibold text-blue-700">
-                <TrendingUp className="h-2.5 w-2.5" /> Gemini 3 Pro · Exhaustive Reasoning
-              </span>
+              <GeminiCapabilityBadge capabilities={['pro', 'thinking', 'grounding', 'vibe', 'debate']} size="xs" />
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">Strategic classification of your menu items by profitability and popularity</p>
+            <p className="text-sm text-gray-500 mt-0.5">Strategic classification powered by deep reasoning, search grounding & multi-agent debate</p>
           </div>
         </div>
       </div>
