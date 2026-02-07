@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   keywords: ['restaurant', 'menu optimization', 'AI', 'BCG analysis', 'Gemini', 'marketing campaigns'],
   authors: [{ name: 'RestoPilotAI Team' }],
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon.svg',
   },
 }
 

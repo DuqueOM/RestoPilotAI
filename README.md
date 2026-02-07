@@ -435,8 +435,6 @@ RestoPilotAI/
 ├── cloudbuild.yaml              # Google Cloud Build config (Cloud Run)
 ├── Makefile                     # Development commands
 ├── .env.example                 # Environment variable template
-├── MODEL_CARD.md                # AI Model Card
-├── DATA_CARD.md                 # Data Card
 └── README.md                    # This file
 ```
 
@@ -570,8 +568,8 @@ RestoPilotAI implements **all major hackathon tracks**:
 |----------|-------------|
 | [Backend README](./backend/README.md) | Full API reference, services, pipeline stages |
 | [Frontend README](./frontend/README.md) | Components, hooks, pages, architecture |
-| [Model Card](./MODEL_CARD.md) | AI model specifications, biases, limitations |
-| [Data Card](./DATA_CARD.md) | Data flows, schemas, privacy considerations |
+| [Model Card](./docs/MODEL_CARD.md) | AI model specifications, biases, limitations |
+| [Data Card](./docs/DATA_CARD.md) | Data flows, schemas, privacy considerations |
 | [Advanced Multimodal Guide](./docs/ADVANCED_MULTIMODAL_GUIDE.md) | Video, audio, image, PDF processing |
 | [Advanced Reasoning Guide](./docs/ADVANCED_REASONING_GUIDE.md) | Reasoning patterns, multi-agent debate |
 | [Enhanced Agent Usage](./docs/ENHANCED_AGENT_USAGE.md) | Agent configuration and usage |

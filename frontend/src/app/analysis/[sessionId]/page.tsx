@@ -6,7 +6,7 @@ import { ThoughtBubbleStream } from '@/components/ai/ThoughtBubbleStream';
 import { DashboardSkeleton } from '@/components/ui/AnalysisSkeleton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useMarathonAgent } from '@/hooks/useMarathonAgent';
-import { ArrowRight, BarChart3, Bot, Brain, Camera, CheckCircle2, Download, Eye, Globe, Image, Loader2, MapPin, Megaphone, MessageSquare, Music, RefreshCw, Shield, Sparkles, Star, Store, Target, Video, Wand2, Zap } from 'lucide-react';
+import { ArrowRight, BarChart3, Bot, Brain, Camera, CheckCircle2, Download, Eye, Globe, Image, Loader2, MapPin, Megaphone, MessageCircle, MessageSquare, Music, RefreshCw, Shield, Sparkles, Star, Store, Target, Video, Wand2, Zap } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useSessionData } from './layout';
@@ -493,6 +493,12 @@ export default function AnalysisPage() {
                 icon={<Megaphone className="h-5 w-5 text-purple-600" />}
               />
             )}
+            <WhatsNextCard
+              title="View Sentiment Analysis"
+              description="Google Maps reviews, social media signals & AI insights"
+              action={() => router.push(`/analysis/${sessionId}/sentiment`)}
+              icon={<MessageCircle className="h-5 w-5 text-green-600" />}
+            />
           </div>
         </div>
       )}
@@ -583,11 +589,12 @@ function SummarySection({
 // Inline summary components with actual data
 function BCGSummaryInline({ data }: { data: any }) {
   if (!data) return null;
-  const items = data.items || [];
-  const stars = items.filter((i: any) => i.category_label === 'star' || i.category_label === 'Star').length;
-  const plowhorses = items.filter((i: any) => i.category_label === 'plowhorse' || i.category_label === 'Plowhorse' || i.category_label === 'cash_cow').length;
-  const puzzles = items.filter((i: any) => i.category_label === 'puzzle' || i.category_label === 'Puzzle' || i.category_label === 'question_mark').length;
-  const dogs = items.filter((i: any) => i.category_label === 'dog' || i.category_label === 'Dog').length;
+  const items = data.items || data.classifications || [];
+  const getCategory = (i: any) => (i.category || i.bcg_class || '').toLowerCase();
+  const stars = items.filter((i: any) => getCategory(i) === 'star').length;
+  const plowhorses = items.filter((i: any) => getCategory(i) === 'plowhorse' || getCategory(i) === 'cash_cow').length;
+  const puzzles = items.filter((i: any) => getCategory(i) === 'puzzle' || getCategory(i) === 'question_mark').length;
+  const dogs = items.filter((i: any) => getCategory(i) === 'dog').length;
   
   return (
     <div className="space-y-3">
