@@ -944,42 +944,55 @@ Respond ONLY with valid JSON.
     async def _call_gemini_with_pdf(self, prompt: str, pdf_path: str) -> Any:
         """Upload PDF to Gemini File API and generate content."""
         logger.info(f"Uploading PDF {pdf_path} to Gemini...")
-        # Fix: 'path' argument error. usage is client.files.upload(file=...) or positional
-        try:
-            file_ref = self.client.files.upload(file=pdf_path)
-        except TypeError:
-            # Fallback if 'file' keyword also fails (older versions might use different sig)
-            file_ref = self.client.files.upload(path=pdf_path)
 
-        # Wait for processing
+        def _sync_upload():
+            try:
+                return self.client.files.upload(file=pdf_path)
+            except TypeError:
+                return self.client.files.upload(path=pdf_path)
 
-        while file_ref.state.name == "PROCESSING":
-            await asyncio.sleep(1)
-            file_ref = self.client.files.get(name=file_ref.name)
+        file_ref = await asyncio.to_thread(_sync_upload)
+
+        # Wait for processing with timeout
+        max_wait = 120
+        waited = 0
+        while file_ref.state.name == "PROCESSING" and waited < max_wait:
+            await asyncio.sleep(2)
+            waited += 2
+            file_ref = await asyncio.to_thread(
+                self.client.files.get, name=file_ref.name
+            )
 
         if file_ref.state.name == "FAILED":
             raise ValueError(f"PDF processing failed: {file_ref.state.name}")
+        if file_ref.state.name == "PROCESSING":
+            raise ValueError(f"PDF processing timed out after {max_wait}s")
 
         logger.info(f"PDF processed. Generating analysis for {pdf_path}...")
 
-        response = self.client.models.generate_content(
-            model=self.MODEL_NAME,
-            contents=[
-                types.Content(
-                    parts=[
-                        types.Part(text=prompt),
-                        types.Part(
-                            file_data=types.FileData(
-                                file_uri=file_ref.uri, mime_type="application/pdf"
-                            )
-                        ),
-                    ]
-                )
-            ],
-            config=types.GenerateContentConfig(
-                temperature=0.2,  # Low temp for accurate data extraction
-                max_output_tokens=8192,
-            ),
+        def _sync_generate():
+            return self.client.models.generate_content(
+                model=self.model_name,
+                contents=[
+                    types.Content(
+                        parts=[
+                            types.Part(text=prompt),
+                            types.Part(
+                                file_data=types.FileData(
+                                    file_uri=file_ref.uri, mime_type="application/pdf"
+                                )
+                            ),
+                        ]
+                    )
+                ],
+                config=types.GenerateContentConfig(
+                    temperature=0.2,
+                    max_output_tokens=8192,
+                ),
+            )
+
+        response = await asyncio.wait_for(
+            asyncio.to_thread(_sync_generate), timeout=120.0
         )
         return response
 
@@ -990,9 +1003,12 @@ Respond ONLY with valid JSON.
         Extract menu items from a menu image using multimodal analysis.
         """
 
-        # Read and encode image
+        # Read and encode image with correct mime type
         image_data = Path(image_path).read_bytes()
         image_base64 = base64.b64encode(image_data).decode()
+        ext = Path(image_path).suffix.lower()
+        mime_map = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
+        mime_type = mime_map.get(ext, "image/jpeg")
 
         prompt = """You are an ADVANCED artificial intelligence system specialized in digitizing complex restaurant menus.
 Your mission is to perform a TOTAL AND DEEP extraction of every sellable item visible in this menu image.
@@ -1048,7 +1064,7 @@ Respond ONLY with valid JSON.
         if additional_context:
             prompt += f"\n\nADDITIONAL CONTEXT (Text extracted by OCR/PDF): {additional_context}"
 
-        response = await self._call_gemini_with_image(prompt, image_base64)
+        response = await self._call_gemini_with_image(prompt, image_base64, mime_type=mime_type)
         self.call_count += 1
 
         return self._parse_extraction_response(response)
@@ -1370,24 +1386,29 @@ Be critical and thorough."""
         self, prompt: str, image_base64: str, mime_type: str = "image/jpeg"
     ) -> Any:
         """Call Gemini with image/video content."""
-        response = self.client.models.generate_content(
-            model=self.MODEL_NAME,
-            contents=[
-                types.Content(
-                    parts=[
-                        types.Part(text=prompt),
-                        types.Part(
-                            inline_data=types.Blob(
-                                mime_type=mime_type, data=base64.b64decode(image_base64)
-                            )
-                        ),
-                    ]
-                )
-            ],
-            config=types.GenerateContentConfig(
-                temperature=0.4,
-                max_output_tokens=8192,
-            ),
+        def _sync_generate():
+            return self.client.models.generate_content(
+                model=self.model_name,
+                contents=[
+                    types.Content(
+                        parts=[
+                            types.Part(text=prompt),
+                            types.Part(
+                                inline_data=types.Blob(
+                                    mime_type=mime_type, data=base64.b64decode(image_base64)
+                                )
+                            ),
+                        ]
+                    )
+                ],
+                config=types.GenerateContentConfig(
+                    temperature=0.4,
+                    max_output_tokens=8192,
+                ),
+            )
+
+        response = await asyncio.wait_for(
+            asyncio.to_thread(_sync_generate), timeout=90.0
         )
         return response
 

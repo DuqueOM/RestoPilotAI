@@ -198,57 +198,313 @@ class MenuExtractor:
         business_context: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Extract menu items from a PDF using Gemini Native PDF support.
+        Dual-Analysis Menu Extraction Pipeline.
+
+        Showcases multiple Gemini 3 capabilities:
+          Pass 1 — Document Intelligence: PDF text extraction + Gemini native PDF analysis
+          Pass 2 — Vision Analysis: Convert pages to images + Gemini multimodal vision
+          Pass 3 — Intelligent Fusion: Merge both analyses with Gemini reasoning
+          Pass 4 — Vibe Engineering: Verification loop for quality assurance
         """
+        import json as _json
+
         settings = get_settings()
         max_pages = settings.max_pdf_pages
-
-        # Truncate large PDFs to avoid Gemini limits
         working_pdf = self._truncate_pdf(pdf_path, max_pages)
 
-        logger.info(
-            f"Extracting menu from PDF using Native Gemini File API: {working_pdf}"
-        )
+        logger.info(f"🔬 Dual-Analysis Pipeline starting for: {working_pdf}")
 
+        # ── Pass 1: Document Intelligence (PDF text + Gemini native) ──
+        pass1_items = []
+        pdf_text_content = ""
         try:
-            # 1. Try Native PDF Extraction (Best for mixed content and context)
-            gemini_result = await self.agent.extract_menu_from_pdf(
+            # 1a. Extract text layers from PDF with PyMuPDF
+            doc = fitz.open(working_pdf)
+            for i in range(len(doc)):
+                page_text = doc[i].get_text("text")
+                if page_text and len(page_text.strip()) > 20:
+                    pdf_text_content += f"\n--- Page {i+1} ---\n{page_text}"
+            doc.close()
+
+            if pdf_text_content:
+                logger.info(f"  Pass 1a: Extracted {len(pdf_text_content)} chars of text from PDF layers")
+
+            # 1b. Gemini native PDF analysis (Document Intelligence)
+            gemini_pdf_result = await self.agent.extract_menu_from_pdf(
                 working_pdf, additional_context=business_context
             )
-
-            items = gemini_result.get("items", [])
-
-            if items and len(items) > 5:
-                logger.info(
-                    f"Native PDF extraction successful. Found {len(items)} items."
-                )
-
-                # Post-process items
-                processed_items = self._post_process_items(items)
-                categories = self._extract_categories(processed_items)
-
-                return {
-                    "items": processed_items,
-                    "categories": categories,
-                    "item_count": len(processed_items),
-                    "extraction_confidence": gemini_result.get("confidence", 0.9),
-                    "method": "native_pdf",
-                    "warnings": self._generate_warnings(processed_items, None),
-                }
-            else:
-                logger.warning(
-                    "Native PDF extraction found few items. Falling back to page-by-image extraction."
-                )
+            pass1_items = gemini_pdf_result.get("items", [])
+            logger.info(f"  Pass 1b: Gemini Document Intelligence found {len(pass1_items)} items")
 
         except Exception as e:
-            logger.error(
-                f"Native PDF extraction failed: {e}. Falling back to image extraction."
+            logger.warning(f"  Pass 1 partial failure: {e}")
+
+        # ── Pass 2: Vision Analysis (images + Gemini multimodal) ──
+        pass2_items = []
+        try:
+            page_images = self._convert_pdf_to_images(working_pdf)
+            logger.info(f"  Pass 2: Converted {len(page_images)} pages to images for Vision Analysis")
+
+            for idx, img_path in enumerate(page_images):
+                try:
+                    page_context = business_context or ""
+                    # Enrich with text layer if available
+                    if pdf_text_content:
+                        lines = pdf_text_content.split(f"--- Page {idx+1} ---")
+                        if len(lines) > 1:
+                            next_marker = lines[1].find("--- Page ")
+                            page_text_slice = lines[1][:next_marker] if next_marker > 0 else lines[1]
+                            page_context += f"\nText from this page:\n{page_text_slice[:1500]}"
+
+                    # OCR preprocessing
+                    ocr_text = None
+                    if use_ocr:
+                        ocr_text = self._run_local_ocr(img_path)
+                    if ocr_text:
+                        page_context += f"\nOCR extraction:\n{ocr_text[:1500]}"
+
+                    vision_result = await self.agent.extract_menu_from_image(
+                        img_path, additional_context=page_context if page_context else None
+                    )
+                    page_items = vision_result.get("items", [])
+                    pass2_items.extend(page_items)
+                    logger.info(f"    Page {idx+1}: Vision found {len(page_items)} items")
+                except Exception as page_err:
+                    logger.warning(f"    Page {idx+1} vision failed: {page_err}")
+
+        except Exception as e:
+            logger.warning(f"  Pass 2 failed: {e}")
+
+        # ── Pass 3: Intelligent Fusion (Gemini reasoning) ──
+        logger.info(f"  Pass 3: Fusing {len(pass1_items)} doc items + {len(pass2_items)} vision items")
+        fused_items = await self._fuse_extractions(pass1_items, pass2_items, business_context)
+
+        # Post-process
+        processed_items = self._post_process_items(fused_items)
+        categories = self._extract_categories(processed_items)
+
+        # ── Pass 4: Vibe Engineering Verification ──
+        verified_items, verification_notes = await self._vibe_verify_extraction(
+            processed_items, pdf_text_content
+        )
+
+        final_items = verified_items if verified_items else processed_items
+        final_categories = self._extract_categories(final_items)
+
+        logger.info(
+            f"✅ Dual-Analysis complete: {len(final_items)} verified items "
+            f"(Pass1={len(pass1_items)}, Pass2={len(pass2_items)}, "
+            f"Fused={len(fused_items)}, Final={len(final_items)})"
+        )
+
+        return {
+            "items": final_items,
+            "categories": final_categories,
+            "item_count": len(final_items),
+            "extraction_confidence": 0.92 if verification_notes else 0.85,
+            "method": "dual_analysis_pipeline",
+            "pipeline_details": {
+                "pass1_document_intelligence": len(pass1_items),
+                "pass2_vision_analysis": len(pass2_items),
+                "pass3_fused": len(fused_items),
+                "pass4_verified": len(final_items),
+                "verification_notes": verification_notes,
+            },
+            "warnings": self._generate_warnings(final_items, pdf_text_content[:500] if pdf_text_content else None),
+        }
+
+    def _convert_pdf_to_images(self, pdf_path: str) -> List[str]:
+        """Convert PDF pages to JPEG images for Vision Analysis."""
+        output_paths = []
+        try:
+            doc = fitz.open(pdf_path)
+            for i in range(len(doc)):
+                page = doc[i]
+                pix = page.get_pixmap(matrix=fitz.Matrix(2.0, 2.0))
+                out_path = pdf_path.replace(".pdf", f"_vis_page{i+1}.jpg")
+                pix.pil_save(out_path, format="JPEG", quality=85, optimize=True)
+                output_paths.append(out_path)
+            doc.close()
+        except Exception as e:
+            logger.error(f"PDF to image conversion failed: {e}")
+        return output_paths
+
+    async def _fuse_extractions(
+        self,
+        doc_items: List[Dict],
+        vision_items: List[Dict],
+        business_context: Optional[str] = None,
+    ) -> List[Dict]:
+        """Pass 3: Intelligently merge Document and Vision extraction results."""
+        import json as _json
+
+        # If only one source has data, use it directly
+        if not doc_items and not vision_items:
+            return []
+        if not doc_items:
+            return vision_items
+        if not vision_items:
+            return doc_items
+
+        # Both have data — use Gemini to intelligently fuse
+        # Use larger source as primary, smaller as supplement
+        if len(doc_items) >= len(vision_items):
+            primary, primary_label = doc_items, "Document Intelligence"
+            secondary, secondary_label = vision_items, "Vision Analysis"
+        else:
+            primary, primary_label = vision_items, "Vision Analysis"
+            secondary, secondary_label = doc_items, "Document Intelligence"
+
+        try:
+            # Limit items sent to fusion to avoid token overflow
+            primary_sample = primary[:100]
+            secondary_sample = secondary[:60]
+
+            prompt = f"""You are an expert menu data engineer. You have TWO extraction results from the SAME restaurant menu.
+
+PRIMARY SOURCE ({primary_label}, {len(primary)} items — this is the most complete source):
+{_json.dumps(primary_sample, indent=1, default=str)[:5000]}
+
+SUPPLEMENTARY SOURCE ({secondary_label}, {len(secondary)} items):
+{_json.dumps(secondary_sample, indent=1, default=str)[:3000]}
+
+{f"Business context: {business_context}" if business_context else ""}
+
+YOUR TASK: Produce a UNIFIED menu that MAXIMIZES coverage.
+
+CRITICAL RULES:
+1. START with ALL items from the Primary source. This is your base.
+2. ADD any items from the Supplementary source that do NOT appear in the Primary (different page, missed items).
+3. If the SAME item exists in both, merge them: keep the best name, best price, best description.
+4. ONLY remove an item if it is an EXACT duplicate (same name AND same price).
+5. When in doubt, KEEP the item. It is better to have a few duplicates than to lose real menu items.
+6. The final list should have AT LEAST as many items as the Primary source.
+
+Respond ONLY with valid JSON:
+{{
+  "items": [
+    {{"name": "Item Name", "price": 100.00, "description": "desc", "category": "Category", "confidence": 0.95}}
+  ]
+}}"""
+
+            response_text = await self.agent.generate(
+                prompt=prompt,
+                thinking_level="STANDARD",
+                temperature=0.2,
+                max_output_tokens=8192,
             )
 
-        # Fallback: Convert to images and process page by page (Legacy method)
-        return await self._extract_from_pdf_images_fallback(
-            working_pdf, use_ocr, business_context
-        )
+            if response_text:
+                result = self.agent._parse_json_response(response_text)
+                fused = result.get("items", [])
+                if fused:
+                    logger.info(f"  Pass 3: Gemini fusion produced {len(fused)} items")
+                    return fused
+        except Exception as e:
+            logger.warning(f"  Pass 3 fusion failed: {e}")
+
+        # Fallback: manual dedup merge
+        return self._manual_merge(doc_items, vision_items)
+
+    def _manual_merge(self, list_a: List[Dict], list_b: List[Dict]) -> List[Dict]:
+        """Fallback merge: deduplicate by name."""
+        seen = {}
+        for item in list_a + list_b:
+            name_key = (item.get("name", "")).strip().lower()
+            if name_key and name_key not in seen:
+                seen[name_key] = item
+        return list(seen.values())
+
+    async def _vibe_verify_extraction(
+        self,
+        items: List[Dict],
+        raw_text: str,
+    ) -> tuple:
+        """Pass 4: Vibe Engineering — verify extraction quality and auto-correct."""
+        if not items or len(items) < 2:
+            return items, None
+
+        try:
+            import json as _json
+            sample = items[:30]
+            prompt = f"""You are a Quality Assurance agent (Vibe Engineering). Verify this menu extraction.
+
+EXTRACTED ITEMS ({len(items)} total, showing first {len(sample)}):
+{_json.dumps(sample, indent=1, default=str)[:3000]}
+
+{f"RAW TEXT FROM PDF (reference):{chr(10)}{raw_text[:2000]}" if raw_text else ""}
+
+VERIFY:
+1. Do prices look reasonable? (Note: prices may be in COP, MXN, or other currencies — 15000-50000 COP is normal for Colombia)
+2. Are categories consistent?
+3. Are there EXACT duplicates (same name AND same price)? Only flag those.
+4. Are there items with clearly wrong prices (e.g., 0, negative, or obviously misread)?
+
+IMPORTANT: Be CONSERVATIVE. Only flag items for removal if they are EXACT duplicates.
+Do NOT remove items just because they seem similar — menus often have variants (e.g., "Chivas 12 Trago" vs "Chivas 12 Botella" are DIFFERENT items).
+
+Respond in JSON:
+{{
+  "quality_score": 0.0-1.0,
+  "issues_found": ["issue1", "issue2"],
+  "corrections": [
+    {{"item_name": "name", "field": "price", "old_value": "X", "new_value": "Y", "reason": "why"}}
+  ],
+  "items_to_remove": ["only exact duplicate names here"],
+  "verification_passed": true/false
+}}"""
+
+            response_text = await self.agent.generate(
+                prompt=prompt,
+                thinking_level="QUICK",
+                temperature=0.1,
+                max_output_tokens=4096,
+            )
+
+            if not response_text:
+                return items, None
+
+            verification = self.agent._parse_json_response(response_text)
+
+            notes = {
+                "quality_score": verification.get("quality_score", 0.8),
+                "issues_found": verification.get("issues_found", []),
+                "corrections_applied": 0,
+                "items_removed": 0,
+            }
+
+            # Apply corrections
+            corrections = verification.get("corrections", [])
+            items_by_name = {i["name"].lower(): i for i in items}
+            for corr in corrections:
+                target = corr.get("item_name", "").lower()
+                field = corr.get("field", "")
+                new_val = corr.get("new_value")
+                if target in items_by_name and field and new_val is not None:
+                    try:
+                        if field == "price":
+                            items_by_name[target]["price"] = float(new_val)
+                        else:
+                            items_by_name[target][field] = new_val
+                        notes["corrections_applied"] += 1
+                    except (ValueError, KeyError):
+                        pass
+
+            # Remove flagged duplicates
+            to_remove = {n.lower() for n in verification.get("items_to_remove", [])}
+            if to_remove:
+                items = [i for i in items if i["name"].lower() not in to_remove]
+                notes["items_removed"] = len(to_remove)
+
+            logger.info(
+                f"  Pass 4: Vibe verification — score={notes['quality_score']}, "
+                f"corrections={notes['corrections_applied']}, removed={notes['items_removed']}"
+            )
+            return items, notes
+
+        except Exception as e:
+            logger.warning(f"  Pass 4 verification failed: {e}")
+            return items, None
 
     async def _extract_from_pdf_images_fallback(
         self,
@@ -391,7 +647,7 @@ class MenuExtractor:
                 else:
                     continue
 
-            if price <= 0 or price > 10000:  # Sanity check
+            if price <= 0 or price > 500000:  # Sanity check (supports COP, MXN, etc.)
                 continue
 
             # Build processed item
