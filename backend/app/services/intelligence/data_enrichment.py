@@ -256,6 +256,7 @@ class CompetitorEnrichmentService:
             name=maps_data.get("name"),
             phone=maps_data.get("formatted_phone_number"),
             address=maps_data.get("formatted_address"),
+            google_maps_url=maps_data.get("url"),
         )
 
         # Step 3: Identify social media
@@ -466,6 +467,7 @@ class CompetitorEnrichmentService:
         name: Optional[str],
         phone: Optional[str],
         address: Optional[str],
+        google_maps_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Cross-reference with web search to find additional information.
@@ -476,33 +478,30 @@ class CompetitorEnrichmentService:
             return {}
 
         try:
-            search_query = f"{name}"
-            if address:
-                search_query += f" {address}"
-            if phone:
-                search_query += f" {phone}"
-
-            prompt = f"""Find complete information about this restaurant/business:
+            prompt = f"""Search the internet and find complete information about this restaurant/business:
 
 Name: {name}
 {f"Phone: {phone}" if phone else ""}
 {f"Address: {address}" if address else ""}
+{f"Google Maps: {google_maps_url}" if google_maps_url else ""}
 
-SEARCH AND EXTRACT:
-1. Social media (Facebook, Instagram, TikTok, Twitter, YouTube)
-2. WhatsApp Business (if they mention a WhatsApp number)
-3. Website or delivery page
-4. Menu or prices (if available)
-5. Cuisine type / specialties
-6. Hours of operation
+YOUR TASK - Search and find:
+1. Their EXACT social media profiles — Facebook page URL, Instagram profile URL or @handle, TikTok, Twitter/X
+2. WhatsApp Business number if available
+3. Official website or delivery platform pages (Rappi, Uber Eats, etc.)
+4. Menu information if available online
+5. Cuisine type and specialties
 
-Respond in JSON:
+IMPORTANT: Search for "{name}" on Facebook, Instagram, and Google to find their real social media profiles.
+Look for links like facebook.com/... and instagram.com/... in search results.
+
+Respond ONLY with valid JSON (no markdown, no code blocks):
 {{
   "social_media": {{
-    "facebook": "URL or null",
-    "instagram": "@handle or URL or null",
-    "tiktok": "@handle or null",
-    "twitter": "@handle or null",
+    "facebook": "full Facebook URL or null",
+    "instagram": "full Instagram URL or @handle or null",
+    "tiktok": "@handle or URL or null",
+    "twitter": "@handle or URL or null",
     "youtube": "Channel URL or null"
   }},
   "whatsapp": "number with country code or null",
@@ -516,21 +515,33 @@ Respond in JSON:
 }}"""
 
             # Use shared Gemini agent with grounding
+            # NOTE: Do NOT set response_mime_type — it is incompatible with Google Search grounding
             response = await self.gemini.generate_with_grounding(
                 prompt=prompt,
                 enable_grounding=True,
+                thinking_level="STANDARD",
                 temperature=0.3,
                 max_output_tokens=4096,
-                response_mime_type="application/json"
             )
 
             # Extract answer text
             response_text = response.get("answer", "")
+            grounded = response.get("grounded", False)
+            
+            logger.info(
+                f"Web cross-reference for {name}: grounded={grounded}, "
+                f"response_len={len(response_text)}, "
+                f"chunks={len((response.get('grounding_metadata') or {}).get('grounding_chunks', []))}"
+            )
             
             # Use the robust parser from the agent
             result = self.gemini._parse_json_response(response_text)
             
-            logger.info(f"Web cross-reference completed for {name}")
+            # Log what social media was found
+            social = result.get("social_media", {})
+            found = [k for k, v in social.items() if v]
+            logger.info(f"Social media found for {name}: {found or 'none'}")
+            
             return result
 
         except Exception as e:
