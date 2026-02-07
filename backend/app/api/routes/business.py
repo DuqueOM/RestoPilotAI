@@ -1210,13 +1210,28 @@ async def set_business_location(
 async def enrich_competitor_profile(
     place_id: str = Form(...),
     session_id: Optional[str] = Form(None),
+    business_name: Optional[str] = Form(None),
+    business_address: Optional[str] = Form(None),
+    business_rating: Optional[float] = Form(None),
 ):
-    """Enrich competitor profile."""
+    """Enrich competitor profile using Place Details + Gemini grounding search."""
     try:
         service = CompetitorEnrichmentService(
             google_maps_api_key=settings.google_maps_api_key, gemini_agent=agent
         )
-        profile = await service.enrich_competitor_profile(place_id)
+        # Pass basic_info so enrichment can still work when Place Details fails
+        basic_info = {}
+        if business_name:
+            basic_info["name"] = business_name
+        if business_address:
+            basic_info["address"] = business_address
+        if business_rating:
+            basic_info["rating"] = business_rating
+
+        profile = await service.enrich_competitor_profile(
+            place_id,
+            basic_info=basic_info or None,
+        )
         await service.close()
 
         if session_id:

@@ -55,6 +55,7 @@ export interface WizardFormData {
   facebook?: string;
   tiktok?: string;
   website?: string;
+  deliveryPlatforms?: { name: string; icon: string; url: string | null }[];
 
   // Enriched data (auto-populated from location selection)
   enrichedProfile?: Record<string, any>;

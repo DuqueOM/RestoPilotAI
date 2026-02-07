@@ -214,6 +214,9 @@ export function LocationInput({
       
       const enrichForm = new FormData();
       enrichForm.append('place_id', candidate.placeId);
+      if (candidate.name) enrichForm.append('business_name', candidate.name);
+      if (candidate.address) enrichForm.append('business_address', candidate.address);
+      if (candidate.rating) enrichForm.append('business_rating', String(candidate.rating));
       if (sessionId) enrichForm.append('session_id', sessionId);
 
       fetch(`/api/v1/location/enrich-competitor`, {

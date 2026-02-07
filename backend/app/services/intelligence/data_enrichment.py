@@ -91,6 +91,9 @@ class CompetitorProfile:
     target_audience: Optional[str] = None
     brand_positioning: Optional[str] = None
 
+    # Delivery platforms (Rappi, Uber Eats, etc.)
+    delivery_platforms: List[Dict[str, Any]] = field(default_factory=list)
+
     # Metadata
     data_sources: List[str] = field(default_factory=list)
     confidence_score: float = 0.0
@@ -156,6 +159,7 @@ class CompetitorProfile:
                 "target_audience": self.target_audience,
                 "brand_positioning": self.brand_positioning,
             },
+            "delivery_platforms": self.delivery_platforms,
             "photo_analysis": self.photo_analysis,
             "metadata": {
                 "data_sources": self.data_sources,
@@ -331,6 +335,7 @@ class CompetitorEnrichmentService:
             price_range=menu_data.get("price_range"),
             target_audience=intelligence.get("target_audience"),
             brand_positioning=intelligence.get("brand_positioning"),
+            delivery_platforms=self._extract_delivery_platforms(web_data),
             data_sources=self._collect_data_sources(
                 maps_data, web_data, social_profiles, whatsapp_data
             ),
@@ -979,6 +984,42 @@ Respond in JSON:
         if clean and len(clean) >= 10:
             return clean
         return None
+
+    def _extract_delivery_platforms(self, web_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Extract delivery platform info from web search results."""
+        platforms = []
+        raw_platforms = web_data.get("delivery_platforms", [])
+        additional_urls = web_data.get("additional_websites", [])
+
+        # Known delivery platform patterns
+        platform_patterns = {
+            "rappi": {"name": "Rappi", "icon": "🟠"},
+            "uber eats": {"name": "Uber Eats", "icon": "🟢"},
+            "ubereats": {"name": "Uber Eats", "icon": "🟢"},
+            "ifood": {"name": "iFood", "icon": "🔴"},
+            "domicilios": {"name": "Domicilios.com", "icon": "🔵"},
+            "pedidosya": {"name": "PedidosYa", "icon": "🟡"},
+            "didi food": {"name": "DiDi Food", "icon": "🟠"},
+        }
+
+        seen = set()
+        # From explicit delivery_platforms list
+        for p in raw_platforms:
+            p_lower = p.lower().strip() if isinstance(p, str) else ""
+            for key, info in platform_patterns.items():
+                if key in p_lower and info["name"] not in seen:
+                    platforms.append({"name": info["name"], "icon": info["icon"], "url": None})
+                    seen.add(info["name"])
+
+        # From additional_websites URLs
+        for url in additional_urls:
+            url_lower = (url or "").lower()
+            for key, info in platform_patterns.items():
+                if key in url_lower and info["name"] not in seen:
+                    platforms.append({"name": info["name"], "icon": info["icon"], "url": url})
+                    seen.add(info["name"])
+
+        return platforms
 
     def _collect_data_sources(
         self,
