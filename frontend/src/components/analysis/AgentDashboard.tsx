@@ -51,7 +51,7 @@ const agentPipeline = [
   { name: 'Menu Extractor', tech: 'Tesseract OCR + Gemini Vision', color: 'purple' },
   { name: 'BCG Classifier', tech: 'Gross Profit Analysis + Self-Correction', color: 'amber' },
   { name: 'Sales Predictor', tech: 'XGBoost + LSTM Neural Ensemble', color: 'blue' },
-  { name: 'Campaign Generator', tech: 'Gemini 2.5 Pro + Marathon Memory', color: 'green' }
+  { name: 'Campaign Generator', tech: 'Gemini 3 Pro + Marathon Memory', color: 'green' }
 ];
 
 export default function AgentDashboard({ sessionData, thoughtSignature: _thoughtSignature }: AgentDashboardProps) {

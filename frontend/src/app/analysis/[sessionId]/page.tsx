@@ -23,7 +23,7 @@ export default function AnalysisPage() {
 
   // Handle potential nested data structure from backend wrapper
   const unwrappedData = (sessionData as any)?.data || sessionData;
-  const activeTaskId = unwrappedData?.active_task_id || unwrappedData?.marathon_agent_context?.active_task_id || sessionId;
+  const activeTaskId = unwrappedData?.active_task_id || unwrappedData?.marathon_agent_context?.active_task_id || null;
 
   // Marathon Agent State
   const {
@@ -83,11 +83,8 @@ export default function AnalysisPage() {
     }
   }, [sessionId, completedAnalyses.bcg, debates.length]);
 
-  useEffect(() => {
-    if (completedAnalyses.bcg && debates.length === 0 && !loadingDebates) {
-      fetchDebates();
-    }
-  }, [completedAnalyses.bcg, debates.length, loadingDebates, fetchDebates]);
+  // Debates are triggered manually by user action, not on page load,
+  // to avoid flooding the Gemini API with ~40+ parallel calls per visit.
 
   // Auto-refresh session data periodically while analysis is running
   useEffect(() => {
@@ -337,6 +334,31 @@ export default function AnalysisPage() {
             <CapBadge icon={<Zap className="h-3 w-3" />} label="Streaming" />
             <CapBadge icon={<Bot className="h-3 w-3" />} label="Multi-Agent Debate" />
           </div>
+        </div>
+      </div>
+
+      {/* Hackathon Judging Category Highlights */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Camera className="h-4 w-4 text-violet-600" />
+            <span className="text-xs font-bold text-violet-700 uppercase tracking-wide">Best Multimodal</span>
+          </div>
+          <p className="text-xs text-violet-600 leading-relaxed">Photo &rarr; Data &rarr; New Photo. Menu images become structured data, which drives AI-generated marketing visuals via Imagen 3.</p>
+        </div>
+        <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="h-4 w-4 text-emerald-600" />
+            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Best Real-World App</span>
+          </div>
+          <p className="text-xs text-emerald-600 leading-relaxed">Replaces $5k consultant engagements with a ~$2, 5-minute AI analysis. A product you could sell tomorrow.</p>
+        </div>
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Brain className="h-4 w-4 text-amber-600" />
+            <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">Most Creative Use</span>
+          </div>
+          <p className="text-xs text-amber-600 leading-relaxed">8 specialized agents in a 17-stage pipeline with multi-agent debate, self-verification, and Google Search grounding.</p>
         </div>
       </div>
 

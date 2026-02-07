@@ -160,7 +160,7 @@ export function MenuTransformation() {
             {isTransforming ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Transforming with Nano Banana Pro...
+                Transforming with Gemini 3 Image (Imagen 3)...
               </>
             ) : (
               <>

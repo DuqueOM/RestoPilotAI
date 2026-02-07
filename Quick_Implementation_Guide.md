@@ -448,7 +448,7 @@ Manual checklist:
 2. Creative Autopilot Grid (1280x720):
    - 4 assets en grid 2x2
    - Texto legible visible
-   - "Powered by Nano Banana Pro"
+   - "Powered by Gemini 3 Pro Image (Imagen 3)"
 
 3. Vibe Engineering Panel (1280x720):
    - Quality metrics

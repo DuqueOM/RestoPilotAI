@@ -45,12 +45,13 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV APP_ENV=production
 
-# Expose port
-EXPOSE 8000
+# Cloud Run injects PORT env var; default to 8000 for local
+ENV PORT=8000
+EXPOSE ${PORT}
 
-# Health check
+# Health check (local Docker only; Cloud Run uses its own probes)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8000/health')" || exit 1
+    CMD python -c "import httpx; httpx.get('http://localhost:8000/api/v1/health')" || exit 1
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application — Cloud Run sets PORT dynamically
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT}

@@ -20,7 +20,7 @@ class GeminiModel(str, Enum):
     FLASH_PREVIEW = "gemini-3-flash-preview"  # Primary - Fast & efficient
     PRO_PREVIEW = "gemini-3-pro-preview"  # Fallback - More capable
     PRO_IMAGE = "gemini-3-pro-image-preview"  # Image generation
-    FLASH_2 = "gemini-2.0-flash-exp"  # Emergency fallback
+    FLASH = "gemini-3.0-flash"  # Fast fallback (Gemini 3 Flash)
 
 
 class Settings(BaseSettings):
@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     gemini_model_vision: str = GeminiModel.PRO_PREVIEW.value  # Multimodal (menús, platos)
     gemini_model_image_gen: str = GeminiModel.PRO_IMAGE.value  # Creative Autopilot
     gemini_fallback_model: str = GeminiModel.PRO_PREVIEW.value  # Si falla primary
-    gemini_emergency_model: str = GeminiModel.FLASH_2.value  # Último recurso
+    gemini_emergency_model: str = GeminiModel.FLASH.value  # Último recurso (Gemini 3 Flash)
     
     # Backward compatibility
     gemini_model: str = GeminiModel.PRO_PREVIEW.value

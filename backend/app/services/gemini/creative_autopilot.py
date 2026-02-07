@@ -9,7 +9,8 @@ import base64
 class CreativeAutopilotAgent:
     """
     Implements the hackathon 'Creative Autopilot' track.
-    Generates complete visual campaigns using Nano Banana Pro.
+    Generates complete visual campaigns using Gemini 3 Pro Image
+    (Imagen 3 — internally codenamed 'Nano Banana Pro' by Google).
     """
     
     def __init__(self):
@@ -40,7 +41,7 @@ class CreativeAutopilotAgent:
             restaurant_name, dish_data, strategy
         )
         
-        # STEP 3: Generate visual assets with Nano Banana Pro
+        # STEP 3: Generate visual assets with Gemini 3 Pro Image (Imagen 3)
         visual_assets = await self._generate_visual_assets(
             creative_concept,
             brand_guidelines
@@ -70,7 +71,7 @@ class CreativeAutopilotAgent:
         """
         Transforms the visual design of a menu while maintaining content.
         
-        USING NANO BANANA PRO:
+        USING GEMINI 3 PRO IMAGE (Imagen 3):
         - Keeps ALL text/prices exactly as is
         - Completely changes the visual design
         - Generates professional variations
@@ -202,7 +203,7 @@ class CreativeAutopilotAgent:
         brand_guidelines: Dict = None
     ) -> List[Dict]:
         """
-        Generates multiple assets using Nano Banana Pro.
+        Generates multiple assets using Gemini 3 Pro Image (Imagen 3).
         """
         
         assets = []
@@ -236,7 +237,7 @@ class CreativeAutopilotAgent:
         language: str = "es"
     ) -> Dict:
         """
-        Generic method to generate visual assets with Nano Banana Pro.
+        Generic method to generate visual assets with Gemini 3 Pro Image (Imagen 3).
         """
         # Prepare brand references
         reference_images = []

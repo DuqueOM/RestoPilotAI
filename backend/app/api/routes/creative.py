@@ -119,7 +119,7 @@ async def transform_menu_style(
 ):
     """
     Transforms the visual style of a menu while preserving the content (text/prices).
-    Uses Gemini 3 Image Generation (Nano Banana Pro).
+    Uses Gemini 3 Pro Image (Imagen 3) for AI-powered visual transformation.
     """
     autopilot = CreativeAutopilotAgent()
     
@@ -190,7 +190,7 @@ async def generate_creative_autopilot_campaign(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Generates a complete visual campaign using Creative Autopilot + Nano Banana Pro.
+    Generates a complete visual campaign using Creative Autopilot + Gemini 3 Pro Image (Imagen 3).
     
     This is a KEY DIFFERENTIATOR of the hackathon - it uses unique Gemini 3 capabilities:
     - 4K image generation with readable text

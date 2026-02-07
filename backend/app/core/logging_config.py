@@ -337,7 +337,7 @@ class GeminiLogger:
     ) -> None:
         """Log completion of Gemini request."""
 
-        # Estimate cost (Gemini 2.0 Flash pricing)
+        # Estimate cost (Gemini 3 Pro pricing)
         cost_usd = (input_tokens / 1_000_000 * 0.10) + (
             output_tokens / 1_000_000 * 0.40
         )

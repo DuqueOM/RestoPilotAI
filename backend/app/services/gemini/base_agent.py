@@ -400,6 +400,7 @@ This thought trace will be visible for transparency."""
             logger.error(
                 "gemini_error",
                 error=str(e),
+                error_type=type(e).__name__,
                 model=self.model_name
             )
             raise
@@ -1643,6 +1644,9 @@ Be critical and thorough."""
 
     def _parse_json_response(self, response_text: str) -> Dict[str, Any]:
         """Generic JSON response parser with repair capabilities."""
+        if not response_text:
+            logger.warning("Empty response received, returning empty dict")
+            return {}
         text = response_text
         try:
             if "```json" in text:

@@ -290,7 +290,7 @@ Responde en JSON:
         client = genai.Client(api_key=settings.gemini_api_key)
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-3.0-flash",
             contents=[
                 types.Content(
                     parts=[

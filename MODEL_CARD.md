@@ -88,24 +88,26 @@ config = types.GenerateContentConfig(
 
 **Output**: Base64-encoded images with graceful fallback on generation failure.
 
-### 2.3 Gemini 2.0 Flash Exp (`gemini-2.0-flash-exp`)
+### 2.3 Gemini 3.0 Flash (`gemini-3.0-flash`)
 
 | Attribute | Value |
 |-----------|-------|
-| **Model ID** | `gemini-2.0-flash-exp` |
-| **Role** | Emergency fallback only |
-| **When Used** | If both Gemini 3 Pro and Flash fail after all retries |
+| **Provider** | Google DeepMind |
+| **Model ID** | `gemini-3.0-flash` |
+| **Type** | Fast multimodal LLM |
+| **Role** | Fast fallback for latency-sensitive tasks |
+| **When Used** | Emergency fallback if Pro fails; audio transcription; quick formatting tasks |
 
 ---
 
 ## 3. Model Fallback Chain
 
 ```
-gemini-3-pro-preview (Primary)
+gemini-3-pro-preview (Primary — all reasoning tasks)
   ↓ on failure (3 retries with exponential backoff)
-gemini-3-pro-preview (Retry with different parameters)
+gemini-3-pro-preview (Retry with adjusted parameters)
   ↓ on persistent failure
-gemini-2.0-flash-exp (Emergency fallback)
+gemini-3.0-flash (Fast fallback — Gemini 3 family)
 ```
 
 **Retry Configuration**:

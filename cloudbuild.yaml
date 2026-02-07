@@ -1,0 +1,118 @@
+# Cloud Build configuration for deploying RestoPilotAI to Cloud Run
+#
+# Prerequisites:
+#   1. Enable Cloud Build, Cloud Run, and Artifact Registry APIs
+#   2. Set secrets in Secret Manager: GEMINI_API_KEY, GOOGLE_MAPS_API_KEY
+#   3. Grant Cloud Build service account permissions:
+#      - Cloud Run Admin
+#      - Secret Manager Secret Accessor
+#      - Artifact Registry Writer
+#
+# Deploy with:
+#   gcloud builds submit --config cloudbuild.yaml \
+#     --substitutions=_REGION=us-central1,_GEMINI_API_KEY=projects/PROJECT_ID/secrets/GEMINI_API_KEY/versions/latest
+
+substitutions:
+  _REGION: us-central1
+  _BACKEND_SERVICE: restopilotai-backend
+  _FRONTEND_SERVICE: restopilotai-frontend
+  _REPO: restopilotai
+
+steps:
+  # ============================================================
+  # Step 1: Build backend Docker image
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:$COMMIT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:latest'
+      - './backend'
+
+  # ============================================================
+  # Step 2: Build frontend Docker image
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:$COMMIT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:latest'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_API_URL='
+      - './frontend'
+
+  # ============================================================
+  # Step 3: Push images to Artifact Registry
+  # ============================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '--all-tags', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '--all-tags', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}']
+
+  # ============================================================
+  # Step 4: Deploy backend to Cloud Run
+  # ============================================================
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_BACKEND_SERVICE}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '4Gi'
+      - '--cpu'
+      - '2'
+      - '--timeout'
+      - '600'
+      - '--max-instances'
+      - '5'
+      - '--min-instances'
+      - '0'
+      - '--set-env-vars'
+      - 'APP_ENV=production,LOG_LEVEL=INFO,CORS_ORIGINS=*'
+      - '--set-secrets'
+      - 'GEMINI_API_KEY=GEMINI_API_KEY:latest,GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY:latest'
+
+  # ============================================================
+  # Step 5: Deploy frontend to Cloud Run
+  # ============================================================
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_FRONTEND_SERVICE}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '3'
+      - '--min-instances'
+      - '0'
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:$COMMIT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

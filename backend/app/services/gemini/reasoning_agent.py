@@ -1146,11 +1146,11 @@ RESPOND WITH VALID JSON:
                 response = await self.generate(
                     prompt=agent_prompt,
                     temperature=config["temperature"],
-                    max_output_tokens=1024,
+                    max_output_tokens=4096,
                     feature="multi_agent_debate",
                 )
                 
-                agent_response = self._parse_json_response(response)
+                agent_response = self._parse_json_response(response) if response else {}
                 
                 perspectives.append({
                     "agentId": agent["id"],
@@ -1201,11 +1201,11 @@ RESPOND WITH VALID JSON:
             consensus_response = await self.generate(
                 prompt=consensus_prompt,
                 temperature=0.5,
-                max_output_tokens=1024,
+                max_output_tokens=4096,
                 feature="multi_agent_consensus",
             )
             
-            consensus_data = self._parse_json_response(consensus_response)
+            consensus_data = self._parse_json_response(consensus_response) if consensus_response else {}
             
         except Exception as e:
             logger.error(f"Consensus generation failed: {e}")

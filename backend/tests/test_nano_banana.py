@@ -34,9 +34,8 @@ async def test_nano_banana():
 
     # Models to test in order of preference
     candidates = [
-        "gemini-3-pro-image-preview", # Requested
-        "gemini-2.0-flash-exp",       # Fallback 1
-        "gemini-1.5-flash"            # Fallback 2 (Stable)
+        "gemini-3-pro-image-preview", # Primary image generation
+        "gemini-3.0-flash",           # Fallback (Gemini 3 Flash)
     ]
     
     target_model = None
@@ -54,8 +53,8 @@ async def test_nano_banana():
             print(f"  ❌ {model} not found/accessible")
             
     if not target_model:
-        print("⚠️ No preferred models found. Using gemini-1.5-flash as hard fallback.")
-        target_model = "gemini-1.5-flash"
+        print("⚠️ No preferred models found. Using gemini-3.0-flash as hard fallback.")
+        target_model = "gemini-3.0-flash"
 
     print(f"\n🚀 Starting generation test with: {target_model}")
     

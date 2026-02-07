@@ -513,7 +513,7 @@ async def analyze_video_library(video_paths):
 5. **Content Strategy** (+1) - Recomendaciones accionables
 6. **Thumbnail Optimization** (+1) - Best moment detection
 
-### Demo Script
+### Demo Script (Video Analysis Feature)
 
 **Parte 1: Problema**
 "Los restaurantes crean videos pero no saben cómo optimizarlos para cada plataforma"
@@ -533,6 +533,94 @@ async def analyze_video_library(video_paths):
 
 ---
 
+## � Hackathon Demo Video — Production Guide
+
+### Overview
+
+Create a **3-minute screen-recording demo** that showcases RestoPilotAI's full pipeline to hackathon judges. The goal is to demonstrate real Gemini 3 capabilities, not talk about them.
+
+### Recommended Tools
+
+- **Screen recording**: OBS Studio or Loom (1080p minimum, 60fps preferred)
+- **Audio**: External microphone, quiet environment, clear narration
+- **Browser**: Chrome with DevTools closed, clean tab bar
+- **Backend**: Running locally or on Cloud Run
+
+### Script (3:00 total)
+
+#### 0:00 – 0:15 — Hook
+> "What if a $5,000 restaurant consultant could be replaced by a 5-minute AI analysis costing $2?"
+
+Show the landing page. Click **Try Demo** or start a new session.
+
+#### 0:15 – 0:45 — Setup Wizard (Multimodal Ingestion)
+1. **Location**: Type a restaurant name, select from Google Maps autocomplete.
+2. **Menu Upload**: Drag-and-drop a menu photo (show the image being processed).
+3. **Audio Context**: Record a 10-second voice clip describing the restaurant concept.
+4. **Launch Analysis**: Click "Start Analysis" — show the Marathon Agent progress bar begin.
+
+> Narrate: "We just uploaded a photo, a voice recording, and a location — three different modalities processed by a single Gemini 3 model."
+
+#### 0:45 – 1:30 — Analysis Dashboard (Agentic Pipeline)
+Show the Overview tab as the 17-stage pipeline progresses:
+1. **Thought Bubble Stream** — highlight transparent AI reasoning appearing in real-time.
+2. **Agent Pipeline** — point out each agent activating: Menu Extractor → BCG Classifier → Competitor Discovery → etc.
+3. **Hackathon Track Badges** — briefly hover over Marathon Agent, Creative Autopilot, Vibe Engineering, Google Grounding badges.
+
+> Narrate: "8 specialized AI agents working autonomously — extracting menu data, discovering competitors via Google Maps, classifying items in a BCG matrix, and verifying everything with Google Search citations."
+
+#### 1:30 – 2:00 — BCG Matrix + Competitors
+Switch to the **BCG Matrix** tab:
+- Show the interactive scatter plot with Stars, Cash Cows, Question Marks, Dogs.
+- Click a menu item to see its strategic recommendation.
+
+Switch to **Competitors** tab:
+- Show discovered competitor cards with Google Maps data.
+- Highlight a grounded insight with its web citation.
+
+> Narrate: "Every competitive insight is backed by a real Google Search source — no hallucinations."
+
+#### 2:00 – 2:30 — Creative Studio (Wow Factor)
+Switch to **Creative Studio** / Campaigns tab:
+- Show AI-generated campaign images (Instagram post, story, web banner).
+- If A/B variants are available, compare them side-by-side.
+- Highlight: "These images were generated natively by Gemini 3 Pro Image — not DALL-E, not Midjourney."
+
+> Narrate: "From a menu photo to a complete marketing campaign with AI-generated visuals — Photo to Data to New Photo."
+
+#### 2:30 – 2:50 — Vibe Engineering + Debate
+Trigger a **Verify with Sources** action on any analysis.
+Show the quality score improving through iteration.
+If time allows, show the **Multi-Agent Debate** panel where agents argue positions.
+
+> Narrate: "Every analysis is self-verified through iterative quality loops. Multiple AI agents debate conclusions to reach a stronger consensus."
+
+#### 2:50 – 3:00 — Closing
+Return to Overview. Show the full pipeline completed.
+
+> "RestoPilotAI — from a phone photo to a complete competitive intelligence report in under 5 minutes. Built entirely on Gemini 3."
+
+### Production Tips
+
+- **Pre-warm the backend** — run one analysis before recording so models are cached
+- **Use real restaurant data** — demo mode works, but real data is more convincing
+- **Keep the browser clean** — no bookmarks bar, no other tabs, dark mode optional
+- **Show loading states** — don't cut them out; they prove it's real, not mocked
+- **Highlight streaming** — the thought bubble stream and real-time progress are visually impressive
+- **End on the Creative Studio** — AI-generated images are the strongest visual "wow"
+
+### Checklist Before Recording
+
+- [ ] Backend running (`make run-backend` or Cloud Run URL)
+- [ ] Frontend running (`make run-frontend`)
+- [ ] Demo data loaded or fresh session ready
+- [ ] Screen recording at 1080p
+- [ ] Microphone tested
+- [ ] Browser zoom at 100%, no extensions visible
+- [ ] Script rehearsed at least once
+
+---
+
 ## 🎯 Conclusión
 
 El **Video Analysis** es el diferenciador más poderoso del proyecto:
@@ -541,12 +629,11 @@ El **Video Analysis** es el diferenciador más poderoso del proyecto:
 2. ✅ OpenAI y Claude NO tienen esta capacidad
 3. ✅ Video-first marketing es el futuro
 4. ✅ Restaurantes necesitan video content strategy
-5. ✅ **+10 puntos garantizados en el hackathon**
 
 **Esta es la característica que gana el hackathon.**
 
 ---
 
-**Última actualización:** 2026-02-03  
-**Versión:** 1.0.0  
+**Última actualización:** 2026-02-07  
+**Versión:** 2.0.0  
 **Autor:** RestoPilotAI Team
