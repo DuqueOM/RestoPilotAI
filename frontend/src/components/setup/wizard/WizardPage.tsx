@@ -2,24 +2,24 @@
 
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
-  ArrowRight,
-  Brain,
-  Camera,
-  CheckCircle2,
-  FileText,
-  Globe,
-  Image,
-  Loader2,
-  MapPin,
-  MessageSquare,
-  Mic,
-  Palette,
-  Play,
-  Search,
-  Sparkles,
-  Target,
-  Video,
-  Zap
+    ArrowRight,
+    Brain,
+    Camera,
+    CheckCircle2,
+    FileText,
+    Globe,
+    Image,
+    Loader2,
+    MapPin,
+    MessageSquare,
+    Mic,
+    Palette,
+    Play,
+    Search,
+    Sparkles,
+    Target,
+    Video,
+    Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
@@ -38,9 +38,9 @@ function WizardStepContent() {
     case 1:
       return <DataUploadStep />;
     case 2:
-      return <StoryStep />;
-    case 3:
       return <CompetitorsStep />;
+    case 3:
+      return <StoryStep />;
     default:
       return <LocationStep />;
   }
@@ -363,7 +363,7 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
                   <div className="text-xs text-blue-300/70">AI Modalities</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white">17</div>
+                  <div className="text-2xl font-bold text-white">14</div>
                   <div className="text-xs text-blue-300/70">Pipeline Stages</div>
                 </div>
                 <div className="text-center">
@@ -395,7 +395,7 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
                     </div>
                     <div>
                       <div className="text-white text-sm font-semibold">Marathon Agent Running</div>
-                      <div className="text-blue-200/70 text-xs">Autonomous 17-stage analysis pipeline</div>
+                      <div className="text-blue-200/70 text-xs">Autonomous 14-stage analysis pipeline</div>
                     </div>
                     <div className="ml-auto">
                       <span className="inline-flex items-center gap-1.5 text-xs text-green-300">
@@ -467,7 +467,7 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
                 </div>
                 <div>
                   <h4 className="font-bold text-sm">Marathon Agent</h4>
-                  <p className="text-xs text-blue-200/70 mt-1">Autonomous 17-stage pipeline with checkpoints, retries, and real-time WebSocket streaming of AI reasoning</p>
+                  <p className="text-xs text-blue-200/70 mt-1">Autonomous 14-stage pipeline with checkpoints, retries, and real-time WebSocket streaming of AI reasoning</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">

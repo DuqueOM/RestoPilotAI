@@ -332,7 +332,7 @@ export default function AnalysisPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <TrackBadge icon={<Wand2 className="h-4 w-4" />} title="Creative Autopilot" desc="AI image generation + campaigns" color="purple" active />
           <TrackBadge icon={<Eye className="h-4 w-4" />} title="Vibe Engineering" desc="Auto-verify & improve quality" color="emerald" active />
-          <TrackBadge icon={<Bot className="h-4 w-4" />} title="Marathon Agent" desc="17-stage pipeline + checkpoints" color="amber" active />
+          <TrackBadge icon={<Bot className="h-4 w-4" />} title="Marathon Agent" desc="14-stage pipeline + checkpoints" color="amber" active />
           <TrackBadge icon={<Globe className="h-4 w-4" />} title="Google Grounding" desc="Auto-cited web sources" color="cyan" active />
         </div>
         <div className="mt-4 pt-4 border-t border-white/10">
@@ -371,7 +371,7 @@ export default function AnalysisPage() {
             <Brain className="h-4 w-4 text-amber-600" />
             <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">Most Creative Use</span>
           </div>
-          <p className="text-xs text-amber-600 leading-relaxed">8 specialized agents in a 17-stage pipeline with multi-agent debate, self-verification, and Google Search grounding.</p>
+          <p className="text-xs text-amber-600 leading-relaxed">8 specialized agents in a 14-stage pipeline with multi-agent debate, self-verification, and Google Search grounding.</p>
         </div>
       </div>
 

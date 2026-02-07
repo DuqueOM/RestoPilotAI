@@ -4,17 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  CheckCircle2,
-  FileText,
-  MapPin,
-  Mic,
-  MinusCircle,
-  Sparkles,
-  Target,
-  Zap
+    ArrowLeft,
+    ArrowRight,
+    Check,
+    CheckCircle2,
+    FileText,
+    MapPin,
+    Mic,
+    MinusCircle,
+    Sparkles,
+    Target,
+    Zap
 } from 'lucide-react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
@@ -156,8 +156,19 @@ const WIZARD_STEPS: WizardStep[] = [
       data.photoFiles.length > 0,
   },
   {
+    id: 'competitors',
+    title: '� Competitors',
+    description: 'Who competes with you?',
+    icon: <Target className="h-5 w-5" />,
+    isRequired: false,
+    isComplete: (data) => 
+      !!data.competitorInput || 
+      data.autoFindCompetitors ||
+      data.competitorFiles.length > 0,
+  },
+  {
     id: 'story',
-    title: '🎤 Your Story',
+    title: '� Your Story',
     description: 'Tell us about your business',
     icon: <Mic className="h-5 w-5" />,
     isRequired: false,
@@ -166,17 +177,6 @@ const WIZARD_STEPS: WizardStep[] = [
       !!data.valuesContext || 
       !!data.goalsContext ||
       data.historyAudio.length > 0,
-  },
-  {
-    id: 'competitors',
-    title: '🎯 Competitors',
-    description: 'Who competes with you?',
-    icon: <Target className="h-5 w-5" />,
-    isRequired: false,
-    isComplete: (data) => 
-      !!data.competitorInput || 
-      data.autoFindCompetitors ||
-      data.competitorFiles.length > 0,
   },
 ];
 

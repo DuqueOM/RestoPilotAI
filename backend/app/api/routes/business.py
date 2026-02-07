@@ -267,21 +267,21 @@ async def ingest_audio_context(
         mime_type = mime_types.get(ext, "audio/mpeg")
 
         # Analyze audio directly with Gemini (multimodal)
-        prompt = f"""Analiza este audio que contiene información sobre {'el negocio/restaurante' if context_type == 'business' else 'la competencia del negocio'}.
+        prompt = f"""Analyze this audio containing information about {'the business/restaurant' if context_type == 'business' else 'the business competition'}.
 
-Extrae:
-1. Información clave mencionada
-2. Tono y sentimiento general
-3. Puntos importantes para el análisis de mercado
-4. Cualquier dato específico (precios, ubicaciones, características)
+Extract:
+1. Key information mentioned
+2. Overall tone and sentiment
+3. Important points for market analysis
+4. Any specific data (prices, locations, features)
 
-Responde en JSON:
+Respond in JSON:
 {{
-    "summary": "Resumen breve del contenido",
-    "key_points": ["punto 1", "punto 2"],
+    "summary": "Brief summary of the content",
+    "key_points": ["point 1", "point 2"],
     "sentiment": "positive/neutral/negative",
     "market_insights": ["insight 1", "insight 2"],
-    "raw_context": "Texto completo extraído del audio para contexto"
+    "raw_context": "Full text extracted from audio for context"
 }}"""
 
         from google import genai

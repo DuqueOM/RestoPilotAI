@@ -1273,11 +1273,11 @@ RESPOND WITH VALID JSON:
         for item in bcg_items:
             category = item.get("category", "").lower()
             if category == "dog":
-                priority_items.append((item, "high", f"¿Qué hacer con '{item.get('name')}'? (Dog - baja popularidad y margen)"))
+                priority_items.append((item, "high", f"What to do with '{item.get('name')}'? (Dog - low popularity and margin)"))
             elif category == "puzzle":
-                priority_items.append((item, "high", f"¿Invertir o desinvertir en '{item.get('name')}'? (Puzzle - alto potencial, baja tracción)"))
+                priority_items.append((item, "high", f"Invest or divest in '{item.get('name')}'? (Puzzle - high potential, low traction)"))
             elif category == "plowhorse":
-                priority_items.append((item, "medium", f"¿Cómo mejorar el margen de '{item.get('name')}'? (Plowhorse - popular pero bajo margen)"))
+                priority_items.append((item, "medium", f"How to improve margin on '{item.get('name')}'? (Plowhorse - popular but low margin)"))
         
         # Sort by priority and limit
         priority_items.sort(key=lambda x: 0 if x[1] == "high" else 1)

@@ -328,15 +328,15 @@ def get_thought_type(stage: str) -> str:
 def get_stage_title(stage: str) -> str:
     """Get human-readable title for stage."""
     titles = {
-        "initialized": "Inicializando análisis",
-        "menu_extraction": "Extrayendo menú",
-        "sales_analysis": "Analizando ventas",
-        "bcg_analysis": "Calculando matriz BCG",
-        "competitor_analysis": "Analizando competidores",
-        "sentiment_analysis": "Analizando sentimiento",
-        "campaign_generation": "Generando campañas",
-        "verification": "Verificando resultados",
-        "completed": "Análisis completado",
+        "initialized": "Initializing analysis",
+        "menu_extraction": "Extracting menu",
+        "sales_analysis": "Analyzing sales",
+        "bcg_analysis": "Computing BCG matrix",
+        "competitor_analysis": "Analyzing competitors",
+        "sentiment_analysis": "Analyzing sentiment",
+        "campaign_generation": "Generating campaigns",
+        "verification": "Verifying results",
+        "completed": "Analysis completed",
     }
     return titles.get(stage, stage.replace("_", " ").title())
 
@@ -393,42 +393,42 @@ async def generate_thought_stream(task_id: str, session_id: str) -> AsyncGenerat
                         cp_data = latest_cp["data"]
                         if isinstance(cp_data, dict):
                             if "items_count" in cp_data:
-                                details.append(f"Procesados {cp_data['items_count']} items")
+                                details.append(f"Processed {cp_data['items_count']} items")
                             if "confidence" in cp_data:
-                                details.append(f"Confianza: {cp_data['confidence']*100:.0f}%")
+                                details.append(f"Confidence: {cp_data['confidence']*100:.0f}%")
                             if "summary" in cp_data:
                                 details.append(cp_data["summary"])
                 
                 # Add stage-specific details
                 if current_stage == "menu_extraction":
                     details.extend([
-                        "Detectando items del menú",
-                        "Extrayendo precios y categorías",
-                        "Identificando descripciones"
+                        "Detecting menu items",
+                        "Extracting prices and categories",
+                        "Identifying descriptions"
                     ])
                 elif current_stage == "bcg_analysis":
                     details.extend([
-                        "Calculando popularidad por producto",
-                        "Analizando márgenes de contribución",
-                        "Clasificando en matriz BCG"
+                        "Computing popularity per product",
+                        "Analyzing contribution margins",
+                        "Classifying into BCG matrix"
                     ])
                 elif current_stage == "competitor_analysis":
                     details.extend([
-                        "Buscando competidores cercanos",
-                        "Comparando precios y oferta",
-                        "Analizando posicionamiento"
+                        "Searching nearby competitors",
+                        "Comparing prices and offerings",
+                        "Analyzing market positioning"
                     ])
                 elif current_stage == "sentiment_analysis":
                     details.extend([
-                        "Procesando reseñas de clientes",
-                        "Detectando temas recurrentes",
-                        "Analizando tono emocional"
+                        "Processing customer reviews",
+                        "Detecting recurring themes",
+                        "Analyzing emotional tone"
                     ])
                 elif current_stage == "campaign_generation":
                     details.extend([
-                        "Generando estrategias de marketing",
-                        "Creando copy para redes sociales",
-                        "Diseñando campañas por segmento"
+                        "Generating marketing strategies",
+                        "Creating social media copy",
+                        "Designing campaigns by segment"
                     ])
                 
                 thought_event = {

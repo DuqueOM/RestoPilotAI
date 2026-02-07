@@ -101,7 +101,7 @@ async def run_bcg_analysis(session_id: str, period: str = "30d", auto_verify: bo
                 costs = [s.get("cost", 0) for s in item_sales if s.get("cost")]
                 avg_cost = sum(costs) / len(costs) if costs else 0.0
 
-                category = "Sin Categoría"
+                category = "Uncategorized"
                 for s in item_sales:
                     if s.get("category"):
                         category = s.get("category")

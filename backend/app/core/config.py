@@ -61,15 +61,15 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
 
     # ==================== Gemini 3 Configuration ====================
-    # CRÍTICO: Usar solo modelos de Gemini 3
+    # CRITICAL: Use only Gemini 3 models
     
     # Model Selection with Fallbacks
     gemini_model_primary: str = GeminiModel.PRO_PREVIEW.value
     gemini_model_reasoning: str = GeminiModel.PRO_PREVIEW.value  # BCG, competitive intel — PRO for max quality
-    gemini_model_vision: str = GeminiModel.PRO_PREVIEW.value  # Multimodal (menús, platos)
+    gemini_model_vision: str = GeminiModel.PRO_PREVIEW.value  # Multimodal (menus, dishes)
     gemini_model_image_gen: str = GeminiModel.PRO_IMAGE.value  # Creative Autopilot
-    gemini_fallback_model: str = GeminiModel.PRO_PREVIEW.value  # Si falla primary
-    gemini_emergency_model: str = GeminiModel.FLASH.value  # Último recurso (Gemini 3 Flash)
+    gemini_fallback_model: str = GeminiModel.PRO_PREVIEW.value  # Fallback if primary fails
+    gemini_emergency_model: str = GeminiModel.FLASH.value  # Last resort (Gemini 3 Flash)
     
     # Backward compatibility
     gemini_model: str = GeminiModel.PRO_PREVIEW.value
@@ -80,21 +80,21 @@ class Settings(BaseSettings):
     gemini_rate_limit_rpm: int = 15  # Requests per minute
     gemini_rate_limit_tpm: int = 1_000_000  # Tokens per minute
     gemini_rate_limit_window: int = 60  # Window in seconds
-    gemini_max_concurrent_requests: int = 3  # Evitar throttling
+    gemini_max_concurrent_requests: int = 3  # Avoid throttling
     
     # Token Limits (differentiated by task)
     gemini_max_input_tokens: int = 128000  # Context window
     gemini_max_tokens_menu_extraction: int = 8192  # Increased to prevent truncated JSON on large menus
     gemini_max_tokens_analysis: int = 8192  # Default
     gemini_max_tokens_campaign: int = 8192  # Increased for richer campaign copy
-    gemini_max_tokens_reasoning: int = 16384  # Análisis profundos
+    gemini_max_tokens_reasoning: int = 16384  # Deep analysis tasks
     gemini_max_output_tokens: int = 8192  # Flash model default
     gemini_max_output_tokens_reasoning: int = 16384
     
-    # Timeouts optimizados para Marathon Agent
-    gemini_timeout_seconds: int = 120  # Requests normales
-    gemini_marathon_timeout_seconds: int = 600  # Tareas largas (10 min)
-    gemini_connection_timeout: int = 30  # Solo handshake
+    # Timeouts optimized for Marathon Agent
+    gemini_timeout_seconds: int = 120  # Normal requests
+    gemini_marathon_timeout_seconds: int = 600  # Long tasks (10 min)
+    gemini_connection_timeout: int = 30  # Handshake only
     gemini_retry_backoff_factor: float = 2.0  # Exponential backoff
     
     # Cost Tracking & Budget Control
@@ -118,27 +118,27 @@ class Settings(BaseSettings):
     gemini_enable_streaming: bool = True
 
     # ==================== Hackathon Features Flags ====================
-    # Habilitar/deshabilitar tracks estratégicos
+    # Enable/disable strategic tracks
     enable_vibe_engineering: bool = True  # Track: Vibe Engineering
     enable_marathon_agent: bool = True  # Track: Marathon Agent
-    enable_creative_autopilot: bool = True  # Activo para Hackathon
+    enable_creative_autopilot: bool = True  # Active for Hackathon
     enable_grounding: bool = True  # Google Search grounding
     
     # ==================== Vibe Engineering Configuration ====================
-    vibe_quality_threshold: float = 0.85  # Score mínimo aceptable
-    vibe_max_iterations: int = 3  # Máximo de ciclos de mejora
-    vibe_auto_improve_default: bool = True  # Auto-mejora por defecto
-    vibe_enable_thought_transparency: bool = True  # Mostrar razonamiento
+    vibe_quality_threshold: float = 0.85  # Minimum acceptable score
+    vibe_max_iterations: int = 3  # Maximum improvement cycles
+    vibe_auto_improve_default: bool = True  # Auto-improve by default
+    vibe_enable_thought_transparency: bool = True  # Show reasoning
     
     # ==================== Marathon Agent Configuration ====================
-    marathon_checkpoint_interval: int = 60  # Guardar cada 60 segundos
+    marathon_checkpoint_interval: int = 60  # Save every 60 seconds
     marathon_max_retries_per_step: int = 3
     marathon_enable_recovery: bool = True
     marathon_enable_checkpoints: bool = True
-    marathon_max_task_duration: int = 3600  # 1 hora máximo por tarea
+    marathon_max_task_duration: int = 3600  # 1 hour max per task
     
     # ==================== Thought Signatures Configuration ====================
-    # Niveles de razonamiento transparente
+    # Transparent reasoning levels
     thinking_level_quick_temp: float = 0.3
     thinking_level_quick_tokens: int = 2048
     thinking_level_standard_temp: float = 0.5
@@ -150,9 +150,9 @@ class Settings(BaseSettings):
     
     # ==================== Grounding Configuration ====================
     grounding_enabled_for_competitive: bool = True
-    grounding_max_results: int = 5  # Máximo de resultados de Google Search
-    grounding_include_sources: bool = True  # Siempre citar fuentes
-    grounding_confidence_threshold: float = 0.7  # Mínimo de confianza
+    grounding_max_results: int = 5  # Max Google Search results
+    grounding_include_sources: bool = True  # Always cite sources
+    grounding_confidence_threshold: float = 0.7  # Minimum confidence
     
     # ==================== External APIs ====================
     places_rate_limit: int = 100
