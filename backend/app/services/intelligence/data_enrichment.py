@@ -256,52 +256,80 @@ class CompetitorEnrichmentService:
                 return self._create_minimal_profile(competitor_id, basic_info or {})
 
         # Step 2: Cross-reference with web search
-        web_data = await self._cross_reference_web_search(
-            name=maps_data.get("name"),
-            phone=maps_data.get("formatted_phone_number"),
-            address=maps_data.get("formatted_address"),
-            google_maps_url=maps_data.get("url"),
-        )
+        try:
+            web_data = await self._cross_reference_web_search(
+                name=maps_data.get("name"),
+                phone=maps_data.get("formatted_phone_number"),
+                address=maps_data.get("formatted_address"),
+                google_maps_url=maps_data.get("url"),
+            )
+        except Exception as e:
+            logger.error(f"Step 2 (web search) failed: {e}")
+            web_data = {}
 
         # Step 3: Identify social media
-        social_profiles = await self._identify_social_media(
-            name=maps_data.get("name"),
-            website=maps_data.get("website"),
-            phone=maps_data.get("formatted_phone_number"),
-            web_results=web_data,
-        )
+        try:
+            social_profiles = await self._identify_social_media(
+                name=maps_data.get("name"),
+                website=maps_data.get("website"),
+                phone=maps_data.get("formatted_phone_number"),
+                web_results=web_data,
+            )
+        except Exception as e:
+            logger.error(f"Step 3 (social media) failed: {e}")
+            social_profiles = []
 
         # Step 4: Extract WhatsApp Business data if available
-        whatsapp_data = await self._extract_whatsapp_business(
-            phone=maps_data.get("formatted_phone_number"),
-            social_profiles=social_profiles,
-        )
+        try:
+            whatsapp_data = await self._extract_whatsapp_business(
+                phone=maps_data.get("formatted_phone_number"),
+                social_profiles=social_profiles,
+            )
+        except Exception as e:
+            logger.error(f"Step 4 (WhatsApp) failed: {e}")
+            whatsapp_data = {}
 
         # Step 5: Analyze photos with Gemini Vision
-        photo_analysis = await self._analyze_competitor_photos(
-            maps_data.get("photos", [])
-        )
+        try:
+            photo_analysis = await self._analyze_competitor_photos(
+                maps_data.get("photos", [])
+            )
+        except Exception as e:
+            logger.error(f"Step 5 (photo analysis) failed: {e}")
+            photo_analysis = {}
 
         # Step 6: Extract menu from all sources
-        menu_data = await self._extract_menu_all_sources(
-            maps_data=maps_data,
-            web_data=web_data,
-            whatsapp_data=whatsapp_data,
-            photo_analysis=photo_analysis,
-        )
+        try:
+            menu_data = await self._extract_menu_all_sources(
+                maps_data=maps_data,
+                web_data=web_data,
+                whatsapp_data=whatsapp_data,
+                photo_analysis=photo_analysis,
+            )
+        except Exception as e:
+            logger.error(f"Step 6 (menu extraction) failed: {e}")
+            menu_data = {}
 
         # Step 7: Process reviews with Gemini
-        reviews_summary = await self._analyze_reviews(maps_data.get("reviews", []))
+        try:
+            reviews_summary = await self._analyze_reviews(maps_data.get("reviews", []))
+        except Exception as e:
+            logger.error(f"Step 7 (reviews) failed: {e}")
+            reviews_summary = {}
 
         # Step 8: Consolidate everything with Gemini
-        intelligence = await self._consolidate_intelligence(
-            maps_data=maps_data,
-            web_data=web_data,
-            social_data={"profiles": social_profiles},
-            menu_data=menu_data,
-            reviews_summary=reviews_summary,
-            photo_analysis=photo_analysis,
-        )
+        try:
+            intelligence = await self._consolidate_intelligence(
+                maps_data=maps_data,
+                web_data=web_data,
+                social_data={"profiles": social_profiles},
+                menu_data=menu_data,
+                reviews_summary=reviews_summary,
+                photo_analysis=photo_analysis,
+            )
+        except Exception as e:
+            logger.error(f"Step 8 (consolidation) failed: {e}")
+            intelligence = {}
 
         # Build complete profile
         profile = CompetitorProfile(

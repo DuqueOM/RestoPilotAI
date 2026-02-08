@@ -1215,6 +1215,9 @@ async def enrich_competitor_profile(
     business_rating: Optional[float] = Form(None),
 ):
     """Enrich competitor profile using Place Details + Gemini grounding search."""
+    import traceback as _tb
+    logger.info(f"Enrichment request: place_id={place_id}, name={business_name}, address={business_address}")
+    service = None
     try:
         service = CompetitorEnrichmentService(
             google_maps_api_key=settings.google_maps_api_key, gemini_agent=agent
@@ -1232,7 +1235,6 @@ async def enrich_competitor_profile(
             place_id,
             basic_info=basic_info or None,
         )
-        await service.close()
 
         if session_id:
             session = load_session(session_id)
@@ -1242,13 +1244,21 @@ async def enrich_competitor_profile(
                 session["enriched_competitors"].append(profile.to_dict())
                 save_session(session_id)
 
+        logger.info(f"Enrichment complete: {profile.name}, social={len(profile.social_profiles)}, sources={len(profile.data_sources)}")
         return {
             "status": "success",
             "profile": profile.to_dict(),
             "confidence": profile.confidence_score,
         }
     except Exception as e:
+        logger.error(f"Enrichment failed: {e}\n{_tb.format_exc()}")
         raise HTTPException(500, str(e))
+    finally:
+        if service:
+            try:
+                await service.close()
+            except Exception:
+                pass
 
 
 # ============================================================================
