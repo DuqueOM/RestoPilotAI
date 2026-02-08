@@ -4,6 +4,7 @@ import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
 import { DebateResult, MultiAgentDebatePanel } from '@/components/ai/MultiAgentDebatePanel';
 import { QualityAssurancePanel } from '@/components/ai/QualityAssurancePanel';
 import { ThoughtBubbleStream } from '@/components/ai/ThoughtBubbleStream';
+import { BCG_PIPELINE_STEPS, CAMPAIGN_PIPELINE_STEPS, COMPETITOR_PIPELINE_STEPS, GeminiPipelinePanel, SENTIMENT_PIPELINE_STEPS } from '@/components/common/GeminiPipelinePanel';
 import { DashboardSkeleton } from '@/components/ui/AnalysisSkeleton';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useMarathonAgent } from '@/hooks/useMarathonAgent';
@@ -384,11 +385,20 @@ export default function AnalysisPage() {
           completed={completedAnalyses.bcg}
           isRunning={isRunning}
         >
+          {isRunning && !completedAnalyses.bcg && (
+            <GeminiPipelinePanel
+              title="BCG Matrix Analysis"
+              steps={BCG_PIPELINE_STEPS}
+              isRunning={true}
+              isComplete={false}
+              stepIntervalMs={5000}
+            />
+          )}
           {completedAnalyses.bcg ? (
             <BCGSummaryInline data={unwrappedData?.bcg_analysis || unwrappedData?.bcg} />
-          ) : (
-            <p className="text-sm text-gray-500">{isRunning ? 'Processing menu and BCG classification...' : 'Upload your menu and sales data to get BCG classification.'}</p>
-          )}
+          ) : !isRunning ? (
+            <p className="text-sm text-gray-500">Upload your menu and sales data to get BCG classification.</p>
+          ) : null}
         </SummarySection>
 
         {/* Competitors Summary */}
@@ -398,11 +408,20 @@ export default function AnalysisPage() {
           completed={completedAnalyses.competitors}
           isRunning={isRunning}
         >
+          {isRunning && !completedAnalyses.competitors && (
+            <GeminiPipelinePanel
+              title="Competitor Analysis"
+              steps={COMPETITOR_PIPELINE_STEPS}
+              isRunning={true}
+              isComplete={false}
+              stepIntervalMs={6000}
+            />
+          )}
           {completedAnalyses.competitors ? (
             <CompetitorsSummaryInline data={unwrappedData} />
-          ) : (
-            <p className="text-sm text-gray-500">{isRunning ? 'Analyzing nearby competitors...' : 'Competitor analysis will run automatically.'}</p>
-          )}
+          ) : !isRunning ? (
+            <p className="text-sm text-gray-500">Competitor analysis will run automatically.</p>
+          ) : null}
         </SummarySection>
 
         {/* Sentiment Summary */}
@@ -412,11 +431,20 @@ export default function AnalysisPage() {
           completed={completedAnalyses.sentiment}
           isRunning={isRunning}
         >
+          {isRunning && !completedAnalyses.sentiment && (
+            <GeminiPipelinePanel
+              title="Sentiment Analysis"
+              steps={SENTIMENT_PIPELINE_STEPS}
+              isRunning={true}
+              isComplete={false}
+              stepIntervalMs={4500}
+            />
+          )}
           {completedAnalyses.sentiment ? (
             <SentimentSummaryInline data={unwrappedData?.sentiment_analysis} />
-          ) : (
-            <p className="text-sm text-gray-500">{isRunning ? 'Analyzing reviews and sentiment...' : 'Sentiment analysis will run automatically.'}</p>
-          )}
+          ) : !isRunning ? (
+            <p className="text-sm text-gray-500">Sentiment analysis will run automatically.</p>
+          ) : null}
         </SummarySection>
 
         {/* Campaigns Summary */}
@@ -426,11 +454,20 @@ export default function AnalysisPage() {
           completed={completedAnalyses.campaigns}
           isRunning={isRunning}
         >
+          {isRunning && !completedAnalyses.campaigns && (
+            <GeminiPipelinePanel
+              title="Campaign Generation"
+              steps={CAMPAIGN_PIPELINE_STEPS}
+              isRunning={true}
+              isComplete={false}
+              stepIntervalMs={5500}
+            />
+          )}
           {completedAnalyses.campaigns ? (
             <CampaignsSummaryInline data={unwrappedData?.campaigns} />
-          ) : (
-            <p className="text-sm text-gray-500">{isRunning ? 'Generating marketing campaigns...' : 'Campaigns will be generated after analysis.'}</p>
-          )}
+          ) : !isRunning ? (
+            <p className="text-sm text-gray-500">Campaigns will be generated after analysis.</p>
+          ) : null}
         </SummarySection>
       </div>
 

@@ -2,6 +2,7 @@
 
 import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
 import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
+import { COMPETITOR_PIPELINE_STEPS, GeminiPipelinePanel } from '@/components/common/GeminiPipelinePanel';
 import { GroundingSources } from '@/components/common/GroundingSources';
 import { Globe, Loader2, MapPin, Search, Shield, Star, Target, TrendingDown, TrendingUp } from 'lucide-react';
 import { useParams } from 'next/navigation';
@@ -27,11 +28,20 @@ export default function CompetitorsPage() {
 
   if (isLoading) {
     return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48"></div>
-        <div className="grid md:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-gray-100 rounded-xl"></div>)}
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-48"></div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-gray-100 rounded-xl"></div>)}
+          </div>
         </div>
+        <GeminiPipelinePanel
+          title="Competitor Analysis"
+          steps={COMPETITOR_PIPELINE_STEPS}
+          isRunning={true}
+          isComplete={false}
+          stepIntervalMs={4000}
+        />
       </div>
     );
   }

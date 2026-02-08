@@ -4,6 +4,7 @@ import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
 import { ConfidenceIndicator } from '@/components/ai/ConfidenceIndicator';
 import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
 import { MenuItemsTable } from '@/components/analysis/MenuItemsTable';
+import { BCG_PIPELINE_STEPS, GeminiPipelinePanel } from '@/components/common/GeminiPipelinePanel';
 import { GroundingSources } from '@/components/common/GroundingSources';
 import { MenuTransformationIntegrated } from '@/components/creative/MenuTransformationIntegrated';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
@@ -121,7 +122,18 @@ export default function BCGPage({ params }: BCGPageProps) {
     }
   };
 
-  if (loading) return <LoadingSkeleton />;
+  if (loading) return (
+    <div className="space-y-6">
+      <LoadingSkeleton />
+      <GeminiPipelinePanel
+        title="BCG Matrix Analysis"
+        steps={BCG_PIPELINE_STEPS}
+        isRunning={true}
+        isComplete={false}
+        stepIntervalMs={3000}
+      />
+    </div>
+  );
 
   if (error) {
     return (

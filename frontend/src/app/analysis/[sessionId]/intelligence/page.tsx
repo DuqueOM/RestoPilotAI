@@ -1,21 +1,22 @@
 'use client';
 
 import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
+import { GeminiPipelinePanel, MARATHON_PIPELINE_STEPS } from '@/components/common/GeminiPipelinePanel';
 import { LiveTranscriptionBox } from '@/components/multimodal/LiveTranscriptionBox';
 import { VideoAnalysisZone } from '@/components/multimodal/VideoAnalysisZone';
 import {
-  Brain,
-  Camera,
-  Eye,
-  FileText,
-  Image,
-  Mic,
-  Search,
-  Shield,
-  Sparkles,
-  Video,
-  Wand2,
-  Zap,
+    Brain,
+    Camera,
+    Eye,
+    FileText,
+    Image,
+    Mic,
+    Search,
+    Shield,
+    Sparkles,
+    Video,
+    Wand2,
+    Zap,
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -38,11 +39,20 @@ export default function IntelligencePage() {
 
   if (isLoading) {
     return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-24 bg-gray-200 rounded-xl"></div>
-        <div className="grid md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-gray-100 rounded-xl"></div>)}
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-24 bg-gray-200 rounded-xl"></div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-gray-100 rounded-xl"></div>)}
+          </div>
         </div>
+        <GeminiPipelinePanel
+          title="Marathon Agent Pipeline"
+          steps={MARATHON_PIPELINE_STEPS}
+          isRunning={true}
+          isComplete={false}
+          stepIntervalMs={3000}
+        />
       </div>
     );
   }

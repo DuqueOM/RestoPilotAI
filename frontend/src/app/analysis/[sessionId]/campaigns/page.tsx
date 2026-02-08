@@ -2,6 +2,7 @@
 
 import { AgentDebateTrigger } from '@/components/ai/AgentDebateTrigger';
 import { GeminiCapabilityBadge } from '@/components/ai/GeminiCapabilityBadge';
+import { CAMPAIGN_PIPELINE_STEPS, GeminiPipelinePanel } from '@/components/common/GeminiPipelinePanel';
 import { CreativeAutopilot } from '@/components/creative/CreativeAutopilot';
 import { Campaign, CampaignResult } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -108,7 +109,18 @@ export default function CampaignsPage({ params }: CampaignsPageProps) {
   };
 
   if (loading) {
-    return <LoadingSkeleton />;
+    return (
+      <div className="space-y-6">
+        <LoadingSkeleton />
+        <GeminiPipelinePanel
+          title="Campaign Generation"
+          steps={CAMPAIGN_PIPELINE_STEPS}
+          isRunning={true}
+          isComplete={false}
+          stepIntervalMs={3500}
+        />
+      </div>
+    );
   }
 
   if (error) {
