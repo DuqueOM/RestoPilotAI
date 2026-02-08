@@ -76,7 +76,7 @@ run:
 
 run-backend:
 	@echo "🔧 Starting backend..."
-	cd backend && . venv/bin/activate && uvicorn app.main:app --reload --port 8000
+	cd backend && /home/duque_om/miniconda3/envs/ml/bin/uvicorn app.main:app --reload --port 8000
 
 run-frontend:
 	@echo "🎨 Starting frontend..."
