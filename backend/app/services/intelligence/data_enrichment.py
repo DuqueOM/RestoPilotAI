@@ -520,52 +520,44 @@ Name: {name}
 
 YOUR TASK - Search and find ONLY profiles that belong to THIS SPECIFIC business at THIS address:
 
-1. SOCIAL MEDIA PROFILES:
-   - Search Facebook for "{name}" + city from the address. Return the FULL Facebook page URL (e.g., https://www.facebook.com/PageName).
-   - Search Instagram for "{name}" + city. Return the FULL Instagram URL (e.g., https://www.instagram.com/username/).
-   - Search TikTok, Twitter/X similarly.
-   - If you find MULTIPLE profiles for the same platform with similar names, choose the one that:
-     (a) Matches the EXACT city/location from the address above
-     (b) Has the most RECENT activity (posts, reviews, updates)
-     (c) Has the most followers/engagement
-   - DO NOT return a profile if you are not confident it belongs to THIS specific business at THIS address.
+1. SOCIAL MEDIA PROFILES (STRICT VALIDATION):
+   - Search Facebook, Instagram, TikTok, Twitter/X for "{name}" in "{address}".
+   - IMPORTANT: Look for "Web results" or "Profiles" often listed alongside the Google Maps entry in search results. These are usually the correct ones.
+   - VALIDATION:
+     - Check if the profile location matches the city/address (e.g. Pasto, Nariño).
+     - Check recent posts to confirm it's an active food business.
+     - DO NOT GUESS URLs. If you don't find a profile, return null.
+     - DO NOT return "tiktok.com/businessname" unless you see a search result confirming that specific handle exists.
+   - Disambiguation: If multiple profiles exist, choose the one matching the CITY and with recent activity.
 
 2. WhatsApp Business number if available (with country code)
 
-3. DELIVERY PLATFORMS — Search for this business on Rappi, Uber Eats, iFood, PedidosYa, etc.
-   - Return the FULL direct URL to the business page on each platform (e.g., https://www.rappi.com.co/restaurantes/...).
-   - If you cannot find the direct URL, still list the platform name but set url to null.
+3. DELIVERY PLATFORMS — Search for this business on Rappi, Uber Eats, iFood, PedidosYa:
+   - Return the FULL direct URL (e.g., https://www.rappi.com.co/restaurantes/...).
+   - If a platform is found but no direct URL, return null for the URL.
 
-4. Menu information if available online
+4. Menu information & Cuisine/Specialties
 
-5. Cuisine type and specialties
-
-CRITICAL VALIDATION RULES:
-- Only return social media profiles you can CONFIRM belong to "{name}" located at or near "{address}".
-- If the business name is common, use the city and address to disambiguate.
-- Prefer profiles with recent activity over dormant ones.
-- Return null for any platform where you cannot find a verified profile.
-
-Respond ONLY with valid JSON (no markdown, no code blocks):
+Respond ONLY with valid JSON:
 {{
   "social_media": {{
-    "facebook": "full Facebook page URL or null",
-    "instagram": "full Instagram profile URL or null",
-    "tiktok": "full TikTok URL or @handle or null",
-    "twitter": "full Twitter/X URL or @handle or null",
-    "youtube": "full YouTube channel URL or null"
+    "facebook": "full verified URL or null",
+    "instagram": "full verified URL or null",
+    "tiktok": "full verified URL or null",
+    "twitter": "full verified URL or null",
+    "youtube": "channel URL or null"
   }},
-  "whatsapp": "number with country code or null",
+  "whatsapp": "number or null",
   "additional_websites": ["URL1", "URL2"],
   "menu_found": true/false,
   "menu_url": "URL or null",
   "cuisine_type": "Cuisine type",
   "specialties": ["Specialty1", "Specialty2"],
   "delivery_platforms": [
-    {{"name": "Rappi", "url": "full URL to business page or null"}},
+    {{"name": "Rappi", "url": "full URL or null"}},
     {{"name": "Uber Eats", "url": "full URL or null"}}
   ],
-  "notes": ["Relevant note 1", "Note 2"]
+  "notes": ["Note about verification source"]
 }}"""
 
             # Use shared Gemini agent with grounding
@@ -629,41 +621,53 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         # Instagram
         if social_data.get("instagram"):
             instagram_url = social_data["instagram"]
-            if not instagram_url.startswith("http"):
-                instagram_url = (
-                    f"https://instagram.com/{instagram_url.replace('@', '')}"
+            # STRICT VALIDATION: Only accept actual URLs, do not guess from handles
+            if instagram_url and instagram_url.startswith("http"):
+                profiles.append(
+                    SocialMediaProfile(
+                        platform="instagram",
+                        url=instagram_url,
+                        handle=self._extract_handle_from_url(instagram_url, "instagram"),
+                    )
                 )
-            profiles.append(
-                SocialMediaProfile(
-                    platform="instagram",
-                    url=instagram_url,
-                    handle=self._extract_handle_from_url(instagram_url, "instagram"),
-                )
-            )
 
         # TikTok
         if social_data.get("tiktok"):
-            profiles.append(
-                SocialMediaProfile(
-                    platform="tiktok",
-                    url=(
-                        social_data["tiktok"]
-                        if social_data["tiktok"].startswith("http")
-                        else f"https://tiktok.com/@{social_data['tiktok'].replace('@', '')}"
-                    ),
-                    handle=social_data["tiktok"].replace("@", ""),
+            tiktok_url = social_data["tiktok"]
+            # STRICT VALIDATION: Only accept actual URLs
+            if tiktok_url and tiktok_url.startswith("http"):
+                profiles.append(
+                    SocialMediaProfile(
+                        platform="tiktok",
+                        url=tiktok_url,
+                        handle=self._extract_handle_from_url(tiktok_url, "tiktok"),
+                    )
                 )
-            )
+
+        # Twitter/X
+        if social_data.get("twitter"):
+            twitter_url = social_data["twitter"]
+            # STRICT VALIDATION: Only accept actual URLs
+            if twitter_url and twitter_url.startswith("http"):
+                profiles.append(
+                    SocialMediaProfile(
+                        platform="twitter",
+                        url=twitter_url,
+                        handle=self._extract_handle_from_url(twitter_url, "twitter"),
+                    )
+                )
 
         # YouTube
         if social_data.get("youtube"):
-            profiles.append(
-                SocialMediaProfile(
-                    platform="youtube",
-                    url=social_data["youtube"],
-                    handle=self._extract_handle_from_url(social_data["youtube"], "youtube"),
+            youtube_url = social_data["youtube"]
+            if youtube_url and youtube_url.startswith("http"):
+                profiles.append(
+                    SocialMediaProfile(
+                        platform="youtube",
+                        url=youtube_url,
+                        handle=self._extract_handle_from_url(youtube_url, "youtube"),
+                    )
                 )
-            )
 
         # WhatsApp Business
         whatsapp = web_results.get("whatsapp") or self._extract_whatsapp_from_phone(
@@ -1012,6 +1016,12 @@ Respond in JSON:
         elif platform == "instagram":
             match = re.search(r"instagram\.com/([^/?]+)", url)
             return match.group(1) if match else None
+        elif platform == "tiktok":
+            match = re.search(r"tiktok\.com/@([^/?]+)", url)
+            return match.group(1) if match else None
+        elif platform == "twitter" or platform == "x":
+            match = re.search(r"(twitter\.com|x\.com)/([^/?]+)", url)
+            return match.group(2) if match else None
         elif platform == "youtube":
             # Handle user, channel, or custom URL
             if "youtube.com/channel/" in url:
