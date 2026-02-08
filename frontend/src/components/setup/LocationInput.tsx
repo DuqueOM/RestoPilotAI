@@ -219,10 +219,12 @@ export function LocationInput({
       if (candidate.rating) enrichForm.append('business_rating', String(candidate.rating));
       if (sessionId) enrichForm.append('session_id', sessionId);
 
+      console.log('[RestoPilot] Starting enrichment for:', candidate.name, candidate.placeId);
       fetch(`/api/v1/location/enrich-competitor`, {
         method: 'POST',
         body: enrichForm,
       }).then(res => {
+        console.log('[RestoPilot] Enrichment HTTP status:', res.status);
         if (!res.ok) {
           console.warn('[RestoPilot] Enrichment response not OK:', res.status);
           if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
@@ -230,14 +232,20 @@ export function LocationInput({
         }
         return res.json();
       }).then(data => {
+        console.log('[RestoPilot] Enrichment raw response:', JSON.stringify(data).substring(0, 500));
         if (data?.profile) {
-          console.log('[RestoPilot] Enrichment complete:', data.profile.name, 
-            'social:', (data.profile.social_media || []).map((s: any) => s.platform).join(', '));
+          console.log('[RestoPilot] Enrichment complete:', {
+            name: data.profile.name,
+            social_media: data.profile.social_media,
+            delivery_platforms: data.profile.delivery_platforms,
+            contact: data.profile.contact,
+            website: data.profile.website,
+          });
           if (onBusinessEnrichedRef.current) {
             onBusinessEnrichedRef.current(data.profile);
           }
         } else if (data !== null) {
-          console.warn('[RestoPilot] Enrichment returned no profile');
+          console.warn('[RestoPilot] Enrichment returned no profile, data:', data);
           if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
         }
       }).catch(err => {

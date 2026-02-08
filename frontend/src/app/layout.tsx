@@ -16,7 +16,10 @@ export const metadata: Metadata = {
   keywords: ['restaurant', 'menu optimization', 'AI', 'BCG analysis', 'Gemini', 'marketing campaigns'],
   authors: [{ name: 'RestoPilotAI Team' }],
   icons: {
-    icon: '/icon.svg',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
   },
 }
 

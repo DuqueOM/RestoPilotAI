@@ -256,6 +256,7 @@ export function SetupWizard({ onComplete, initialData, children }: SetupWizardPr
       businessWebsite: formData.businessWebsite,
       businessRating: formData.businessRating,
       businessUserRatingsTotal: formData.businessUserRatingsTotal,
+      deliveryPlatforms: formData.deliveryPlatforms,
       // Persist file metadata for returning users
       _fileMeta: {
         menuFiles: fileMetadata(formData.menuFiles),
