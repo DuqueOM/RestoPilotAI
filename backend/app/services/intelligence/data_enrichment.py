@@ -511,31 +511,49 @@ class CompetitorEnrichmentService:
             return {}
 
         try:
-            prompt = f"""Search the internet and find complete information about this restaurant/business:
+            prompt = f"""Search the internet and find complete, VERIFIED information about this specific restaurant/business:
 
 Name: {name}
 {f"Phone: {phone}" if phone else ""}
 {f"Address: {address}" if address else ""}
 {f"Google Maps: {google_maps_url}" if google_maps_url else ""}
 
-YOUR TASK - Search and find:
-1. Their EXACT social media profiles — Facebook page URL, Instagram profile URL or @handle, TikTok, Twitter/X
-2. WhatsApp Business number if available
-3. Official website or delivery platform pages (Rappi, Uber Eats, etc.)
+YOUR TASK - Search and find ONLY profiles that belong to THIS SPECIFIC business at THIS address:
+
+1. SOCIAL MEDIA PROFILES:
+   - Search Facebook for "{name}" + city from the address. Return the FULL Facebook page URL (e.g., https://www.facebook.com/PageName).
+   - Search Instagram for "{name}" + city. Return the FULL Instagram URL (e.g., https://www.instagram.com/username/).
+   - Search TikTok, Twitter/X similarly.
+   - If you find MULTIPLE profiles for the same platform with similar names, choose the one that:
+     (a) Matches the EXACT city/location from the address above
+     (b) Has the most RECENT activity (posts, reviews, updates)
+     (c) Has the most followers/engagement
+   - DO NOT return a profile if you are not confident it belongs to THIS specific business at THIS address.
+
+2. WhatsApp Business number if available (with country code)
+
+3. DELIVERY PLATFORMS — Search for this business on Rappi, Uber Eats, iFood, PedidosYa, etc.
+   - Return the FULL direct URL to the business page on each platform (e.g., https://www.rappi.com.co/restaurantes/...).
+   - If you cannot find the direct URL, still list the platform name but set url to null.
+
 4. Menu information if available online
+
 5. Cuisine type and specialties
 
-IMPORTANT: Search for "{name}" on Facebook, Instagram, and Google to find their real social media profiles.
-Look for links like facebook.com/... and instagram.com/... in search results.
+CRITICAL VALIDATION RULES:
+- Only return social media profiles you can CONFIRM belong to "{name}" located at or near "{address}".
+- If the business name is common, use the city and address to disambiguate.
+- Prefer profiles with recent activity over dormant ones.
+- Return null for any platform where you cannot find a verified profile.
 
 Respond ONLY with valid JSON (no markdown, no code blocks):
 {{
   "social_media": {{
-    "facebook": "full Facebook URL or null",
-    "instagram": "full Instagram URL or @handle or null",
-    "tiktok": "@handle or URL or null",
-    "twitter": "@handle or URL or null",
-    "youtube": "Channel URL or null"
+    "facebook": "full Facebook page URL or null",
+    "instagram": "full Instagram profile URL or null",
+    "tiktok": "full TikTok URL or @handle or null",
+    "twitter": "full Twitter/X URL or @handle or null",
+    "youtube": "full YouTube channel URL or null"
   }},
   "whatsapp": "number with country code or null",
   "additional_websites": ["URL1", "URL2"],
@@ -543,7 +561,10 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
   "menu_url": "URL or null",
   "cuisine_type": "Cuisine type",
   "specialties": ["Specialty1", "Specialty2"],
-  "delivery_platforms": ["Rappi", "Uber Eats"],
+  "delivery_platforms": [
+    {{"name": "Rappi", "url": "full URL to business page or null"}},
+    {{"name": "Uber Eats", "url": "full URL or null"}}
+  ],
   "notes": ["Relevant note 1", "Note 2"]
 }}"""
 
@@ -1031,13 +1052,23 @@ Respond in JSON:
         }
 
         seen = set()
-        # From explicit delivery_platforms list
+
+        # Handle structured format: [{"name": "Rappi", "url": "..."}]
         for p in raw_platforms:
-            p_lower = p.lower().strip() if isinstance(p, str) else ""
-            for key, info in platform_patterns.items():
-                if key in p_lower and info["name"] not in seen:
-                    platforms.append({"name": info["name"], "icon": info["icon"], "url": None})
-                    seen.add(info["name"])
+            if isinstance(p, dict):
+                p_name = (p.get("name") or "").lower().strip()
+                p_url = p.get("url")
+                for key, info in platform_patterns.items():
+                    if key in p_name and info["name"] not in seen:
+                        platforms.append({"name": info["name"], "icon": info["icon"], "url": p_url})
+                        seen.add(info["name"])
+            elif isinstance(p, str):
+                # Legacy string format: ["Rappi", "Uber Eats"]
+                p_lower = p.lower().strip()
+                for key, info in platform_patterns.items():
+                    if key in p_lower and info["name"] not in seen:
+                        platforms.append({"name": info["name"], "icon": info["icon"], "url": None})
+                        seen.add(info["name"])
 
         # From additional_websites URLs
         for url in additional_urls:

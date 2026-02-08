@@ -418,19 +418,30 @@ export function LocationStep() {
                 <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">auto-discovered</span>
               </Label>
               <div className="flex flex-wrap gap-2">
-                {(formData.deliveryPlatforms || []).map((dp: any, i: number) => (
-                  <a
-                    key={i}
-                    href={dp.url || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-sm hover:bg-gray-50 hover:border-gray-300 transition-colors"
-                  >
-                    <span>{dp.icon}</span>
-                    <span className="font-medium">{dp.name}</span>
-                    {dp.url && <Globe className="h-3 w-3 text-gray-400" />}
-                  </a>
-                ))}
+                {(formData.deliveryPlatforms || []).map((dp: any, i: number) => 
+                  dp.url ? (
+                    <a
+                      key={i}
+                      href={dp.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-sm hover:bg-orange-50 hover:border-orange-300 transition-colors cursor-pointer"
+                    >
+                      <span>{dp.icon}</span>
+                      <span className="font-medium">{dp.name}</span>
+                      <Globe className="h-3 w-3 text-orange-500" />
+                    </a>
+                  ) : (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-500"
+                    >
+                      <span>{dp.icon}</span>
+                      <span className="font-medium">{dp.name}</span>
+                      <span className="text-[10px] text-gray-400">detected</span>
+                    </span>
+                  )
+                )}
               </div>
             </div>
           )}
