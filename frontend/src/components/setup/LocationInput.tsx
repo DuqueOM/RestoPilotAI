@@ -220,7 +220,12 @@ export function LocationInput({
       if (sessionId) enrichForm.append('session_id', sessionId);
 
       console.log('[RestoPilot] Starting enrichment for:', candidate.name, candidate.placeId);
-      fetch(`/api/v1/location/enrich-competitor`, {
+      
+      // Direct backend call to avoid Next.js proxy timeout (30s limit)
+      // Enrichment can take 60s+ with Gemini steps
+      const API_URL = 'http://localhost:8000';
+      
+      fetch(`${API_URL}/api/v1/location/enrich-competitor`, {
         method: 'POST',
         body: enrichForm,
       }).then(res => {
