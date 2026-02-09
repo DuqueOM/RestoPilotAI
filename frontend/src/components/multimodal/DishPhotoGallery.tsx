@@ -46,13 +46,15 @@ interface DishPhotoGalleryProps {
   files: File[];
   onRemoveFile?: (index: number) => void;
   autoAnalyze?: boolean;
+  onAnalysisProgress?: (stats: { analyzing: number; completed: number; total: number }) => void;
   className?: string;
 }
 
 export function DishPhotoGallery({
   files,
   onRemoveFile,
-  autoAnalyze: _autoAnalyze = false,
+  autoAnalyze = false,
+  onAnalysisProgress,
   className,
 }: DishPhotoGalleryProps) {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -86,6 +88,27 @@ export function DishPhotoGallery({
       photos.forEach(p => URL.revokeObjectURL(p.preview));
     };
   }, []);
+
+  // Auto-analyze: trigger one photo at a time sequentially
+  useEffect(() => {
+    if (!autoAnalyze || photos.length === 0) return;
+    const anyBusy = photos.some(p => p.analyzing);
+    const nextIdx = photos.findIndex(p => !p.analysis && !p.analyzing && !p.error);
+    if (nextIdx >= 0 && !anyBusy) {
+      analyzePhoto(nextIdx);
+    }
+  }, [autoAnalyze, photos]);
+
+  // Report progress to parent
+  useEffect(() => {
+    if (onAnalysisProgress) {
+      onAnalysisProgress({
+        analyzing: photos.filter(p => p.analyzing).length,
+        completed: photos.filter(p => p.analysis !== null).length,
+        total: photos.length,
+      });
+    }
+  }, [photos, onAnalysisProgress]);
 
   const analyzePhoto = useCallback(async (index: number) => {
     setPhotos(prev => prev.map((p, i) => 

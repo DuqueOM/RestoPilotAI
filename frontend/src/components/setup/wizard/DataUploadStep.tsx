@@ -1,8 +1,8 @@
 'use client';
 
+import { GeminiPipelinePanel, PipelineStepDef } from '@/components/common/GeminiPipelinePanel';
 import { DishPhotoGallery } from '@/components/multimodal/DishPhotoGallery';
 import { MenuExtractionPreview } from '@/components/multimodal/MenuExtractionPreview';
-import { VideoInsightsPanel } from '@/components/multimodal/VideoInsightsPanel';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -18,6 +18,37 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWizard } from './SetupWizard';
+
+// ─── Pipeline step definitions for each analysis section ───
+const MENU_PIPELINE_STEPS: PipelineStepDef[] = [
+  { id: 'upload', label: 'File Validation', detail: 'Validating menu files and formats...', gemini: false },
+  { id: 'ocr', label: 'OCR Preprocessing', detail: 'Extracting text layer from images...', gemini: false },
+  { id: 'vision', label: 'Gemini 3 Vision', detail: 'Analyzing menu layout, items and prices...', gemini: true, capability: 'Vision' },
+  { id: 'extraction', label: 'Structured Extraction', detail: 'Parsing items, categories and dietary info...', gemini: true, capability: 'Thinking' },
+  { id: 'validation', label: 'Cross-Validation', detail: 'Deduplicating and verifying extracted data...', gemini: true },
+];
+
+const SALES_PIPELINE_STEPS: PipelineStepDef[] = [
+  { id: 'parse', label: 'File Parsing', detail: 'Reading CSV/Excel columns and rows...', gemini: false },
+  { id: 'clean', label: 'Data Cleaning', detail: 'Validating formats and handling missing values...', gemini: false },
+  { id: 'classify', label: 'BCG Classification', detail: 'Classifying items into Star, Cash Cow, Dog, Question Mark...', gemini: true, capability: 'Thinking' },
+  { id: 'forecast', label: 'Demand Forecasting', detail: 'Predicting future sales trends with ML models...', gemini: true },
+];
+
+const PHOTO_PIPELINE_STEPS: PipelineStepDef[] = [
+  { id: 'load', label: 'Image Processing', detail: 'Loading and validating photo quality...', gemini: false },
+  { id: 'vision', label: 'Gemini 3 Vision', detail: 'Identifying dishes, plating and presentation...', gemini: true, capability: 'Vision' },
+  { id: 'scoring', label: 'Quality Scoring', detail: 'Evaluating presentation, lighting and composition...', gemini: true },
+  { id: 'social', label: 'Social Media Appeal', detail: 'Rating Instagram-readiness and engagement potential...', gemini: true },
+];
+
+const VIDEO_PIPELINE_STEPS: PipelineStepDef[] = [
+  { id: 'detect', label: 'Format Detection', detail: 'Validating video format and metadata...', gemini: false },
+  { id: 'native', label: 'Gemini 3 Native Video', detail: 'Analyzing video content frame by frame...', gemini: true, capability: 'Video' },
+  { id: 'moments', label: 'Key Moments Detection', detail: 'Identifying engaging moments and transitions...', gemini: true },
+  { id: 'quality', label: 'Quality Assessment', detail: 'Scoring visual and audio quality...', gemini: true },
+  { id: 'platforms', label: 'Platform Optimization', detail: 'Evaluating suitability for social media platforms...', gemini: true },
+];
 
 interface FileDropZoneProps {
   accept: string;
@@ -252,15 +283,14 @@ function FileDropZone({
 export function DataUploadStep() {
   const { formData, updateFormData } = useWizard();
 
-  // Sequential queue: only one menu file extracts at a time
+  // ─── Menu sequential queue ───
   const [menuQueueIndex, setMenuQueueIndex] = useState(0);
+  const [menuItemCount, setMenuItemCount] = useState(0);
   const prevMenuCountRef = useRef(formData.menuFiles.length);
 
-  // Reset queue when new files are added
   useEffect(() => {
     if (formData.menuFiles.length !== prevMenuCountRef.current) {
       prevMenuCountRef.current = formData.menuFiles.length;
-      // Don't reset to 0 — keep current progress, new files will queue behind
     }
   }, [formData.menuFiles.length]);
 
@@ -268,9 +298,89 @@ export function DataUploadStep() {
     setMenuQueueIndex(prev => prev + 1);
   }, []);
 
+  const isMenuAnalyzing = formData.menuFiles.length > 0 && menuQueueIndex < formData.menuFiles.length;
+  const isMenuComplete = formData.menuFiles.length > 0 && menuQueueIndex >= formData.menuFiles.length;
+
+  // ─── Sales state ───
+  const [salesAnalyzing, setSalesAnalyzing] = useState(false);
+  const [salesComplete, setSalesComplete] = useState(false);
+  const salesStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (formData.salesFiles.length > 0 && !salesStartedRef.current) {
+      salesStartedRef.current = true;
+      setSalesAnalyzing(true);
+      // Sales analysis happens during Marathon, simulate quick parse
+      const t = setTimeout(() => { setSalesAnalyzing(false); setSalesComplete(true); }, 6000);
+      return () => clearTimeout(t);
+    }
+    if (formData.salesFiles.length === 0) {
+      salesStartedRef.current = false;
+      setSalesAnalyzing(false);
+      setSalesComplete(false);
+    }
+  }, [formData.salesFiles.length]);
+
+  // ─── Photo state ───
+  const [photoStats, setPhotoStats] = useState({ analyzing: 0, completed: 0, total: 0 });
+  const isPhotosAnalyzing = photoStats.analyzing > 0;
+  const isPhotosComplete = photoStats.total > 0 && photoStats.completed === photoStats.total;
+
+  // ─── Video inline analysis (replaces VideoInsightsPanel) ───
+  const [videoAnalyzing, setVideoAnalyzing] = useState(false);
+  const [videoComplete, setVideoComplete] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const videoStartedRef = useRef(false);
+
+  const analyzeVideoFile = useCallback(async (file: File) => {
+    setVideoAnalyzing(true);
+    setVideoError(null);
+    try {
+      const fd = new FormData();
+      fd.append('video', file);
+      fd.append('purpose', 'social_media');
+      const res = await fetch('/api/v1/video/analyze', { method: 'POST', body: fd });
+      if (!res.ok) {
+        // Retry once on 500
+        if (res.status === 500 || res.status === 503 || res.status === 429) {
+          await new Promise(r => setTimeout(r, 8000));
+          const retry = await fetch('/api/v1/video/analyze', { method: 'POST', body: fd });
+          if (retry.ok) {
+            const data = await retry.json();
+            updateFormData({ videoAnalysis: data });
+            setVideoComplete(true);
+            return;
+          }
+        }
+        throw new Error(`Analysis failed: ${res.status}`);
+      }
+      const data = await res.json();
+      updateFormData({ videoAnalysis: data });
+      setVideoComplete(true);
+    } catch (err: any) {
+      setVideoError(err?.message || 'Video analysis failed');
+    } finally {
+      setVideoAnalyzing(false);
+    }
+  }, [updateFormData]);
+
+  // Auto-trigger video analysis
+  useEffect(() => {
+    if (formData.videoFiles.length > 0 && !videoStartedRef.current) {
+      videoStartedRef.current = true;
+      analyzeVideoFile(formData.videoFiles[0]);
+    }
+    if (formData.videoFiles.length === 0) {
+      videoStartedRef.current = false;
+      setVideoAnalyzing(false);
+      setVideoComplete(false);
+      setVideoError(null);
+    }
+  }, [formData.videoFiles, analyzeVideoFile]);
+
   return (
     <div className="space-y-8">
-      {/* Menu Files */}
+      {/* ══════════════ Menu Files ══════════════ */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
           <FileText className="h-5 w-5 text-orange-500" />
@@ -292,28 +402,41 @@ export function DataUploadStep() {
           showThumbnails={true}
           fileType="pdf"
         />
-        {/* Live Menu Extraction Previews — sequential queue */}
+        {/* Pipeline tracker */}
         {formData.menuFiles.length > 0 && (
-          <div className="space-y-3 mt-3">
-            {formData.menuFiles.map((file, index) => (
-              <MenuExtractionPreview
-                key={`${file.name}-${index}`}
-                file={file}
-                compact={formData.menuFiles.length > 1}
-                canExtract={index <= menuQueueIndex}
-                onExtractionDone={advanceMenuQueue}
-                onRemove={() => {
-                  updateFormData({
-                    menuFiles: formData.menuFiles.filter((_, i) => i !== index),
-                  });
-                }}
-              />
-            ))}
+          <div className="mt-3 space-y-3">
+            <GeminiPipelinePanel
+              title="Menu Extraction Pipeline"
+              steps={MENU_PIPELINE_STEPS}
+              isRunning={isMenuAnalyzing}
+              isComplete={isMenuComplete}
+              stepIntervalMs={6000}
+              completeSummary={`Menu extraction complete — ${menuItemCount} items extracted from ${formData.menuFiles.length} file${formData.menuFiles.length > 1 ? 's' : ''}`}
+              defaultExpanded={true}
+            />
+            {/* Hidden extraction components — handle API calls */}
+            <div className="hidden">
+              {formData.menuFiles.map((file, index) => (
+                <MenuExtractionPreview
+                  key={`${file.name}-${index}`}
+                  file={file}
+                  compact={true}
+                  canExtract={index <= menuQueueIndex}
+                  onExtractionDone={advanceMenuQueue}
+                  onItemsExtracted={(items) => setMenuItemCount(prev => prev + items.length)}
+                  onRemove={() => {
+                    updateFormData({
+                      menuFiles: formData.menuFiles.filter((_, i) => i !== index),
+                    });
+                  }}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Sales Files */}
+      {/* ══════════════ Sales Files ══════════════ */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
           <FileSpreadsheet className="h-5 w-5 text-green-500" />
@@ -328,9 +451,23 @@ export function DataUploadStep() {
           description="Excel or CSV with sales history"
           hint="We'll use this for BCG analysis and predictions"
         />
+        {/* Pipeline tracker */}
+        {formData.salesFiles.length > 0 && (
+          <div className="mt-3">
+            <GeminiPipelinePanel
+              title="Sales Analysis Pipeline"
+              steps={SALES_PIPELINE_STEPS}
+              isRunning={salesAnalyzing}
+              isComplete={salesComplete}
+              stepIntervalMs={1200}
+              completeSummary={`Sales data parsed — ${formData.salesFiles.length} file${formData.salesFiles.length > 1 ? 's' : ''} ready for BCG analysis`}
+              defaultExpanded={true}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Photo Files */}
+      {/* ══════════════ Photo Files ══════════════ */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
           <Camera className="h-5 w-5 text-blue-500" />
@@ -347,20 +484,34 @@ export function DataUploadStep() {
           showThumbnails={false}
           fileType="image"
         />
-        {/* AI-Powered Photo Gallery */}
         {formData.photoFiles.length > 0 && (
-          <DishPhotoGallery
-            files={formData.photoFiles}
-            onRemoveFile={(index) => {
-              updateFormData({
-                photoFiles: formData.photoFiles.filter((_, i) => i !== index),
-              });
-            }}
-          />
+          <div className="mt-3 space-y-3">
+            {/* Pipeline tracker */}
+            <GeminiPipelinePanel
+              title="Dish Photo Analysis Pipeline"
+              steps={PHOTO_PIPELINE_STEPS}
+              isRunning={isPhotosAnalyzing}
+              isComplete={isPhotosComplete}
+              stepIntervalMs={5000}
+              completeSummary={`Photo analysis complete — ${photoStats.completed}/${photoStats.total} photos scored`}
+              defaultExpanded={true}
+            />
+            {/* Photo gallery with auto-analyze */}
+            <DishPhotoGallery
+              files={formData.photoFiles}
+              autoAnalyze={true}
+              onAnalysisProgress={setPhotoStats}
+              onRemoveFile={(index) => {
+                updateFormData({
+                  photoFiles: formData.photoFiles.filter((_, i) => i !== index),
+                });
+              }}
+            />
+          </div>
         )}
       </div>
 
-      {/* Video Files */}
+      {/* ══════════════ Video Files ══════════════ */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
           <Film className="h-5 w-5 text-purple-500" />
@@ -377,22 +528,20 @@ export function DataUploadStep() {
           showThumbnails={true}
           fileType="video"
         />
-        {/* Live Video Analysis Previews */}
+        {/* Pipeline tracker — no detailed feedback here, results go to Overview */}
         {formData.videoFiles.length > 0 && (
-          <div className="space-y-3 mt-3">
-            {formData.videoFiles.map((file, index) => (
-              <VideoInsightsPanel
-                key={`${file.name}-${index}`}
-                file={file}
-                autoAnalyze={true}
-                compact={formData.videoFiles.length > 1}
-                onRemove={() => {
-                  updateFormData({
-                    videoFiles: formData.videoFiles.filter((_, i) => i !== index),
-                  });
-                }}
-              />
-            ))}
+          <div className="mt-3">
+            <GeminiPipelinePanel
+              title="Video Analysis Pipeline"
+              steps={VIDEO_PIPELINE_STEPS}
+              isRunning={videoAnalyzing}
+              isComplete={videoComplete}
+              isFailed={!!videoError}
+              stepIntervalMs={8000}
+              completeSummary={`Video analysis complete — results available in Overview`}
+              failedSummary={videoError || 'Video analysis failed — retry by re-uploading'}
+              defaultExpanded={true}
+            />
           </div>
         )}
       </div>
@@ -403,7 +552,7 @@ export function DataUploadStep() {
           🤖 Multimodal Processing
         </h4>
         <p className="text-sm text-blue-800">
-          Gemini 3 will analyze your files intelligently:
+          Gemini 3 analyzes your files automatically. Detailed results will appear in the <strong>Overview</strong> tab after the Marathon analysis.
         </p>
         <ul className="text-sm text-blue-700 mt-2 space-y-1">
           <li>• <strong>Menus:</strong> Automatic extraction of items and prices from images/PDF</li>

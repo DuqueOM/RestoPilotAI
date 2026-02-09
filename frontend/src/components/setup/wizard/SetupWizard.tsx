@@ -57,6 +57,9 @@ export interface WizardFormData {
   website?: string;
   deliveryPlatforms?: { name: string; icon: string; url: string | null }[];
 
+  // Analysis results (populated during data upload, shown in Overview)
+  videoAnalysis?: Record<string, any>;
+
   // Enriched data (auto-populated from location selection)
   enrichedProfile?: Record<string, any>;
   nearbyCompetitors?: Record<string, any>[];
@@ -128,6 +131,7 @@ const defaultFormData: WizardFormData = {
   facebook: '',
   tiktok: '',
   website: '',
+  videoAnalysis: undefined,
   enrichedProfile: undefined,
   nearbyCompetitors: [],
   businessPhone: '',
