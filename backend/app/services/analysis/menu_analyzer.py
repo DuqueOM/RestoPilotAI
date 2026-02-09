@@ -620,7 +620,7 @@ Respond in JSON:
 
             return text
         except Exception as e:
-            logger.warning(f"OCR failed: {e}")
+            logger.debug(f"OCR skipped (tesseract not available): {e}")
             return ""
 
     def _post_process_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
