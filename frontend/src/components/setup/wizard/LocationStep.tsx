@@ -132,7 +132,11 @@ export function LocationStep() {
     }
     if (profile.contact?.phone) {
       updates.businessPhone = profile.contact.phone;
+    } else if (profile.contact?.whatsapp_business) {
+      // Fallback to WhatsApp number if phone is missing
+      updates.businessPhone = profile.contact.whatsapp_business;
     }
+    
     if (profile.website) {
       updates.website = updates.website || profile.website;
     }

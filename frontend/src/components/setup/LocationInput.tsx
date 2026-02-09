@@ -221,23 +221,48 @@ export function LocationInput({
 
       console.log('[RestoPilot] Starting enrichment for:', candidate.name, candidate.placeId);
       
-      // Direct backend call to avoid Next.js proxy timeout (30s limit)
-      // Enrichment can take 60s+ with Gemini steps
-      const API_URL = 'http://localhost:8000';
+      // Use configured API URL or fallback to localhost
+      // We use a direct call to avoid Next.js proxy timeout (default 30s) as enrichment takes longer
+      const DIRECT_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       
-      fetch(`${API_URL}/api/v1/location/enrich-competitor`, {
-        method: 'POST',
-        body: enrichForm,
-      }).then(res => {
+      // Helper to perform fetch with timeout
+      const fetchEnrichment = async (url: string) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            body: enrichForm,
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          return res;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
+        }
+      };
+
+      // Try direct URL first, then fallback to proxy
+      try {
+        console.log(`[RestoPilot] Attempting enrichment via direct URL: ${DIRECT_API_URL}`);
+        let res = await fetchEnrichment(`${DIRECT_API_URL}/api/v1/location/enrich-competitor`).catch(async (err) => {
+           console.warn(`[RestoPilot] Direct enrichment failed (${err.message}), retrying via proxy...`);
+           return await fetchEnrichment(`/api/v1/location/enrich-competitor`);
+        });
+
         console.log('[RestoPilot] Enrichment HTTP status:', res.status);
         if (!res.ok) {
           console.warn('[RestoPilot] Enrichment response not OK:', res.status);
           if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
-          return null;
+          return;
         }
-        return res.json();
-      }).then(data => {
+        
+        const data = await res.json();
+        if (!data) return; 
+        
         console.log('[RestoPilot] Enrichment raw response:', JSON.stringify(data).substring(0, 500));
+        
         if (data?.profile) {
           console.log('[RestoPilot] Enrichment complete:', {
             name: data.profile.name,
@@ -249,14 +274,17 @@ export function LocationInput({
           if (onBusinessEnrichedRef.current) {
             onBusinessEnrichedRef.current(data.profile);
           }
-        } else if (data !== null) {
+        } else {
           console.warn('[RestoPilot] Enrichment returned no profile, data:', data);
           if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
         }
-      }).catch(err => {
-        console.warn('[RestoPilot] Background enrichment failed:', err);
+      } catch (err: any) {
+        console.warn('[RestoPilot] All enrichment attempts failed:', err);
+        if (err.name === 'AbortError') {
+            console.error('[RestoPilot] Enrichment timed out after 120s');
+        }
         if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
-      });
+      }
     }
   };
 
