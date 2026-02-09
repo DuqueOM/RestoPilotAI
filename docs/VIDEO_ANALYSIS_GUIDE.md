@@ -636,4 +636,4 @@ El **Video Analysis** es el diferenciador más poderoso del proyecto:
 
 **Última actualización:** 2026-02-07  
 **Versión:** 2.0.0  
-**Autor:** RestoPilotAI Team
+**Autor:** DuqueOM

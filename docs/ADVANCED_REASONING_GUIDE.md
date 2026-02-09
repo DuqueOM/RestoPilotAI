@@ -721,4 +721,4 @@ print(f"Average consensus: {avg_consensus:.2f}")
 
 **Última actualización:** 2026-02-03  
 **Versión:** 1.0.0  
-**Autor:** RestoPilotAI Team
+**Autor:** DuqueOM

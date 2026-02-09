@@ -252,6 +252,22 @@ function FileDropZone({
 export function DataUploadStep() {
   const { formData, updateFormData } = useWizard();
 
+  // Sequential queue: only one menu file extracts at a time
+  const [menuQueueIndex, setMenuQueueIndex] = useState(0);
+  const prevMenuCountRef = useRef(formData.menuFiles.length);
+
+  // Reset queue when new files are added
+  useEffect(() => {
+    if (formData.menuFiles.length !== prevMenuCountRef.current) {
+      prevMenuCountRef.current = formData.menuFiles.length;
+      // Don't reset to 0 — keep current progress, new files will queue behind
+    }
+  }, [formData.menuFiles.length]);
+
+  const advanceMenuQueue = useCallback(() => {
+    setMenuQueueIndex(prev => prev + 1);
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* Menu Files */}
@@ -259,6 +275,11 @@ export function DataUploadStep() {
         <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
           <FileText className="h-5 w-5 text-orange-500" />
           Menu
+          {formData.menuFiles.length > 1 && (
+            <span className="text-xs font-normal text-gray-400 ml-2">
+              ({Math.min(menuQueueIndex + 1, formData.menuFiles.length)}/{formData.menuFiles.length} processing)
+            </span>
+          )}
         </h3>
         <FileDropZone
           accept=".pdf,.jpg,.jpeg,.png,.webp"
@@ -271,7 +292,7 @@ export function DataUploadStep() {
           showThumbnails={true}
           fileType="pdf"
         />
-        {/* Live Menu Extraction Previews */}
+        {/* Live Menu Extraction Previews — sequential queue */}
         {formData.menuFiles.length > 0 && (
           <div className="space-y-3 mt-3">
             {formData.menuFiles.map((file, index) => (
@@ -279,7 +300,8 @@ export function DataUploadStep() {
                 key={`${file.name}-${index}`}
                 file={file}
                 compact={formData.menuFiles.length > 1}
-                extractionDelay={index * 8000}
+                canExtract={index <= menuQueueIndex}
+                onExtractionDone={advanceMenuQueue}
                 onRemove={() => {
                   updateFormData({
                     menuFiles: formData.menuFiles.filter((_, i) => i !== index),

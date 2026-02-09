@@ -51,15 +51,30 @@ async def analyze_video(
     """
     
     try:
-        # Validate file type
-        if not video.content_type or not video.content_type.startswith('video/'):
+        # Read video bytes first so we can detect type from magic bytes
+        video_bytes = await video.read()
+        
+        # Detect actual mime type from magic bytes (browser often sends application/octet-stream)
+        detected_type = video.content_type or "application/octet-stream"
+        if detected_type == "application/octet-stream" or not detected_type.startswith("video/"):
+            # Check magic bytes
+            if len(video_bytes) >= 12 and video_bytes[4:8] == b'ftyp':
+                detected_type = "video/mp4"
+            elif len(video_bytes) >= 4 and video_bytes[:4] == b'\x1a\x45\xdf\xa3':
+                detected_type = "video/webm"
+            elif len(video_bytes) >= 12 and video_bytes[:4] == b'RIFF' and video_bytes[8:12] == b'AVI ':
+                detected_type = "video/avi"
+            else:
+                # Fallback: check file extension
+                ext = (video.filename or "").rsplit(".", 1)[-1].lower()
+                ext_map = {"mp4": "video/mp4", "mov": "video/mp4", "avi": "video/avi", "webm": "video/webm", "mkv": "video/x-matroska"}
+                detected_type = ext_map.get(ext, detected_type)
+        
+        if not detected_type.startswith("video/"):
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid file type: {video.content_type}. Must be a video file."
+                detail=f"Invalid file type: {detected_type}. Must be a video file."
             )
-        
-        # Read video bytes
-        video_bytes = await video.read()
         
         # Check file size (limit to 100MB for now)
         max_size = 100 * 1024 * 1024  # 100MB

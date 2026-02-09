@@ -144,7 +144,12 @@ async def ingest_menu_image(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback as _tb
         logger.error(f"Menu ingest failed: {e}\n{_tb.format_exc()}")
+        err_str = str(e).lower()
+        # Return 429 for rate limit errors so frontend can retry with backoff
+        if "429" in err_str or "rate" in err_str or "resource_exhausted" in err_str or "quota" in err_str:
+            raise HTTPException(429, f"Gemini API rate limit — please retry: {str(e)[:200]}")
         raise HTTPException(500, f"Menu extraction failed: {str(e)[:200]}")
 
 

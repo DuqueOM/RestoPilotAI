@@ -90,3 +90,6 @@ backend/data/orchestrator_states/
 .env.local
 .env.*.local
 *.pem
+
+# Dictionary files
+docs/Demo/files for training/

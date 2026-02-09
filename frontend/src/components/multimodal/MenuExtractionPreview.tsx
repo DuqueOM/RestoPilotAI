@@ -40,8 +40,10 @@ interface MenuExtractionPreviewProps {
   onItemsExtracted?: (items: ExtractedItem[]) => void;
   onRemove?: () => void;
   compact?: boolean;
-  /** Delay in ms before starting extraction (to stagger parallel requests) */
-  extractionDelay?: number;
+  /** When true, this component will start extraction. Used for sequential queue. */
+  canExtract?: boolean;
+  /** Called when extraction finishes (success or failure), so parent can advance the queue. */
+  onExtractionDone?: () => void;
 }
 
 export function MenuExtractionPreview({
@@ -49,7 +51,8 @@ export function MenuExtractionPreview({
   onItemsExtracted,
   onRemove,
   compact = false,
-  extractionDelay = 0,
+  canExtract = true,
+  onExtractionDone,
 }: MenuExtractionPreviewProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
@@ -68,17 +71,20 @@ export function MenuExtractionPreview({
     }
   }, [file]);
 
-  // Auto-extract on mount (with optional stagger delay)
+  // Start extraction when canExtract becomes true
+  const [started, setStarted] = useState(false);
   useEffect(() => {
-    const timer = setTimeout(() => extractMenu(), extractionDelay);
-    return () => clearTimeout(timer);
-  }, [file]);
+    if (canExtract && !started && !result && !extracting) {
+      setStarted(true);
+      extractMenu();
+    }
+  }, [canExtract, started, result, extracting]);
 
   const extractMenu = useCallback(async (retryCount = 0) => {
     setExtracting(true);
     setError(null);
 
-    const MAX_RETRIES = 2;
+    const MAX_RETRIES = 3;
 
     try {
       const formData = new FormData();
@@ -90,9 +96,9 @@ export function MenuExtractionPreview({
       });
 
       if (!response.ok) {
-        // Retry on 500/503 (Gemini rate limit / server overload)
-        if ((response.status === 500 || response.status === 503) && retryCount < MAX_RETRIES) {
-          const backoff = (retryCount + 1) * 3000; // 3s, 6s
+        // Retry on 500/503/429 (Gemini rate limit / server overload)
+        if ((response.status === 500 || response.status === 503 || response.status === 429) && retryCount < MAX_RETRIES) {
+          const backoff = (retryCount + 1) * 8000; // 8s, 16s, 24s
           console.warn(`[MenuExtraction] ${file.name} failed (${response.status}), retrying in ${backoff}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
           await new Promise(r => setTimeout(r, backoff));
           return extractMenu(retryCount + 1);
@@ -112,12 +118,14 @@ export function MenuExtractionPreview({
       });
       setEditedItems(extractedItems);
       onItemsExtracted?.(extractedItems);
+      onExtractionDone?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Extraction failed');
+      onExtractionDone?.();
     } finally {
       setExtracting(false);
     }
-  }, [file, onItemsExtracted]);
+  }, [file, onItemsExtracted, onExtractionDone]);
 
   const handleItemEdit = (index: number, field: keyof ExtractedItem, value: any) => {
     setEditedItems(prev => {
@@ -169,6 +177,8 @@ export function MenuExtractionPreview({
               ? `${editedItems.length} items extracted across ${Object.keys(groupedItems).length} categories`
               : error
               ? 'Extraction failed'
+              : !canExtract
+              ? 'Queued — waiting for previous file...'
               : 'Ready to extract'}
           </p>
         </div>

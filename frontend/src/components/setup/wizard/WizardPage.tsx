@@ -406,15 +406,6 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
                   </div>
                 </div>
               </div>
-              {/* Floating accent image */}
-              <div className="absolute -bottom-6 -left-6 w-36 h-24 rounded-xl overflow-hidden shadow-xl border-2 border-white/20 rotate-[-3deg]">
-                <img
-                  src="/images/hero-dish.png"
-                  alt="Elegantly plated dish"
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                />
-              </div>
             </div>
           </div>
         </div>

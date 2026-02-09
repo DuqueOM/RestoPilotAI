@@ -514,4 +514,4 @@ El **Streaming Analysis con Thought Visualization** es el diferenciador clave qu
 
 **Última actualización:** 2026-02-03  
 **Versión:** 1.0.0  
-**Autor:** RestoPilotAI Team
+**Autor:** DuqueOM
