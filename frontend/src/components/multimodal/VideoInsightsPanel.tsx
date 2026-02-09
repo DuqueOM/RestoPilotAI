@@ -93,8 +93,12 @@ export function VideoInsightsPanel({
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
+  const analysisStarted = useRef(false);
   useEffect(() => {
-    if (autoAnalyze) analyzeVideo();
+    if (autoAnalyze && !analysisStarted.current) {
+      analysisStarted.current = true;
+      analyzeVideo();
+    }
   }, [file]);
 
   const analyzeVideo = useCallback(async (retryCount = 0) => {
@@ -112,9 +116,9 @@ export function VideoInsightsPanel({
       });
 
       if (!response.ok) {
-        // Retry on 500/503 (Gemini rate limit / server overload)
-        if ((response.status === 500 || response.status === 503) && retryCount < MAX_RETRIES) {
-          const backoff = (retryCount + 1) * 5000; // 5s, 10s
+        // Retry on 500/503/429 (Gemini rate limit / server overload)
+        if ((response.status === 500 || response.status === 503 || response.status === 429) && retryCount < MAX_RETRIES) {
+          const backoff = (retryCount + 1) * 8000; // 8s, 16s
           console.warn(`[VideoAnalysis] ${file.name} failed (${response.status}), retrying in ${backoff}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
           await new Promise(r => setTimeout(r, backoff));
           return analyzeVideo(retryCount + 1);
@@ -125,6 +129,7 @@ export function VideoInsightsPanel({
 
       const data: VideoAnalysisResult = await response.json();
       setResult(data);
+      setError(null); // Clear any previous error when result succeeds
       onAnalysisComplete?.(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Video analysis failed');
@@ -227,11 +232,11 @@ export function VideoInsightsPanel({
             </div>
           )}
 
-          {/* Error */}
-          {error && (
+          {/* Error — only show if no result */}
+          {error && !result && (
             <div className="p-3 bg-red-50 rounded-lg border border-red-200">
               <p className="text-sm text-red-700">{error}</p>
-              <Button size="sm" variant="outline" onClick={analyzeVideo} className="mt-2">
+              <Button size="sm" variant="outline" onClick={() => { analysisStarted.current = false; analyzeVideo(); }} className="mt-2">
                 Retry Analysis
               </Button>
             </div>
@@ -259,7 +264,8 @@ export function VideoInsightsPanel({
 
               {/* Platform Suitability */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Platform Suitability</h4>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Recommended Platforms</h4>
+                <p className="text-[10px] text-gray-400 mb-2">Compatibility score — how well this video fits each platform</p>
                 <div className="grid grid-cols-2 gap-2">
                   {Object.entries(result.platform_suitability)
                     .filter(([key]) => ['instagram_reels', 'tiktok', 'youtube_shorts', 'facebook'].includes(key))
