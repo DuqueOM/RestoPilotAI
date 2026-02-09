@@ -260,8 +260,8 @@ export function LiveTranscriptionBox({
         cancelAnimationFrame(animationRef.current);
       }
       
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close().catch(() => {});
       }
       
       setIsRecording(false);
@@ -300,7 +300,9 @@ export function LiveTranscriptionBox({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      if (audioContextRef.current) audioContextRef.current.close();
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close().catch(() => {});
+      }
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
       stopSpeechRecognition();
     };

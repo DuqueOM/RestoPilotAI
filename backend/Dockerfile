@@ -12,8 +12,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
+# First: CPU-only PyTorch (saves ~1.5GB vs full CUDA version — Cloud Run has no GPU)
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu \
+    && pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels torch torchvision \
+       --index-url https://download.pytorch.org/whl/cpu
+
+# Then: remaining dependencies (excluding torch/torchvision already handled above)
 COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+RUN grep -v -E "^(torch|torchvision)" requirements.txt > requirements_no_torch.txt \
+    && pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements_no_torch.txt
 
 # Production image
 FROM python:${PYTHON_VERSION}-slim
@@ -38,7 +45,10 @@ COPY app /app/app
 COPY .env.example /app/.env.example
 
 # Create data directories
-RUN mkdir -p /app/data/uploads /app/data/outputs /app/data/models
+RUN mkdir -p /app/data/uploads /app/data/outputs /app/data/models /app/data/demo
+
+# Copy demo data for hackathon judges (exclude large source CSVs)
+COPY data/demo/*.json /app/data/demo/
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1

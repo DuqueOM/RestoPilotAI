@@ -1,13 +1,21 @@
 'use client';
 
-import { LiveTranscriptionBox } from '@/components/multimodal/LiveTranscriptionBox';
+import { GeminiPipelinePanel, PipelineStepDef } from '@/components/common/GeminiPipelinePanel';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { Mic, Sparkles, Wand2 } from 'lucide-react';
-import { useState } from 'react';
+import { Mic, Sparkles, Square, Trash2, Wand2 } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useWizard } from './SetupWizard';
+
+const STORY_PIPELINE_STEPS: PipelineStepDef[] = [
+  { id: 'audio', label: 'Voice Note Processing', detail: 'Gemini 3 native audio transcription and sentiment extraction', gemini: true, capability: 'Audio' },
+  { id: 'context', label: 'Business Context Analysis', detail: 'Extracting brand identity, values, and positioning', gemini: true, capability: 'Thinking' },
+  { id: 'audience', label: 'Target Audience Profiling', detail: 'Building customer personas from your descriptions', gemini: true, capability: 'Thinking' },
+  { id: 'challenges', label: 'Challenge & Goal Mapping', detail: 'Identifying actionable insights from your challenges and goals', gemini: true, capability: 'Thinking' },
+  { id: 'strategy', label: 'Strategic Recommendations', detail: 'Generating personalized strategies based on your story', gemini: true, capability: 'Grounding' },
+];
 
 interface ContextSectionProps {
   title: string;
@@ -30,18 +38,40 @@ function ContextSection({
   placeholder,
   templatePrompt,
 }: ContextSectionProps) {
-  const [showAudio, setShowAudio] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
-  const handleTranscription = (text: string) => {
-    // Append transcribed text to current value
-    const newValue = value ? `${value}\n\n[Transcription]: ${text}` : text;
-    onChange(newValue);
-    setShowAudio(false);
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        onAudioChange([...audioBlobs, blob]);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+    }
   };
 
-  const handleAudioBlob = (blob: Blob) => {
-    onAudioChange([...audioBlobs, blob]);
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
   };
 
   return (
@@ -59,7 +89,6 @@ function ContextSection({
               className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
               onClick={() => {
                 setIsGenerating(true);
-                // Simulate AI generation
                 setTimeout(() => {
                   onChange(value + (value ? '\n\n' : '') + templatePrompt);
                   setIsGenerating(false);
@@ -71,47 +100,52 @@ function ContextSection({
               {isGenerating ? 'Generating...' : 'AI Ideas'}
             </Button>
           )}
-          <Button
-            variant={showAudio ? "secondary" : "outline"}
-            size="sm"
-            onClick={() => setShowAudio(!showAudio)}
-            className={cn(showAudio && "bg-purple-100 text-purple-700 border-purple-200")}
-          >
-            <Mic className="h-4 w-4 mr-1" />
-            {showAudio ? 'Close Voice' : 'Use Voice'}
-          </Button>
         </div>
       </div>
 
-      {showAudio ? (
-        <div className="animate-in fade-in slide-in-from-top-2">
-          <LiveTranscriptionBox
-            onTranscriptionComplete={(text, _segments) => handleTranscription(text)}
-            onAudioBlob={handleAudioBlob}
-            placeholder="Describe your story by speaking..."
-            className="border-purple-200 shadow-sm"
-          />
-        </div>
-      ) : (
-        <Textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="min-h-[120px] resize-y bg-white focus:border-purple-400 focus:ring-purple-400"
-        />
-      )}
-      
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="min-h-[100px] resize-y bg-white focus:border-purple-400 focus:ring-purple-400"
+      />
+
+      {/* Voice recording — simple style matching Competitors */}
+      <div className="flex items-center gap-3">
+        <Label className="text-sm text-gray-600">Or describe by voice</Label>
+        {isRecording ? (
+          <Button type="button" variant="destructive" size="sm" onClick={stopRecording}>
+            <Square className="h-4 w-4 mr-2" />
+            Stop
+          </Button>
+        ) : (
+          <Button type="button" variant="outline" size="sm" onClick={startRecording}>
+            <Mic className="h-4 w-4 mr-2" />
+            Record
+          </Button>
+        )}
+        {isRecording && (
+          <span className="flex items-center gap-2 text-red-600 text-sm animate-pulse">
+            <span className="h-2 w-2 bg-red-600 rounded-full" />
+            Recording...
+          </span>
+        )}
+      </div>
+
+      {/* Audio recordings list with Delete */}
       {audioBlobs.length > 0 && (
-        <div className="flex gap-2 flex-wrap">
-          {audioBlobs.map((_, i) => (
-            <div key={i} className="flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-medium border border-purple-100">
-              <Mic className="h-3 w-3" />
-              Voice Note {i + 1}
-              <button 
+        <div className="space-y-2">
+          {audioBlobs.map((blob, i) => (
+            <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+              <Mic className="h-4 w-4 text-purple-600 flex-shrink-0" />
+              <audio controls src={URL.createObjectURL(blob)} className="h-8 flex-1" />
+              <button
+                type="button"
                 onClick={() => onAudioChange(audioBlobs.filter((_, idx) => idx !== i))}
-                className="ml-1 hover:text-purple-900"
+                className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-600"
+                title="Delete recording"
               >
-                ×
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
           ))}
@@ -129,7 +163,7 @@ export function StoryStep() {
       <div className="flex items-center gap-2 mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
         <Sparkles className="h-5 w-5 text-purple-600" />
         <p className="text-sm text-purple-900">
-          <strong>Multimodal Tip:</strong> You can write your story or simply press "Use Voice" and tell it naturally. Gemini 3 will transcribe and understand the emotional nuances.
+          <strong>Multimodal Tip:</strong> Write or record your story. Gemini 3 will transcribe voice notes and analyze all inputs during the full analysis pipeline.
         </p>
       </div>
 
@@ -189,6 +223,19 @@ export function StoryStep() {
           templatePrompt="Our main goal is..."
         />
       </div>
+
+      {/* Gemini 3 Pipeline Preview */}
+      {(formData.historyContext || formData.valuesContext || formData.targetAudienceContext || formData.challengesContext || formData.goalsContext ||
+        formData.historyAudio.length > 0 || formData.valuesAudio.length > 0 || formData.targetAudienceAudio.length > 0 || formData.challengesAudio.length > 0 || formData.goalsAudio.length > 0) && (
+        <GeminiPipelinePanel
+          title="Gemini 3 Story Intelligence Pipeline"
+          steps={STORY_PIPELINE_STEPS}
+          isRunning={false}
+          isComplete={false}
+          completeSummary="Pipeline will run during full analysis"
+          defaultExpanded={true}
+        />
+      )}
     </div>
   );
 }

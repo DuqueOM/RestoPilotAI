@@ -1,5 +1,6 @@
 'use client';
 
+import { GeminiPipelinePanel, PipelineStepDef } from '@/components/common/GeminiPipelinePanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +8,6 @@ import { Switch } from '@/components/ui/switch';
 import {
     FileText,
     Mic,
-    MicOff,
     Plus,
     Search,
     Sparkles,
@@ -15,10 +15,18 @@ import {
     Target,
     Trash2,
     Upload,
-    X,
+    X
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useWizard } from './SetupWizard';
+
+const COMPETITOR_PIPELINE_STEPS: PipelineStepDef[] = [
+  { id: 'search', label: 'Nearby Restaurant Search', detail: 'Google Places API within 1 mile radius', gemini: false },
+  { id: 'profile', label: 'Profile Enrichment', detail: 'Extracting ratings, reviews, hours, photos', gemini: true, capability: 'Grounding' },
+  { id: 'social', label: 'Social Media Discovery', detail: 'Finding Instagram, Facebook, TikTok profiles', gemini: true, capability: 'Grounding' },
+  { id: 'menu', label: 'Competitor Menu Analysis', detail: 'Extracting menus and pricing from web sources', gemini: true, capability: 'Vision' },
+  { id: 'intelligence', label: 'Competitive Intelligence', detail: 'Generating comparative insights and positioning', gemini: true, capability: 'Thinking' },
+];
 
 export function CompetitorsStep() {
   const { formData, updateFormData } = useWizard();
@@ -265,14 +273,27 @@ export function CompetitorsStep() {
                   type="button"
                   onClick={() => removeAudio(index)}
                   className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-600"
+                  title="Delete recording"
                 >
-                  <MicOff className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Gemini 3 Pipeline Preview */}
+      {(formData.autoFindCompetitors || competitors.length > 0 || formData.competitorFiles.length > 0) && (
+        <GeminiPipelinePanel
+          title="Gemini 3 Competitive Intelligence Pipeline"
+          steps={COMPETITOR_PIPELINE_STEPS}
+          isRunning={false}
+          isComplete={false}
+          completeSummary="Pipeline will run during full analysis"
+          defaultExpanded={true}
+        />
+      )}
 
       {/* Info Card */}
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
@@ -282,7 +303,7 @@ export function CompetitorsStep() {
         <p className="text-sm text-blue-800">
           Gemini 3 will use <strong>Google Search Grounding</strong> to get 
           up-to-date information about your competitors: menus, prices, reviews 
-          and social media presence.
+          and social media presence. The pipeline above will run when you start the full analysis.
         </p>
       </div>
     </div>
