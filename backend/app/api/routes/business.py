@@ -40,93 +40,112 @@ async def ingest_menu_image(
     """
     Upload and process menu images/PDFs (supports multiple files).
     """
+    import traceback as _tb
     from app.services.orchestrator import orchestrator
 
-    # Create or get session using orchestrator to ensure state compatibility
-    if not session_id or not load_session(session_id):
-        session_id = await orchestrator.create_session()
-        # Initialize business session in deps store (orchestrator saves to its own dir)
-        sessions[session_id] = {
-            "session_id": session_id,
-            "menu_items": [],
-            "menu_extraction": None,
-            "sales_data": None,
-            "restaurant_info": {},
-            "competitors": [],
-            "created_at": datetime.now(timezone.utc).isoformat(),
+    try:
+        # Create or get session using orchestrator to ensure state compatibility
+        if not session_id or not load_session(session_id):
+            session_id = await orchestrator.create_session()
+            # Initialize business session in deps store (orchestrator saves to its own dir)
+            sessions[session_id] = {
+                "session_id": session_id,
+                "menu_items": [],
+                "menu_extraction": None,
+                "sales_data": None,
+                "restaurant_info": {},
+                "competitors": [],
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            save_session(session_id)
+
+        session = load_session(session_id)
+        if not session:
+            raise HTTPException(500, "Failed to create or load session")
+
+        # Ensure session is in memory dict
+        if session_id not in sessions:
+            sessions[session_id] = session
+
+        upload_dir = Path("data/uploads") / session_id
+        upload_dir.mkdir(parents=True, exist_ok=True)
+
+        all_items = []
+        total_files_processed = 0
+        file_errors = []
+
+        for file in files:
+            # Validate file
+            ext = file.filename.split(".")[-1].lower() if file.filename else ""
+            if ext not in settings.allowed_image_ext_list:
+                logger.warning(f"Skipping invalid file type: {file.filename}")
+                continue
+
+            # Save file
+            file_path = upload_dir / f"menu_{file.filename}"
+            with open(file_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+
+            # Extract menu items
+            try:
+                # Use PDF-specific extraction for PDFs to handle multiple pages
+                if ext == "pdf":
+                    result = await menu_extractor.extract_from_pdf_all_pages(
+                        str(file_path), use_ocr=True, business_context=business_context
+                    )
+                else:
+                    result = await menu_extractor.extract_from_image(
+                        str(file_path), use_ocr=True, business_context=business_context
+                    )
+
+                all_items.extend(result.get("items", []))
+                total_files_processed += 1
+            except Exception as e:
+                logger.error(f"Failed to process {file.filename}: {e}")
+                file_errors.append(f"{file.filename}: {str(e)[:100]}")
+                continue
+
+        # Store in session - deduplicate items by name
+        existing_menu = sessions[session_id].get("menu_items", [])
+        existing_names = {
+            item["name"].lower() for item in existing_menu
         }
-        save_session(session_id)
+        new_items = [
+            item for item in all_items if item["name"].lower() not in existing_names
+        ]
+        sessions[session_id].setdefault("menu_items", []).extend(new_items)
 
-    session = load_session(session_id)
-    if not session:
-        raise HTTPException(500, "Failed to create or load session")
+        # Calculate categories from new items
+        categories = list(set(item.get("category", "Other") for item in new_items))
 
-    upload_dir = Path("data/uploads") / session_id
-    upload_dir.mkdir(parents=True, exist_ok=True)
+        result = {"items": new_items, "item_count": len(new_items), "categories": categories}
+        sessions[session_id]["menu_extraction"] = result
 
-    all_items = []
-    total_files_processed = 0
-
-    for file in files:
-        # Validate file
-        ext = file.filename.split(".")[-1].lower() if file.filename else ""
-        if ext not in settings.allowed_image_ext_list:
-            logger.warning(f"Skipping invalid file type: {file.filename}")
-            continue
-
-        # Save file
-        file_path = upload_dir / f"menu_{file.filename}"
-        with open(file_path, "wb") as f:
-            shutil.copyfileobj(file.file, f)
-
-        # Extract menu items
+        # Create thought signature (non-critical, guard with try/except)
+        thought = None
         try:
-            # Use PDF-specific extraction for PDFs to handle multiple pages
-            if ext == "pdf":
-                result = await menu_extractor.extract_from_pdf_all_pages(
-                    str(file_path), use_ocr=True, business_context=business_context
-                )
-            else:
-                result = await menu_extractor.extract_from_image(
-                    str(file_path), use_ocr=True, business_context=business_context
-                )
-
-            all_items.extend(result.get("items", []))
-            total_files_processed += 1
+            thought = await agent.create_thought_signature(
+                "Extract menu items from uploaded files",
+                {"files_processed": total_files_processed, "items_found": len(new_items)},
+            )
         except Exception as e:
-            logger.error(f"Failed to process {file.filename}: {e}")
-            continue
+            logger.warning(f"Thought signature creation failed (non-critical): {e}")
 
-    # Store in session - deduplicate items by name
-    existing_names = {
-        item["name"].lower() for item in sessions[session_id]["menu_items"]
-    }
-    new_items = [
-        item for item in all_items if item["name"].lower() not in existing_names
-    ]
-    sessions[session_id]["menu_items"].extend(new_items)
-
-    # Calculate categories from new items
-    categories = list(set(item.get("category", "Other") for item in new_items))
-
-    result = {"items": new_items, "item_count": len(new_items), "categories": categories}
-    sessions[session_id]["menu_extraction"] = result
-
-    # Create thought signature
-    thought = await agent.create_thought_signature(
-        "Extract menu items from uploaded files",
-        {"files_processed": total_files_processed, "items_found": len(new_items)},
-    )
-
-    return {
-        "session_id": session_id,
-        "status": "success",
-        "items_extracted": len(new_items),
-        "files_processed": total_files_processed,
-        "items": new_items,
-        "categories": categories,
-        "thought_process": thought,
-    }
+        return {
+            "session_id": session_id,
+            "status": "success",
+            "items_extracted": len(new_items),
+            "files_processed": total_files_processed,
+            "items": new_items,
+            "categories": categories,
+            "thought_process": thought,
+            "errors": file_errors if file_errors else None,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Menu ingest failed: {e}\n{_tb.format_exc()}")
+        raise HTTPException(500, f"Menu extraction failed: {str(e)[:200]}")
 
 
 @router.post("/ingest/dishes", tags=["Ingest"])

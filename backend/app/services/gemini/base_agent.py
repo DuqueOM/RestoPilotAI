@@ -1408,7 +1408,7 @@ Be critical and thorough."""
             )
 
         response = await asyncio.wait_for(
-            asyncio.to_thread(_sync_generate), timeout=90.0
+            asyncio.to_thread(_sync_generate), timeout=120.0
         )
         return response
 

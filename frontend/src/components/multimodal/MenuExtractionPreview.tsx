@@ -4,15 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  AlertTriangle,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  Edit3,
-  FileText,
-  Loader2,
-  Sparkles,
-  X,
+    AlertTriangle,
+    CheckCircle2,
+    ChevronDown,
+    ChevronUp,
+    Edit3,
+    FileText,
+    Loader2,
+    Sparkles,
+    X,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -40,6 +40,8 @@ interface MenuExtractionPreviewProps {
   onItemsExtracted?: (items: ExtractedItem[]) => void;
   onRemove?: () => void;
   compact?: boolean;
+  /** Delay in ms before starting extraction (to stagger parallel requests) */
+  extractionDelay?: number;
 }
 
 export function MenuExtractionPreview({
@@ -47,6 +49,7 @@ export function MenuExtractionPreview({
   onItemsExtracted,
   onRemove,
   compact = false,
+  extractionDelay = 0,
 }: MenuExtractionPreviewProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
@@ -65,14 +68,17 @@ export function MenuExtractionPreview({
     }
   }, [file]);
 
-  // Auto-extract on mount
+  // Auto-extract on mount (with optional stagger delay)
   useEffect(() => {
-    extractMenu();
+    const timer = setTimeout(() => extractMenu(), extractionDelay);
+    return () => clearTimeout(timer);
   }, [file]);
 
-  const extractMenu = useCallback(async () => {
+  const extractMenu = useCallback(async (retryCount = 0) => {
     setExtracting(true);
     setError(null);
+
+    const MAX_RETRIES = 2;
 
     try {
       const formData = new FormData();
@@ -84,6 +90,13 @@ export function MenuExtractionPreview({
       });
 
       if (!response.ok) {
+        // Retry on 500/503 (Gemini rate limit / server overload)
+        if ((response.status === 500 || response.status === 503) && retryCount < MAX_RETRIES) {
+          const backoff = (retryCount + 1) * 3000; // 3s, 6s
+          console.warn(`[MenuExtraction] ${file.name} failed (${response.status}), retrying in ${backoff}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+          await new Promise(r => setTimeout(r, backoff));
+          return extractMenu(retryCount + 1);
+        }
         throw new Error(`Extraction failed: ${response.status}`);
       }
 

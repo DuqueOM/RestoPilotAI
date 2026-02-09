@@ -97,9 +97,10 @@ export function VideoInsightsPanel({
     if (autoAnalyze) analyzeVideo();
   }, [file]);
 
-  const analyzeVideo = useCallback(async () => {
+  const analyzeVideo = useCallback(async (retryCount = 0) => {
     setAnalyzing(true);
     setError(null);
+    const MAX_RETRIES = 2;
     try {
       const formData = new FormData();
       formData.append('video', file);
@@ -111,6 +112,13 @@ export function VideoInsightsPanel({
       });
 
       if (!response.ok) {
+        // Retry on 500/503 (Gemini rate limit / server overload)
+        if ((response.status === 500 || response.status === 503) && retryCount < MAX_RETRIES) {
+          const backoff = (retryCount + 1) * 5000; // 5s, 10s
+          console.warn(`[VideoAnalysis] ${file.name} failed (${response.status}), retrying in ${backoff}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+          await new Promise(r => setTimeout(r, backoff));
+          return analyzeVideo(retryCount + 1);
+        }
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData.detail || `Analysis failed: ${response.status}`);
       }

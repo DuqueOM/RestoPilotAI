@@ -228,7 +228,7 @@ export function LocationInput({
       // Helper to perform fetch with timeout
       const fetchEnrichment = async (url: string) => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 300000); // 300s timeout (enrichment pipeline takes ~2-3 min)
         try {
           const res = await fetch(url, {
             method: 'POST',
@@ -281,7 +281,7 @@ export function LocationInput({
       } catch (err: any) {
         console.warn('[RestoPilot] All enrichment attempts failed:', err);
         if (err.name === 'AbortError') {
-            console.error('[RestoPilot] Enrichment timed out after 120s');
+            console.error('[RestoPilot] Enrichment timed out after 300s');
         }
         if (onBusinessEnrichedRef.current) onBusinessEnrichedRef.current(null);
       }

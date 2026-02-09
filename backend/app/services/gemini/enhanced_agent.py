@@ -151,6 +151,32 @@ class EnhancedGeminiAgent:
         
         return config
     
+    @staticmethod
+    def _detect_mime_type(data: bytes) -> str:
+        """Detect mime type from magic bytes header."""
+        if len(data) < 12:
+            return "image/jpeg"
+        # MP4 / MOV: check for 'ftyp' box at offset 4
+        if data[4:8] == b'ftyp':
+            return "video/mp4"
+        # WebM: starts with 0x1A45DFA3
+        if data[:4] == b'\x1a\x45\xdf\xa3':
+            return "video/webm"
+        # AVI: starts with RIFF....AVI
+        if data[:4] == b'RIFF' and data[8:12] == b'AVI ':
+            return "video/avi"
+        # PNG
+        if data[:8] == b'\x89PNG\r\n\x1a\n':
+            return "image/png"
+        # WebP
+        if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
+            return "image/webp"
+        # GIF
+        if data[:6] in (b'GIF87a', b'GIF89a'):
+            return "image/gif"
+        # Default to JPEG
+        return "image/jpeg"
+
     def _compute_cache_key(
         self,
         prompt: str,
@@ -229,11 +255,21 @@ class EnhancedGeminiAgent:
             
             if images:
                 for img in images:
-                    if isinstance(img, bytes):
+                    if isinstance(img, tuple) and len(img) == 2:
+                        # Tuple of (bytes, mime_type) for explicit mime type
+                        data, mime = img
+                        parts.append(
+                            types.Part(
+                                inline_data=types.Blob(mime_type=mime, data=data)
+                            )
+                        )
+                    elif isinstance(img, bytes):
+                        # Auto-detect mime type from magic bytes
+                        mime = self._detect_mime_type(img)
                         parts.append(
                             types.Part(
                                 inline_data=types.Blob(
-                                    mime_type="image/jpeg",
+                                    mime_type=mime,
                                     data=img
                                 )
                             )
@@ -270,7 +306,19 @@ class EnhancedGeminiAgent:
             )
             
             # Extract result
-            result_text = response.text
+            result_text = response.text or ""
+            
+            # Strip markdown code fences if present (Gemini often wraps JSON)
+            stripped = result_text.strip()
+            if stripped.startswith("```"):
+                # Remove opening fence (```json or ```)
+                first_nl = stripped.find("\n")
+                if first_nl != -1:
+                    stripped = stripped[first_nl + 1:]
+                # Remove closing fence
+                if stripped.rstrip().endswith("```"):
+                    stripped = stripped.rstrip()[:-3].rstrip()
+                result_text = stripped
             
             # Validate if schema provided
             if response_schema:

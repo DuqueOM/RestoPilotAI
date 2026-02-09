@@ -129,8 +129,9 @@ async def analyze_video(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("video_analysis_error", error=str(e), filename=video.filename)
-        raise HTTPException(status_code=500, detail=f"Video analysis failed: {str(e)}")
+        import traceback as _tb
+        logger.error(f"video_analysis_error: {e}\n{_tb.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Video analysis failed: {str(e)[:300]}")
 
 
 @router.post("/quick-check")

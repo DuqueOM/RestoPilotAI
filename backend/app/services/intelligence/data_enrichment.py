@@ -11,6 +11,7 @@ Capabilities:
 
 import json
 import re
+import urllib.parse
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -274,6 +275,7 @@ class CompetitorEnrichmentService:
                 website=maps_data.get("website"),
                 phone=maps_data.get("formatted_phone_number"),
                 web_results=web_data,
+                address=maps_data.get("formatted_address") or maps_data.get("address"),
             )
         except Exception as e:
             logger.error(f"Step 3 (social media) failed: {e}")
@@ -331,9 +333,12 @@ class CompetitorEnrichmentService:
             logger.error(f"Step 8 (consolidation) failed: {e}")
             intelligence = {}
 
-        # Step 9: Extract and validate delivery platforms
+        # Step 9: Extract and validate delivery platforms (with retry for failed URLs)
         delivery_platforms = await self._validate_delivery_platforms(
-            self._extract_delivery_platforms(web_data)
+            self._extract_delivery_platforms(web_data),
+            business_name=maps_data.get("name"),
+            business_address=maps_data.get("formatted_address"),
+            grounding_chunk_urls=web_data.get("_grounding_chunk_urls"),
         )
 
         # Build complete profile
@@ -387,23 +392,236 @@ class CompetitorEnrichmentService:
         return profile
 
     async def _validate_delivery_platforms(
-        self, platforms: List[Dict[str, Any]]
+        self,
+        platforms: List[Dict[str, Any]],
+        business_name: Optional[str] = None,
+        business_address: Optional[str] = None,
+        grounding_chunk_urls: Optional[set] = None,
     ) -> List[Dict[str, Any]]:
-        """Validate delivery platform URLs."""
+        """Validate delivery platform URLs. Retry search for failed ones."""
         valid = []
+        failed_platforms = []
+
         for p in platforms:
             url = p.get("url")
-            # If URL exists, validate it. If no URL, we might skip it or keep it as detection only.
-            # User request implies they want valid links.
             if url:
                 if await self._validate_url(url):
                     valid.append(p)
-            else:
-                # If name detected but no URL, maybe keep it?
-                # For now, let's include it but logging might be useful.
-                # Actually, Gemini might hallucinate names too, but we filtered by known list.
-                pass
+                else:
+                    logger.warning(f"Delivery platform URL failed validation: {p['name']} -> {url}")
+                    failed_platforms.append(p["name"])
+
+        # Also retry if no Rappi was found at all in the initial results
+        rappi_names = [p["name"] for p in platforms if "rappi" in p.get("name", "").lower()]
+        if not rappi_names and "Rappi" not in failed_platforms:
+            failed_platforms.append("Rappi")
+
+        # Retry search for platforms that had invalid URLs or weren't found
+        if failed_platforms and business_name:
+            logger.info(f"Retrying search for delivery platforms: {failed_platforms}")
+            retry_results = await self._retry_delivery_search(
+                business_name, business_address, failed_platforms,
+                grounding_chunk_urls=grounding_chunk_urls,
+            )
+            for p in retry_results:
+                if p.get("url"):
+                    # Retry results are already validated by _discover_rappi_store
+                    # (includes DDG trust for perfect slug matches), so skip re-validation
+                    valid.append(p)
+                    logger.info(f"Retry found URL for {p['name']}: {p['url']}")
+
         return valid
+
+    async def _retry_delivery_search(
+        self,
+        business_name: str,
+        business_address: Optional[str],
+        platform_names: List[str],
+        grounding_chunk_urls: Optional[set] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Focused retry for delivery platforms using Gemini grounding + URL extraction.
+        Instead of relying on Gemini's JSON output, extracts ALL rappi URLs from
+        grounding chunks and answer text, then validates each candidate.
+        """
+        city_hint = ""
+        if business_address:
+            parts = [p.strip() for p in business_address.split(",")]
+            if len(parts) >= 2:
+                city_hint = parts[-3] if len(parts) >= 3 else parts[-2]
+                city_hint = city_hint.strip()
+
+        name_slug = re.sub(r'[^a-z0-9]+', '-', business_name.lower()).strip('-')
+
+        # Pre-filter grounding chunk URLs to only Rappi ones
+        rappi_seed_urls = set()
+        if grounding_chunk_urls:
+            for url in grounding_chunk_urls:
+                if "rappi.com" in (url or ""):
+                    rappi_seed_urls.add(url)
+
+        results = []
+
+        # Only handle Rappi retry for now (most common Colombian delivery platform)
+        if "Rappi" in platform_names:
+            rappi_url = await self._discover_rappi_store(
+                business_name, business_address, city_hint, name_slug,
+                extra_candidate_urls=rappi_seed_urls if rappi_seed_urls else None,
+            )
+            if rappi_url:
+                results.append({"name": "Rappi", "icon": "🟠", "url": rappi_url})
+
+        return results
+
+    async def _discover_rappi_store(
+        self, business_name: str, business_address: Optional[str],
+        city_hint: str, name_slug: str,
+        extra_candidate_urls: Optional[set] = None,
+    ) -> Optional[str]:
+        """
+        Discover the correct Rappi store URL using a two-phase approach:
+        Phase 1: Probe Rappi's city/delivery URL format to discover the canonical store ID
+                 from the page HTML (deterministic, fast, reliable).
+        Phase 2: Fall back to Gemini grounding search if probing fails.
+        """
+        rappi_store_pattern = re.compile(r'rappi\.com\.co/restaurantes/(\d+)-([a-z0-9-]+)', re.IGNORECASE)
+
+        # === PHASE 1: DuckDuckGo Lite search (fast, reliable, no API key needed) ===
+        # Gemini grounding fabricates Rappi store IDs, but DuckDuckGo Lite returns
+        # actual search results with correct URLs in parseable HTML.
+        phase1_candidates = set()
+        ddg_queries = [
+            f'site:rappi.com.co restaurantes "{business_name}" {city_hint}',
+            f'rappi.com.co restaurantes "{business_name}" domicilio {city_hint}',
+            f'rappi "{business_name}" restaurante {city_hint}',
+        ]
+
+        ddg_headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml",
+            "Accept-Language": "es-CO,es;q=0.9,en;q=0.8",
+        }
+
+        for query in ddg_queries:
+            try:
+                encoded_q = urllib.parse.quote_plus(query)
+                ddg_url = f"https://lite.duckduckgo.com/lite?q={encoded_q}"
+                resp = await self.http_client.get(ddg_url, headers=ddg_headers, follow_redirects=True, timeout=15.0)
+                logger.debug(f"Rappi DDG query={query!r} status={resp.status_code} body_len={len(resp.text)}")
+                if resp.status_code == 200:
+                    matches = rappi_store_pattern.findall(resp.text)
+                    for store_id, store_slug in matches:
+                        slug_lower = store_slug.lower()
+                        canonical = f"https://www.rappi.com.co/restaurantes/{store_id}-{slug_lower}"
+                        phase1_candidates.add(canonical)
+                        logger.debug(f"Rappi DDG extracted: {canonical}")
+                # Stop early if we already have candidates
+                if phase1_candidates:
+                    break
+            except Exception as e:
+                logger.debug(f"Rappi DDG search failed for query: {e}")
+
+        if phase1_candidates:
+            logger.info(f"Rappi Phase 1 (DDG): found {len(phase1_candidates)} candidates: {phase1_candidates}")
+            scored = self._score_rappi_candidates(phase1_candidates, name_slug)
+            for score, url in scored:
+                if await self._validate_rappi_url(url):
+                    logger.info(f"Rappi store found (Phase 1 DDG, validated): {url} (score={score})")
+                    return url
+                # Trust DDG results with perfect slug match even if store is temporarily
+                # unavailable (e.g., closed outside business hours). DDG found this URL
+                # in real search results, confirming it's the correct store page.
+                if score >= 10:
+                    logger.info(
+                        f"Rappi store found (Phase 1 DDG, trusted perfect slug match): {url} "
+                        f"(score={score}, store may be temporarily unavailable)"
+                    )
+                    return url
+                logger.debug(f"Rappi Phase 1 candidate failed validation: {url}")
+        else:
+            logger.info("Rappi Phase 1 (DDG): no candidates found")
+
+        # === PHASE 2: Gemini grounding search as fallback ===
+        logger.info("Rappi Phase 2: falling back to Gemini grounding search")
+        all_candidate_urls: set = set(extra_candidate_urls or [])
+
+        prompt = f"""Search Google for: rappi.com.co restaurantes "{business_name}" {city_hint} domicilio
+
+I need the exact Rappi.com.co store page URLs for restaurant "{business_name}" in {city_hint}.
+List every rappi.com.co URL you find. Include the complete URL."""
+
+        try:
+            response = await self.gemini.generate_with_grounding(
+                prompt=prompt,
+                enable_grounding=True,
+                thinking_level="STANDARD",
+                temperature=0.1,
+                max_output_tokens=2048,
+            )
+
+            grounding_meta = response.get("grounding_metadata") or {}
+            for chunk in grounding_meta.get("grounding_chunks", []):
+                if isinstance(chunk, dict):
+                    chunk_url = chunk.get("uri", "")
+                    if chunk_url and "rappi.com" in chunk_url:
+                        all_candidate_urls.add(chunk_url)
+
+            answer = response.get("answer") or ""
+            url_matches = re.findall(r'https?://(?:www\.)?rappi\.com\.co/[^\s"\'<>,\)\]`]+', answer)
+            for url in url_matches:
+                clean = re.sub(r'^\]\(', '', url).rstrip(".")
+                all_candidate_urls.add(clean)
+
+        except Exception as e:
+            logger.warning(f"Rappi Phase 2 grounding search failed: {e}")
+
+        if not all_candidate_urls:
+            logger.warning("Rappi discovery: no candidates from either phase")
+            return None
+
+        # Extract store URLs from Phase 2 candidates
+        phase2_canonical = set()
+        for url in all_candidate_urls:
+            match = rappi_store_pattern.search(url)
+            if match:
+                store_id = match.group(1)
+                store_slug = match.group(2).lower()
+                phase2_canonical.add(f"https://www.rappi.com.co/restaurantes/{store_id}-{store_slug}")
+
+        if phase2_canonical:
+            scored = self._score_rappi_candidates(phase2_canonical, name_slug)
+            for score, url in scored:
+                if await self._validate_rappi_url(url):
+                    logger.info(f"Rappi store found (Phase 2 grounding): {url} (score={score})")
+                    return url
+                logger.debug(f"Rappi Phase 2 candidate failed validation: {url}")
+
+        logger.warning("Rappi discovery: all candidates from both phases failed")
+        return None
+
+    def _score_rappi_candidates(self, urls: set, name_slug: str) -> list:
+        """Score and sort Rappi store URL candidates by slug match quality."""
+        rappi_store_pattern = re.compile(r'/restaurantes/(\d+)-([a-z0-9-]+)', re.IGNORECASE)
+        scored = []
+        for url in urls:
+            match = rappi_store_pattern.search(url)
+            if not match:
+                continue
+            store_slug = match.group(2).lower()
+            score = 0
+            if store_slug == name_slug:
+                score = 10
+            elif name_slug in store_slug:
+                score = 5
+            elif store_slug in name_slug:
+                score = 3
+            else:
+                score = 1
+            if "comuna" in store_slug:
+                score -= 3
+            scored.append((score, url))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return scored
 
     async def _get_place_details(self, place_id: str) -> Optional[Dict[str, Any]]:
         """Get full place details using the Google Places API (New)."""
@@ -535,42 +753,63 @@ class CompetitorEnrichmentService:
             return {}
 
         try:
+            # Extract city hint from address for better search targeting
+            city_hint = ""
+            if address:
+                # Try to extract city name (usually after last comma or common patterns)
+                parts = [p.strip() for p in address.split(",")]
+                if len(parts) >= 2:
+                    city_hint = parts[-2]  # Second to last is often the city
+
             prompt = f"""Search the internet and find complete, VERIFIED information about this specific restaurant/business:
 
 Name: {name}
 {f"Phone: {phone}" if phone else ""}
 {f"Address: {address}" if address else ""}
+{f"City: {city_hint}" if city_hint else ""}
 {f"Google Maps: {google_maps_url}" if google_maps_url else ""}
 
-YOUR TASK - Search and find ONLY profiles that belong to THIS SPECIFIC business at THIS address:
+YOUR TASK - Search and find ONLY profiles that belong to THIS SPECIFIC business at THIS address.
+FOLLOW THESE RULES STRICTLY:
 
 1. SOCIAL MEDIA PROFILES (Deep Search):
-   - Search query strategies: 
-     - "{name} {address} facebook"
-     - "{name} {address} instagram"
-     - "{name} instagram" (look for handles matching the city, e.g., "{name.replace(' ', '').lower()}pasto")
-   - Facebook: 
-     - PRIORITIZE pages with "Restaurante" or "Bar" in the URL over generic "Pub" pages if both exist.
-     - Example: Prefer "facebook.com/MargaritaPintaRestauranteBar" over "facebook.com/margarita.pinta.pub".
-     - The "Pub" page might be broken/inactive. Look for the active "RestauranteBar" page.
-   - Instagram: Look for the exact handle. Key hint: often ends in "pasto" (e.g. @margaritapintapasto).
-   - VALIDATION:
-     - Must match the city/location (e.g. Pasto).
-     - Must look like an active business profile.
+   Use MULTIPLE search queries to cross-validate:
+     - "{name} restaurante {city_hint or 'Colombia'} facebook"
+     - "{name} restaurante bar facebook"
+     - "{name} {city_hint or ''} instagram"
 
-2. WhatsApp Business number if available (with country code)
+   FACEBOOK RULES:
+     - Search for the OFFICIAL business page on Facebook.
+     - If you find multiple Facebook pages, return ALL of them in "facebook_candidates" (see JSON below).
+     - REJECT pages where the URL slug contains ".pub" if a better alternative exists (e.g., one with "RestauranteBar" or "Restaurante" in the slug).
+     - REJECT pages that are clearly inactive (no recent posts, "page not available" messages).
+     - The correct page usually has: recent posts, business category "Restaurant" or "Bar", and matches the city.
+
+   INSTAGRAM RULES:
+     - Look for the exact business handle. Restaurant handles in Colombia often include the city name (e.g., @margaritapintapasto).
+     - Must be an active profile with posts.
+
+   VALIDATION for ALL social profiles:
+     - Must match the business name AND city/location.
+     - Must appear to be an active, real business profile.
+     - Do NOT guess URLs — only return URLs you actually found in search results.
+
+2. WhatsApp Business number if available (with country code, e.g., +57...)
 
 3. DELIVERY PLATFORMS — Search for this business on Rappi, Uber Eats, iFood, PedidosYa:
-   - Return the FULL direct URL (e.g., https://www.rappi.com.co/restaurantes/...).
-   - CRITICAL: Verify the link works if possible. 
-   - Rappi: Look for the specific numeric ID that matches this branch (e.g. usually 9 digits). 
-   - HINT: For "Margarita Pinta", look for ID similar to 900178500.
-   - Avoid links that lead to "store not found" or generic city pages.
+   - Return the FULL direct store URL (e.g., https://www.rappi.com.co/restaurantes/XXXXXXXXX-store-name).
+   - RAPPI RULES:
+     - The correct Rappi URL has a numeric store ID (usually 9 digits like 900XXXXXX) followed by a slug.
+     - Search: "{name} rappi {city_hint or 'Colombia'}"
+     - REJECT URLs that redirect to the Rappi homepage or a city/category page.
+     - REJECT URLs where the store name in the slug doesn't match the business name.
+   - For other platforms, same rules apply: must be a DIRECT store page, not a search/category page.
 
 Respond ONLY with valid JSON:
 {{
   "social_media": {{
-    "facebook": "full verified URL or null",
+    "facebook": "best verified Facebook URL or null",
+    "facebook_candidates": ["URL1", "URL2"],
     "instagram": "full verified URL or null",
     "tiktok": "full verified URL or null",
     "twitter": "full verified URL or null",
@@ -579,8 +818,8 @@ Respond ONLY with valid JSON:
   "whatsapp": "number or null",
   "additional_websites": ["URL1", "URL2"],
   "delivery_platforms": [
-    {{"name": "Rappi", "url": "full URL or null"}},
-    {{"name": "Uber Eats", "url": "full URL or null"}}
+    {{"name": "Rappi", "url": "full direct store URL or null"}},
+    {{"name": "Uber Eats", "url": "full direct store URL or null"}}
   ],
   "notes": ["Note about verification source"]
 }}"""
@@ -595,8 +834,8 @@ Respond ONLY with valid JSON:
                 max_output_tokens=8192,
             )
 
-            # Extract answer text
-            response_text = response.get("answer", "")
+            # Extract answer text (guard against None)
+            response_text = response.get("answer") or ""
             grounded = response.get("grounded", False)
             
             logger.info(
@@ -604,6 +843,19 @@ Respond ONLY with valid JSON:
                 f"response_len={len(response_text)}, "
                 f"chunks={len((response.get('grounding_metadata') or {}).get('grounding_chunks', []))}"
             )
+            
+            if not response_text.strip():
+                logger.warning(f"Gemini grounding returned empty answer for {name}, retrying once...")
+                # Retry once with a simpler prompt
+                response = await self.gemini.generate_with_grounding(
+                    prompt=prompt,
+                    enable_grounding=True,
+                    thinking_level="DEEP",
+                    temperature=0.2,
+                    max_output_tokens=8192,
+                )
+                response_text = response.get("answer") or ""
+                logger.info(f"Retry grounding for {name}: len={len(response_text)}")
             
             # Use the robust parser from the agent
             result = self.gemini._parse_json_response(response_text)
@@ -613,6 +865,15 @@ Respond ONLY with valid JSON:
             found = [k for k, v in social.items() if v]
             logger.info(f"Social media found for {name}: {found or 'none'}")
             
+            # Attach grounding chunk URLs for downstream use (e.g., Rappi discovery)
+            grounding_meta = response.get("grounding_metadata") or {}
+            chunk_urls = set()
+            for chunk in grounding_meta.get("grounding_chunks", []):
+                if isinstance(chunk, dict) and chunk.get("uri"):
+                    chunk_urls.add(chunk["uri"])
+            if chunk_urls:
+                result["_grounding_chunk_urls"] = list(chunk_urls)
+            
             return result
 
         except Exception as e:
@@ -620,33 +881,124 @@ Respond ONLY with valid JSON:
             return {}
 
     async def _validate_url(self, url: str) -> bool:
-        """Validate if a URL is accessible (not 404)."""
+        """Validate if a URL is accessible and points to real content."""
         if not url or not url.startswith("http"):
             return False
+        
+        # Use platform-specific validators when available
+        if "facebook.com" in url or "fb.com" in url:
+            return await self._validate_facebook_url(url)
+        if "rappi.com" in url:
+            return await self._validate_rappi_url(url)
             
         try:
-            # Use a browser-like user agent to avoid bot blocking
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                "Accept-Language": "es-CO,es;q=0.9,en;q=0.8",
             }
-            # Follow redirects to ensure we check the final destination
             response = await self.http_client.get(url, headers=headers, follow_redirects=True)
             
-            # Facebook specific: 400 often means WAF blocking/bad request due to bot detection
-            # rather than the page not existing. We accept it if it's Facebook.
-            if "facebook.com" in url and response.status_code == 400:
-                logger.warning(f"Facebook returned 400 (likely WAF), accepting URL: {url}")
-                return True
-
-            # We consider 404 as definitely broken.
-            # 429, 403, etc. might mean it exists but we are blocked/unauthorized, so we keep it.
             if response.status_code == 404:
-                logger.warning(f"Validation failed ({response.status_code}) for URL: {url}")
+                logger.warning(f"Validation failed (404) for URL: {url}")
                 return False
             return True
         except Exception as e:
-            # If request fails (DNS, timeout), it's risky.
             logger.warning(f"Validation check error for {url}: {e}")
+            return False
+
+    async def _validate_facebook_url(self, url: str) -> bool:
+        """Validate a Facebook URL by checking for unavailable page signals."""
+        try:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                "Accept-Language": "es-CO,es;q=0.9,en;q=0.8",
+            }
+            response = await self.http_client.get(url, headers=headers, follow_redirects=True)
+            
+            if response.status_code == 404:
+                logger.warning(f"Facebook page not found (404): {url}")
+                return False
+            
+            # Check response body for unavailable page signals
+            body = response.text.lower() if response.status_code == 200 else ""
+            
+            unavailable_signals = [
+                "this content isn't available",
+                "este contenido no está disponible",
+                "this page isn't available",
+                "esta página no está disponible",
+                "the link you followed may be broken",
+                "el enlace que seguiste puede estar roto",
+                "page not found",
+                "página no encontrada",
+                "sorry, this content isn",
+            ]
+            
+            for signal in unavailable_signals:
+                if signal in body:
+                    logger.warning(f"Facebook page unavailable (content signal: '{signal}'): {url}")
+                    return False
+            
+            # Check if redirected to login page (page doesn't exist for public)
+            final_url = str(response.url).lower()
+            if "/login" in final_url and "facebook.com" in final_url:
+                logger.warning(f"Facebook redirected to login (page may not exist publicly): {url}")
+                return False
+
+            # Status 400 from Facebook WAF — we can't be sure, log but accept cautiously
+            if response.status_code == 400:
+                logger.info(f"Facebook returned 400 (WAF), cautiously accepting: {url}")
+                return True
+            
+            return True
+        except Exception as e:
+            logger.warning(f"Facebook validation error for {url}: {e}")
+            return False
+
+    async def _validate_rappi_url(self, url: str) -> bool:
+        """Validate a Rappi store URL by checking it points to an actual store."""
+        try:
+            # Quick structural check: valid Rappi store URLs have /restaurantes/NUMERIC_ID-slug
+            rappi_store_pattern = re.compile(r'rappi\.com\.[a-z]+/restaurantes/\d+-[\w-]+')
+            if not rappi_store_pattern.search(url):
+                logger.warning(f"Rappi URL doesn't match store pattern: {url}")
+                return False
+
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                "Accept-Language": "es-CO,es;q=0.9,en;q=0.8",
+            }
+            response = await self.http_client.get(url, headers=headers, follow_redirects=True)
+            
+            if response.status_code == 404:
+                logger.warning(f"Rappi store not found (404): {url}")
+                return False
+            
+            # Check if redirected away from the store page
+            final_url = str(response.url).lower()
+            if "/restaurantes/" not in final_url:
+                logger.warning(f"Rappi URL redirected away from store page to: {final_url}")
+                return False
+            
+            # Check body for "store not found" signals
+            body = response.text.lower() if response.status_code == 200 else ""
+            
+            not_found_signals = [
+                "no encontramos",
+                "tienda no disponible",
+                "store not found",
+                "esta tienda no está disponible",
+                "lo sentimos, esta tienda",
+            ]
+            
+            for signal in not_found_signals:
+                if signal in body:
+                    logger.warning(f"Rappi store unavailable (content signal: '{signal}'): {url}")
+                    return False
+            
+            return True
+        except Exception as e:
+            logger.warning(f"Rappi validation error for {url}: {e}")
             return False
 
     async def _identify_social_media(
@@ -655,85 +1007,65 @@ Respond ONLY with valid JSON:
         website: Optional[str],
         phone: Optional[str],
         web_results: Dict[str, Any],
+        address: Optional[str] = None,
     ) -> List[SocialMediaProfile]:
-        """Identify and validate social media profiles."""
+        """Identify and validate social media profiles using Gemini results + deterministic probing."""
 
         profiles = []
         social_data = web_results.get("social_media", {})
 
-        # Facebook
-        if social_data.get("facebook"):
-            fb_url = social_data["facebook"]
-            if await self._validate_url(fb_url):
+        # Extract city from address for probing
+        city = ""
+        if address:
+            parts = [p.strip() for p in address.split(",")]
+            if len(parts) >= 2:
+                city = parts[-3] if len(parts) >= 3 else parts[-2]
+                city = city.strip()
+
+        # === FACEBOOK: Gemini candidates + deterministic probing ===
+        fb_url = await self._discover_facebook_page(name or "", city, social_data)
+        if fb_url:
+            profiles.append(
+                SocialMediaProfile(
+                    platform="facebook",
+                    url=fb_url,
+                    handle=self._extract_handle_from_url(fb_url, "facebook"),
+                )
+            )
+
+        # === INSTAGRAM: Gemini result + deterministic probing ===
+        ig_url = None
+        if social_data.get("instagram"):
+            ig_candidate = social_data["instagram"]
+            if ig_candidate and ig_candidate.startswith("http") and await self._validate_url(ig_candidate):
+                ig_url = ig_candidate
+
+        if not ig_url:
+            ig_url = await self._probe_instagram_handle(name or "", city)
+
+        if ig_url:
+            profiles.append(
+                SocialMediaProfile(
+                    platform="instagram",
+                    url=ig_url,
+                    handle=self._extract_handle_from_url(ig_url, "instagram"),
+                )
+            )
+
+        # === OTHER PLATFORMS: Gemini results with validation ===
+        for platform_key, platform_name in [("tiktok", "tiktok"), ("twitter", "twitter"), ("youtube", "youtube")]:
+            url = social_data.get(platform_key)
+            if url and url.startswith("http") and await self._validate_url(url):
                 profiles.append(
                     SocialMediaProfile(
-                        platform="facebook",
-                        url=fb_url,
-                        handle=self._extract_handle_from_url(
-                            fb_url, "facebook"
-                        ),
+                        platform=platform_name,
+                        url=url,
+                        handle=self._extract_handle_from_url(url, platform_name),
                     )
                 )
 
-        # Instagram
-        if social_data.get("instagram"):
-            instagram_url = social_data["instagram"]
-            # STRICT VALIDATION: Only accept actual URLs, do not guess from handles
-            if instagram_url and instagram_url.startswith("http"):
-                if await self._validate_url(instagram_url):
-                    profiles.append(
-                        SocialMediaProfile(
-                            platform="instagram",
-                            url=instagram_url,
-                            handle=self._extract_handle_from_url(instagram_url, "instagram"),
-                        )
-                    )
-
-        # TikTok
-        if social_data.get("tiktok"):
-            tiktok_url = social_data["tiktok"]
-            # STRICT VALIDATION: Only accept actual URLs
-            if tiktok_url and tiktok_url.startswith("http"):
-                if await self._validate_url(tiktok_url):
-                    profiles.append(
-                        SocialMediaProfile(
-                            platform="tiktok",
-                            url=tiktok_url,
-                            handle=self._extract_handle_from_url(tiktok_url, "tiktok"),
-                        )
-                    )
-
-        # Twitter/X
-        if social_data.get("twitter"):
-            twitter_url = social_data["twitter"]
-            # STRICT VALIDATION: Only accept actual URLs
-            if twitter_url and twitter_url.startswith("http"):
-                if await self._validate_url(twitter_url):
-                    profiles.append(
-                        SocialMediaProfile(
-                            platform="twitter",
-                            url=twitter_url,
-                            handle=self._extract_handle_from_url(twitter_url, "twitter"),
-                        )
-                    )
-
-        # YouTube
-        if social_data.get("youtube"):
-            youtube_url = social_data["youtube"]
-            if youtube_url and youtube_url.startswith("http"):
-                if await self._validate_url(youtube_url):
-                    profiles.append(
-                        SocialMediaProfile(
-                            platform="youtube",
-                            url=youtube_url,
-                            handle=self._extract_handle_from_url(youtube_url, "youtube"),
-                        )
-                    )
-
-        # WhatsApp Business
-        whatsapp = web_results.get("whatsapp") or self._extract_whatsapp_from_phone(
-            phone
-        )
+        # === WhatsApp Business ===
+        whatsapp = web_results.get("whatsapp") or self._extract_whatsapp_from_phone(phone)
         if whatsapp:
             profiles.append(
                 SocialMediaProfile(
@@ -745,6 +1077,198 @@ Respond ONLY with valid JSON:
 
         logger.info(f"Identified {len(profiles)} social media profiles for {name}")
         return profiles
+
+    async def _discover_facebook_page(
+        self, name: str, city: str, gemini_social_data: Dict[str, Any]
+    ) -> Optional[str]:
+        """
+        Discover the correct Facebook page using:
+        1. Deterministic URL probing (generated slug candidates)
+        2. Gemini grounding candidates as extra input
+        Scores and validates all candidates to find the best match.
+        """
+        if not name:
+            return None
+
+        # Generate deterministic slug candidates from business name
+        name_parts = name.split()
+        camel = "".join(p.capitalize() for p in name_parts)
+        lower_joined = "".join(p.lower() for p in name_parts)
+        dot_joined = ".".join(p.lower() for p in name_parts)
+        city_clean = city.replace(" ", "").capitalize() if city else ""
+        city_lower = city.replace(" ", "").lower() if city else ""
+
+        # Restaurant-specific suffixes (most specific first)
+        suffixes = [
+            "RestauranteBar", "Restaurante", "Bar", "Pub", "Oficial", "Resto",
+        ]
+
+        probed_candidates = []
+        # CamelCase + suffixes: MargaritaPintaRestauranteBar, MargaritaPintaRestaurante, etc.
+        for suffix in suffixes:
+            probed_candidates.append(f"{camel}{suffix}")
+        # CamelCase + city: MargaritaPintaPasto
+        if city_clean:
+            probed_candidates.append(f"{camel}{city_clean}")
+            probed_candidates.append(f"{lower_joined}{city_lower}")
+        # Plain CamelCase: MargaritaPinta
+        probed_candidates.append(camel)
+        # Dot-separated: margarita.pinta.pub, margarita.pinta.restaurante
+        probed_candidates.append(f"{dot_joined}.pub")
+        probed_candidates.append(f"{dot_joined}.restaurante")
+        # Lower + city: margaritapintapasto
+        if city_lower:
+            probed_candidates.append(f"{lower_joined}{city_lower}")
+
+        # Add Gemini-discovered candidates
+        gemini_fb_urls = []
+        if gemini_social_data.get("facebook"):
+            gemini_fb_urls.append(gemini_social_data["facebook"])
+        for url in gemini_social_data.get("facebook_candidates", []):
+            if url:
+                gemini_fb_urls.append(url)
+
+        # Extract slugs from Gemini URLs and add to candidates
+        for url in gemini_fb_urls:
+            match = re.search(r"facebook\.com/([^/?]+)", url)
+            if match:
+                slug = match.group(1)
+                if slug not in probed_candidates:
+                    probed_candidates.append(slug)
+
+        # Deduplicate while preserving order
+        seen = set()
+        unique_candidates = []
+        for c in probed_candidates:
+            c_lower = c.lower().rstrip("/")
+            if c_lower not in seen:
+                seen.add(c_lower)
+                unique_candidates.append(c)
+
+        logger.info(f"Facebook probing {len(unique_candidates)} candidates for '{name}': {unique_candidates[:8]}...")
+
+        # Score each candidate: (validation_score, slug_score, url)
+        scored = []
+        for slug in unique_candidates:
+            url = f"https://www.facebook.com/{slug}/"
+            try:
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                    "Accept-Language": "es-CO,es;q=0.9,en;q=0.8",
+                }
+                response = await self.http_client.get(url, headers=headers, follow_redirects=True)
+
+                # Check for unavailable page
+                is_unavailable = False
+                if response.status_code == 404:
+                    is_unavailable = True
+                elif response.status_code == 200:
+                    body = response.text.lower()
+                    unavailable_signals = [
+                        "this content isn't available",
+                        "este contenido no está disponible",
+                        "this page isn't available",
+                        "esta página no está disponible",
+                        "the link you followed may be broken",
+                        "el enlace que seguiste puede estar roto",
+                    ]
+                    for signal in unavailable_signals:
+                        if signal in body:
+                            is_unavailable = True
+                            break
+
+                final_url = str(response.url).lower()
+                if "/login" in final_url:
+                    is_unavailable = True
+
+                if is_unavailable:
+                    continue
+
+                # Validation score: 200 is best, 400 (WAF) is uncertain
+                val_score = 2 if response.status_code == 200 else 1
+
+                # Slug quality score
+                slug_lower = slug.lower()
+                slug_score = 0
+                if "restaurantebar" in slug_lower:
+                    slug_score = 10
+                elif "restaurante" in slug_lower:
+                    slug_score = 8
+                elif "bar" in slug_lower and "pub" not in slug_lower:
+                    slug_score = 6
+                elif city_lower and city_lower in slug_lower:
+                    slug_score = 5
+                elif ".pub" in slug_lower:
+                    slug_score = 1
+                else:
+                    slug_score = 3
+
+                scored.append((val_score, slug_score, url))
+                logger.debug(f"Facebook candidate: {url} -> val={val_score}, slug={slug_score}, status={response.status_code}")
+
+            except Exception as e:
+                logger.debug(f"Facebook probe failed for {slug}: {e}")
+                continue
+
+        if not scored:
+            logger.warning(f"No valid Facebook page found for '{name}'")
+            return None
+
+        # Sort: highest validation score first, then highest slug score
+        scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
+        best = scored[0]
+        logger.info(f"Facebook best match: {best[2]} (val={best[0]}, slug={best[1]}, total candidates tested={len(unique_candidates)})")
+        return best[2]
+
+    async def _probe_instagram_handle(self, name: str, city: str) -> Optional[str]:
+        """Probe common Instagram handle patterns for a business."""
+        if not name:
+            return None
+
+        name_parts = name.split()
+        lower_joined = "".join(p.lower() for p in name_parts)
+        city_lower = city.replace(" ", "").lower() if city else ""
+
+        candidates = []
+        # Most common patterns for Colombian restaurants
+        if city_lower:
+            candidates.append(f"{lower_joined}{city_lower}")  # margaritapintapasto
+        candidates.append(lower_joined)  # margaritapinta
+        if city_lower:
+            candidates.append(f"{lower_joined}_{city_lower}")  # margaritapinta_pasto
+            candidates.append(f"{lower_joined}.{city_lower}")  # margaritapinta.pasto
+        candidates.append(f"{lower_joined}oficial")  # margaritapintaoficial
+        candidates.append(f"{lower_joined}_oficial")  # margaritapinta_oficial
+
+        logger.info(f"Instagram probing {len(candidates)} handles for '{name}': {candidates}")
+
+        for handle in candidates:
+            url = f"https://www.instagram.com/{handle}/"
+            try:
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                    "Accept-Language": "es-CO,es;q=0.9,en;q=0.8",
+                }
+                response = await self.http_client.get(url, headers=headers, follow_redirects=True)
+
+                if response.status_code == 200:
+                    body = response.text.lower()
+                    # Instagram 200 with "page not found" means profile doesn't exist
+                    if "page not found" in body or "página no encontrada" in body:
+                        continue
+                    # Check final URL didn't redirect to login/explore
+                    final = str(response.url).lower()
+                    if "/accounts/login" in final or "/explore/" in final:
+                        continue
+                    logger.info(f"Instagram found: {url}")
+                    return url
+                elif response.status_code == 404:
+                    continue
+            except Exception:
+                continue
+
+        logger.warning(f"No Instagram handle found for '{name}'")
+        return None
 
     async def _extract_whatsapp_business(
         self,
@@ -1023,7 +1547,7 @@ GOOGLE MAPS:
 - Types: {', '.join(maps_data.get('types', [])[:5])}
 
 WEB SEARCH:
-{json.dumps(web_data, indent=2)[:1000]}
+{json.dumps({k: v for k, v in web_data.items() if not k.startswith('_')}, indent=2, default=str)[:1000]}
 
 MENU:
 - {menu_data.get('total_items')} items found

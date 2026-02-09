@@ -279,6 +279,7 @@ export function DataUploadStep() {
                 key={`${file.name}-${index}`}
                 file={file}
                 compact={formData.menuFiles.length > 1}
+                extractionDelay={index * 8000}
                 onRemove={() => {
                   updateFormData({
                     menuFiles: formData.menuFiles.filter((_, i) => i !== index),
@@ -361,7 +362,7 @@ export function DataUploadStep() {
               <VideoInsightsPanel
                 key={`${file.name}-${index}`}
                 file={file}
-                autoAnalyze={false}
+                autoAnalyze={true}
                 compact={formData.videoFiles.length > 1}
                 onRemove={() => {
                   updateFormData({

@@ -210,7 +210,7 @@ export function WizardPage({ onSessionCreated }: WizardPageProps) {
       });
 
       // Create session
-      const response = await fetch(`/api/setup-wizard`, {
+      const response = await fetch(`/api/v1/business/setup-wizard`, {
         method: 'POST',
         body: formData,
       });
