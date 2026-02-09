@@ -324,7 +324,7 @@ export function VideoInsightsPanel({
           {/* Not analyzed yet */}
           {!analyzing && !result && !error && (
             <div className="text-center py-4">
-              <Button onClick={analyzeVideo} className="bg-purple-600 hover:bg-purple-700">
+              <Button onClick={() => analyzeVideo()} className="bg-purple-600 hover:bg-purple-700">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Analyze with Gemini 3
               </Button>

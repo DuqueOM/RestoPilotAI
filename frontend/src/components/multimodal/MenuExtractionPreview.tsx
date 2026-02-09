@@ -235,7 +235,7 @@ export function MenuExtractionPreview({
               <div className="p-4 bg-red-50 rounded-lg border border-red-200">
                 <p className="text-sm text-red-700 font-medium">Extraction Error</p>
                 <p className="text-xs text-red-600 mt-1">{error}</p>
-                <Button size="sm" variant="outline" onClick={extractMenu} className="mt-3">
+                <Button size="sm" variant="outline" onClick={() => extractMenu()} className="mt-3">
                   Retry
                 </Button>
               </div>
@@ -317,7 +317,7 @@ export function MenuExtractionPreview({
               <div className="text-center py-8">
                 <FileText className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-500">No items could be extracted</p>
-                <Button size="sm" variant="outline" onClick={extractMenu} className="mt-3">
+                <Button size="sm" variant="outline" onClick={() => extractMenu()} className="mt-3">
                   Try Again
                 </Button>
               </div>
