@@ -720,7 +720,7 @@ async def get_session(session_id: str):
         # Embed full orchestrator state for debug/advanced usage
         session["data"] = orch_state
 
-    sales_data = session.get("sales_data", [])
+    sales_data = session.get("sales_data") or []
     
     # Safe period calculation
     try:
@@ -742,7 +742,7 @@ async def get_session(session_id: str):
         "session_id": session_id,
         "created_at": session.get("created_at"),
         "status": session.get("status", "unknown"),
-        "menu_items_count": len(session.get("menu_items", [])),
+        "menu_items_count": len(session.get("menu_items") or []),
         "sales_records_count": len(sales_data),
         "has_bcg_analysis": bool(bcg),
         "has_predictions": bool(predictions),

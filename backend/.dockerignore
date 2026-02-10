@@ -1,0 +1,26 @@
+# Python
+__pycache__
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.ruff_cache/
+
+# Exclude ALL data/ (4.6GB of uploads, models, etc.)
+# Demo JSON files are copied to backend/demo_data/ before build
+data/
+
+# Testing
+.pytest_cache/
+tests/
+
+# IDE
+.idea/
+.vscode/
+
+# Misc
+*.log
+.env
