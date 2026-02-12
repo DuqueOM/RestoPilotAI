@@ -663,7 +663,25 @@ make demo           # Generate demo data
 
 ---
 
-## 📄 License
+## � Development Process & AI Transparency
+
+This project was developed using **AI-assisted tools** (Cursor / Windsurf Cascade) for code generation, boilerplate acceleration, and documentation drafting. All architectural decisions — including the agentic pipeline design, Gemini model selection, multi-agent debate patterns, frontend component architecture, and deployment strategy — were made by the author.
+
+AI tools were used as **accelerators, not replacements** for understanding — the same way senior engineers use code completion and documentation generators to increase throughput while retaining full ownership of design decisions.
+
+**What the author designed and decided:**
+- 17-stage orchestration pipeline architecture and checkpoint recovery strategy
+- Agent hierarchy (8 specialized agents) and their responsibility boundaries
+- Gemini 3 thinking level allocation per task type (cost/quality tradeoff)
+- Frontend component structure (90+ components, 7 custom hooks)
+- Google Search grounding integration and auto-citation strategy
+- Context caching strategy for cost optimization (75% reduction)
+- BCG matrix classification logic and menu engineering calculations
+- Cloud Run deployment architecture (frontend + backend split)
+
+---
+
+## �📄 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
@@ -671,7 +689,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 ## 👥 Team
 
-**RestoPilotAI Team** — Built with ❤️ for the Gemini 3 Hackathon
+**[Duque Ortega Mutis (DuqueOM)](https://github.com/DuqueOM)** — Built with ❤️ for the Gemini 3 Hackathon
 
 ---
 
