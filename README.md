@@ -663,7 +663,7 @@ make demo           # Generate demo data
 
 ---
 
-## � Development Process & AI Transparency
+## 🔧 Development Process & AI Transparency
 
 This project was developed using **AI-assisted tools** (Cursor / Windsurf Cascade) for code generation, boilerplate acceleration, and documentation drafting. All architectural decisions — including the agentic pipeline design, Gemini model selection, multi-agent debate patterns, frontend component architecture, and deployment strategy — were made by the author.
 
@@ -681,7 +681,7 @@ AI tools were used as **accelerators, not replacements** for understanding — t
 
 ---
 
-## �📄 License
+## � License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
